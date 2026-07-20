@@ -1,0 +1,95 @@
+{
+  "name": "QRTags — Gestion d'objets perdus",
+  "short_name": "QRTags",
+  "description": "QRTags — SaaS de gestion d'objets perdus pour entreprises. QR codes multi-métiers, traçabilité, et contact WhatsApp WAME.",
+  "start_url": "/?from=pwa",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#E3B23C",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["business", "utilities", "productivity"],
+  "lang": "fr",
+  "dir": "auto",
+  "shortcuts": [
+    {
+      "name": "Suivre mon objet",
+      "short_name": "Suivi",
+      "description": "Voir le suivi de votre objet QRTags",
+      "url": "/?from=pwa"
+    },
+    {
+      "name": "Activer un tag",
+      "short_name": "Activer",
+      "description": "Activer un nouveau tag QRTags",
+      "url": "/inscrire"
+    }
+  ],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

@@ -1,0 +1,69 @@
+# ════════════════════════════════════════════════════════════════════
+# QRTags — docker-compose.yml pour Coolify
+#
+# Coolify détecte automatiquement ce fichier et l'utilise pour build
+# l'application. Les variables ${...} sont résolues depuis les
+# "Environment Variables" configurées dans Coolify.
+# ════════════════════════════════════════════════════════════════════
+
+services:
+  qrtags:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qrtags
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # ─── Core ───
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - DATABASE_URL=file:/app/data/qrtags.db
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-me-in-prod-32-chars-min}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-change-me-in-prod-32-chars-min}
+
+      # ─── QRTags métier ───
+      # Superadmin par défaut (créé au 1er démarrage par create-admin.cjs)
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@qrtags.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+
+      # ─── WhatsApp WAME (seul canal de notification autorisé) ───
+      # Pas de config nécessaire — WAME est click-to-chat (https://wa.me/)
+
+      # ─── Feature flags ───
+      - NEXT_PUBLIC_FEATURE_MULTILINGUAL=true
+
+      # ─── Cron (backup DB) ───
+      - CRON_BACKUP_ENABLED=${CRON_BACKUP_ENABLED:-true}
+      - CRON_BACKUP_SECRET=${CRON_BACKUP_SECRET:-qrtags-backup-secret}
+
+      # ─── Optionnel : AI (Groq) ───
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    volumes:
+      # DB SQLite + backups
+      - qrtags_data:/app/data
+      # Uploads (photos de dommages, etc.)
+      - qrtags_uploads:/app/public/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - qrtags-net
+
+volumes:
+  qrtags_data:
+    driver: local
+  qrtags_uploads:
+    driver: local
+
+networks:
+  qrtags-net:
+    driver: bridge

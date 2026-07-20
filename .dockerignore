@@ -1,0 +1,92 @@
+# ════════════════════════════════════════════════════════════════════
+# QRTags — .dockerignore
+# Exclut les fichiers non nécessaires au build Docker.
+# ════════════════════════════════════════════════════════════════════
+
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+.pnpm-store
+
+# Build artifacts (seront reconstruits dans Docker)
+.next
+out
+dist
+build
+*.tsbuildinfo
+
+# Tests
+__tests__
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage
+.nyc_output
+
+# IDE & OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker (éviter récursion)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Docs & logs
+*.md
+!README.md
+!DEPLOYMENT.md
+*.log
+logs
+dev.log
+dev-server.log
+dev-server-live.log
+
+# Env files (Coolify fournit ses propres variables)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Database (recréée au runtime)
+db/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Scripts de dev (non requis en prod)
+scripts/test-*.ts
+scripts/test-*.sh
+scripts/seed-users.ts
+
+# Mini-services séparés
+mini-services/
+
+# Examples
+examples/
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Misc
+worklog.md
+.start.sh
+Caddyfile
+nixpacks.toml

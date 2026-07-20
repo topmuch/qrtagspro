@@ -1,0 +1,45 @@
+# ════════════════════════════════════════════════════════════════════
+# QRTags — nixpacks.toml pour Coolify
+#
+# ⚠️ IMPORTANT: Coolify utilise nixpacks (PAS le Dockerfile) pour builder.
+# Ce fichier EST UTILISÉ par Coolify.
+#
+# Notes:
+# - bun.lock a été supprimé pour forcer npm (bun a des problèmes avec
+#   lightningcss-linux-x64-gnu tarball extraction)
+# - Le start cmd lance prisma db push + le script de migration Node.js
+#   AVANT node server.js pour garantir que toutes les colonnes QRTags
+#   existent en DB
+# ════════════════════════════════════════════════════════════════════
+
+[phases.setup]
+nixPkgs = ['nodejs_20', 'openssl']
+aptPkgs = ['sqlite3', 'ca-certificates']
+
+[phases.install]
+# IMPORTANT: utiliser npm, pas bun (bun a des problèmes avec lightningcss)
+cmds = [
+  'npm install --legacy-peer-deps --no-audit --no-fund'
+]
+
+[phases.build]
+cmds = [
+  'npx prisma generate',
+  'npm run build'
+]
+dependsOn = ['install']
+
+[start]
+# ÉTAPES (séparées par ; pour continuer même si une échoue):
+# 1. mkdir -p /app/data — crée le répertoire DB
+# 2. npx prisma db push — crée/met à jour le schéma DB
+# 3. node scripts/migrate-qrtags-columns.cjs — migration idempotente (backup)
+# 4. node server.js — démarre le serveur Next.js standalone
+cmd = 'mkdir -p /app/data /app/data/backups /app/public/uploads/damage && npx prisma db push --skip-generate --accept-data-loss 2>&1; node scripts/migrate-qrtags-columns.cjs 2>&1; node server.js'
+
+[variables]
+NODE_ENV = 'production'
+NEXT_TELEMETRY_DISABLED = '1'
+PORT = '3000'
+HOSTNAME = '0.0.0.0'
+DATABASE_URL = 'file:/app/data/qrtags.db'
