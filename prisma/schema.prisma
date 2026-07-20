@@ -70,6 +70,8 @@ model Agency {
   email              String?
   phone              String?
   address            String?
+  // QRTagsPro V1 — WhatsApp reception phone (used by finder scan → wa.me click-to-chat)
+  contactPhone       String?
   agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "generic"
   active             Boolean   @default(true)
   createdAt          DateTime  @default(now())
@@ -93,6 +95,8 @@ model Baggage {
   status            String    @default("in_stock")
   createdAt         DateTime  @default(now())
   expiresAt         DateTime?
+  // QRTagsPro V1 — Hotel check-out date (used by cron job for auto-expire)
+  departureDate     DateTime?
   lastScanDate      DateTime?
   lastLocation      String?
   declaredLostAt    DateTime?

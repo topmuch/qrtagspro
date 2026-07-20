@@ -25,6 +25,14 @@ const BAGGAGE_COLUMNS = [
   ['isLost',           'INTEGER NOT NULL DEFAULT 0'],
   ['lostReportedAt',   'DATETIME'],
   ['lostMessage',      'TEXT'],
+  // QRTagsPro V1 — Hotel check-out date (used by cron job for auto-expire)
+  ['departureDate',    'DATETIME'],
+];
+
+// Columns to ensure exist in Agency table
+// QRTagsPro V1 — WhatsApp reception phone (finder scan → wa.me click-to-chat)
+const AGENCY_COLUMNS = [
+  ['contactPhone', 'TEXT'],
 ];
 
 // Superadmin credentials (bcrypt hash for "admin123")
@@ -147,9 +155,23 @@ async function main() {
       await ensureColumn(prisma, 'Baggage', col, def);
     }
 
+    // 2b. Ensure Agency columns (QRTagsPro V1 — contactPhone)
+    const hasAgency = await tableExists(prisma, 'Agency');
+    if (hasAgency) {
+      console.log('✓ Table Agency exists');
+      console.log('Ensuring Agency columns...');
+      for (const [col, def] of AGENCY_COLUMNS) {
+        await ensureColumn(prisma, 'Agency', col, def);
+      }
+    } else {
+      console.log('⚠ Table Agency does not exist — skipping Agency columns');
+    }
+
     // 3. Ensure index on trackingToken
     console.log('Ensuring indexes...');
     await ensureIndex(prisma, 'idx_baggage_trackingToken', 'Baggage', 'trackingToken');
+    // QRTagsPro V1 — Index on departureDate for efficient cron auto-expire queries
+    await ensureIndex(prisma, 'idx_baggage_departureDate', 'Baggage', 'departureDate');
 
     // 4. Ensure superadmin exists with correct password
     console.log('Ensuring superadmin...');

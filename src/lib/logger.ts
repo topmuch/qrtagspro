@@ -1,12 +1,45 @@
 /**
- * Centralized logger for QRTags monitoring.
+ * Centralized logger for QRTagsPro monitoring.
  * Writes to console (sync) + database (async fire-and-forget).
+ *
+ * V1: inlined `logMetric` (logger-metrics.ts was deleted in Phase 1 cleanup).
  */
-
-import { logMetric } from './logger-metrics';
 
 // ─── Types ───
 type LogLevel = 'info' | 'warn' | 'error' | 'fatal';
+
+type MetricService =
+  | 'groq'
+  | 'wakit'
+  | 'whatsapp'
+  | 'suivi'
+  | 'baggage-status'
+  | 'qrtags'
+  | 'activate'
+  | 'scan';
+
+interface MetricOptions {
+  key?: string;
+  details?: string;
+}
+
+/**
+ * Lightweight metric logger (V1 stub — previously in logger-metrics.ts).
+ * Logs a single structured line to stdout. Kept for backward compatibility
+ * with API routes that still call `logMetric(...)` (e.g. /api/baggage-status).
+ */
+export function logMetric(
+  service: MetricService,
+  action: string,
+  latencyMs: number,
+  success: boolean,
+  options?: MetricOptions,
+): void {
+  const icon = success ? '✅' : '❌';
+  const keyPart = options?.key ? ` [key=${options.key}]` : '';
+  const detailsPart = options?.details ? ` [${options.details}]` : '';
+  console.log(`[${service}/${action}] ${icon} ${latencyMs}ms${keyPart}${detailsPart}`);
+}
 
 interface LogEntry {
   level: LogLevel;
@@ -105,4 +138,4 @@ export const log = {
 };
 
 // ─── Re-export logMetric for backward compatibility ───
-export { logMetric } from './logger-metrics';
+// (Already exported above as a top-level function in V1.)

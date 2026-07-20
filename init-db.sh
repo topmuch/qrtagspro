@@ -66,10 +66,12 @@ fi
 # ════════════════════════════════════════════════════════════════════
 if [ -f "$DB_FILE" ]; then
   echo "📊 Vérification finale..."
-  COL_COUNT=$(sqlite3 "$DB_FILE" "PRAGMA table_info(Baggage);" 2>/dev/null | grep -c "trackingToken\|trackingEnabled\|scanCount\|isLost\|customData" || echo "0")
-  echo "  Colonnes QRTags: $COL_COUNT / 5"
-  if [ "$COL_COUNT" -lt 5 ]; then
-    echo "❌ Colonnes toujours manquantes après migration"
+  COL_COUNT=$(sqlite3 "$DB_FILE" "PRAGMA table_info(Baggage);" 2>/dev/null | grep -c "trackingToken\|trackingEnabled\|scanCount\|isLost\|customData\|departureDate" || echo "0")
+  echo "  Colonnes QRTags (Baggage): $COL_COUNT / 6"
+  AGENCY_COL=$(sqlite3 "$DB_FILE" "PRAGMA table_info(Agency);" 2>/dev/null | grep -c "contactPhone" || echo "0")
+  echo "  Colonne QRTagsPro V1 (Agency.contactPhone): $AGENCY_COL / 1"
+  if [ "$COL_COUNT" -lt 6 ]; then
+    echo "❌ Colonnes Baggage toujours manquantes après migration"
     echo "  Vérifie les logs ci-dessus pour le détail"
   fi
 fi
