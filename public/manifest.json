@@ -1,11 +1,11 @@
 {
-  "name": "QRTags — Gestion d'objets perdus",
-  "short_name": "QRTags",
-  "description": "QRTags — SaaS de gestion d'objets perdus pour entreprises. QR codes multi-métiers, traçabilité, et contact WhatsApp WAME.",
+  "name": "QRTagsPro — Gestion d'objets perdus B2B",
+  "short_name": "QRTagsPro",
+  "description": "QRTagsPro — Plateforme SaaS de gestion d'objets perdus pour entreprises. QR codes multi-métiers, check-in, et contact WhatsApp.",
   "start_url": "/?from=pwa",
   "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#E3B23C",
+  "background_color": "#134288",
+  "theme_color": "#134288",
   "orientation": "portrait-primary",
   "scope": "/",
   "prefer_related_applications": false,
@@ -76,16 +76,16 @@
   "dir": "auto",
   "shortcuts": [
     {
-      "name": "Suivre mon objet",
-      "short_name": "Suivi",
-      "description": "Voir le suivi de votre objet QRTags",
-      "url": "/?from=pwa"
+      "name": "Connexion agence",
+      "short_name": "Agence",
+      "description": "Espace agence QRTagsPro",
+      "url": "/agence/connexion"
     },
     {
-      "name": "Activer un tag",
-      "short_name": "Activer",
-      "description": "Activer un nouveau tag QRTags",
-      "url": "/inscrire"
+      "name": "Démo interactive",
+      "short_name": "Démo",
+      "description": "Tester QRTagsPro en temps réel",
+      "url": "/demo"
     }
   ],
   "handle_links": "preferred",
