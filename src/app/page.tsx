@@ -31,42 +31,42 @@ const CTA_DEMO_SUBJECT = 'Demande de démo QRTagsPro';
 
 const METIERS = [
   {
-    icon: <Hotel className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
     title: 'Hôtels',
     description: 'Étiquetez les bagages de vos clients dès le check-in. Contact direct avec votre réception en cas de perte.',
     badge: 'Disponible',
     color: '#134288',
   },
   {
-    icon: <GraduationCap className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&h=300&fit=crop',
     title: 'Écoles',
     description: 'Identifiez cartables et uniformes des élèves. Contact automatique des parents en cas de perte.',
     badge: 'Disponible',
     color: '#32ba5d',
   },
   {
-    icon: <Stethoscope className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&h=300&fit=crop',
     title: 'Cliniques',
     description: 'Étiquetez les effets personnels des patients. Contact d\'urgence prévenu automatiquement.',
     badge: 'Disponible',
     color: '#134288',
   },
   {
-    icon: <Car className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop',
     title: 'Loueurs auto',
     description: 'Traçabilité des clés, documents et équipements. Contact direct du locataire.',
     badge: 'Disponible',
     color: '#32ba5d',
   },
   {
-    icon: <Luggage className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1551632436-cbf8dd9ad7f7?w=400&h=300&fit=crop',
     title: 'Consignes',
     description: 'Étiquetage des bagages en consigne. Suivi par casier avec retrait programmé.',
     badge: 'Disponible',
     color: '#134288',
   },
   {
-    icon: <Briefcase className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=300&fit=crop',
     title: 'Autres métiers',
     description: 'Spa, gym, entreprise, événements... Créez votre métier sur-mesure sans coder.',
     badge: 'Sur devis',
@@ -210,7 +210,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       {/* ═══ HEADER ═══ */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <QRTagsLogo size="sm" href="/" withHover />
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
@@ -247,7 +247,7 @@ export default function HomePage() {
           }}
         />
 
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+        <div className="relative max-w-[1600px] mx-auto px-4 md:px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#32ba5d]/20 border border-[#32ba5d]/40 mb-6">
               <Sparkles className="w-3.5 h-3.5 text-[#32ba5d]" />
@@ -378,7 +378,7 @@ export default function HomePage() {
 
       {/* ═══ COMMENT ÇA MARCHE ═══ */}
       <section id="how" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">
               Comment ça marche ?
@@ -412,7 +412,7 @@ export default function HomePage() {
 
       {/* ═══ MÉTIERS ═══ */}
       <section id="metiers" className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">
               Une solution par métier
@@ -426,25 +426,32 @@ export default function HomePage() {
             {METIERS.map((m, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-[#32ba5d] hover:shadow-lg transition-all group"
+                className="bg-white rounded-2xl overflow-hidden border-2 border-slate-200 hover:border-[#32ba5d] hover:shadow-lg transition-all group"
               >
-                <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center text-white mb-4"
-                  style={{ backgroundColor: m.color }}
-                >
-                  {m.icon}
+                {/* Image réelle */}
+                <div className="relative h-44 overflow-hidden">
+                  <img
+                    src={m.image}
+                    alt={m.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-white drop-shadow-lg">{m.title}</h3>
+                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                      m.badge === 'Disponible'
+                        ? 'bg-[#32ba5d] text-white'
+                        : 'bg-slate-200 text-slate-600'
+                    }`}>
+                      {m.badge}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-bold text-slate-900">{m.title}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                    m.badge === 'Disponible'
-                      ? 'bg-[#32ba5d]/15 text-[#28a54f]'
-                      : 'bg-slate-200 text-slate-600'
-                  }`}>
-                    {m.badge}
-                  </span>
+                {/* Description */}
+                <div className="p-5">
+                  <p className="text-sm text-slate-600 leading-relaxed">{m.description}</p>
                 </div>
-                <p className="text-sm text-slate-600">{m.description}</p>
               </div>
             ))}
           </div>
@@ -453,7 +460,7 @@ export default function HomePage() {
 
       {/* ═══ AVANTAGES ═══ */}
       <section id="avantages" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">
               Pourquoi QRTagsPro ?
@@ -703,6 +710,75 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ═══ RGPD / CONFIDENTIALITÉ ═══ */}
+      <section className="py-12 bg-slate-100 border-t border-slate-200">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
+          <div className="bg-white rounded-2xl p-6 border-2 border-slate-200 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#134288] flex items-center justify-center">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-slate-900 mb-2">
+                  🔒 Protection des données — RGPD
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed mb-3">
+                  QRTagsPro s'engage à protéger les données personnelles de vos clients conformément
+                  au Règlement Général sur la Protection des Données (RGPD). Voici nos engagements :
+                </p>
+                <div className="grid md:grid-cols-4 gap-4 mt-4">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <CheckCircle2 className="w-5 h-5 text-[#32ba5d] mb-2" />
+                    <p className="text-xs font-bold text-slate-900">Confidentialité trouveur</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Le trouveur ne voit jamais les coordonnées du client (nom, chambre, téléphone).
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <CheckCircle2 className="w-5 h-5 text-[#32ba5d] mb-2" />
+                    <p className="text-xs font-bold text-slate-900">Opt-in explicite</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Le contact direct client après séjour nécessite l'accord explicite du client.
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <CheckCircle2 className="w-5 h-5 text-[#32ba5d] mb-2" />
+                    <p className="text-xs font-bold text-slate-900">Données chiffrées</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Toutes les données sensibles sont chiffrées en base (bcrypt, AES-256).
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <CheckCircle2 className="w-5 h-5 text-[#32ba5d] mb-2" />
+                    <p className="text-xs font-bold text-slate-900">Suppression auto</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Les données de démo sont supprimées après 2h. Les QR expirés sont archivés.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                  <a href="/confidentialite" className="text-[#134288] font-semibold hover:underline">
+                    Politique de confidentialité
+                  </a>
+                  <span className="text-slate-300">|</span>
+                  <a href="/cgu" className="text-[#134288] font-semibold hover:underline">
+                    Conditions d'utilisation
+                  </a>
+                  <span className="text-slate-300">|</span>
+                  <a href="/mentions-legales" className="text-[#134288] font-semibold hover:underline">
+                    Mentions légales
+                  </a>
+                  <span className="text-slate-300">|</span>
+                  <a href="mailto:rgpd@qrtagspro.com" className="text-[#134288] font-semibold hover:underline">
+                    Contact DPO : rgpd@qrtagspro.com
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ PARTENAIRES ═══ */}
       <section className="py-16 bg-white border-t border-slate-200">
         <div className="max-w-5xl mx-auto px-4 md:px-6 text-center">
@@ -743,7 +819,7 @@ export default function HomePage() {
 
       {/* ═══ FOOTER ═══ */}
       <footer className="bg-[#0d3266] text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <QRTagsLogo size="md" />
