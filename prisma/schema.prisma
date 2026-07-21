@@ -546,6 +546,20 @@ model Checklist {
   @@index([createdAt])
 }
 
+// QRTagsPro V4 — Demo interactive (bac à sable)
+// Données supprimées automatiquement après 2 heures via cron
+model DemoScan {
+  id            String   @id @default(cuid())
+  reference     String   @default("DEMO-TEST")
+  finderName    String
+  finderPhone   String
+  location      String?
+  mapsLink      String?
+  message       String?
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+}
+
 // Review model - user reviews/testimonials for social proof
 model Review {
   id          String   @id @default(cuid())

@@ -153,7 +153,7 @@ export default function HomePage() {
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
             <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
-            <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
+            <Link href="/demande-demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link
@@ -199,7 +199,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/demo"
+                href="/demande-demo"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-[#32ba5d] text-white font-bold rounded-lg hover:bg-[#28a54f] hover:-translate-y-0.5 transition-all shadow-lg"
               >
                 Demander une démo
@@ -562,7 +562,7 @@ export default function HomePage() {
                 Demandez une démo gratuite. Découvrez QRTagsPro adapté à votre métier.
               </p>
               <Link
-                href="/demo"
+                href="/demande-demo"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#134288] text-sm font-bold rounded-lg hover:bg-blue-50 transition"
               >
                 Demander une démo

@@ -134,7 +134,7 @@ export default function MetiersPage() {
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
             <Link href="/metiers" className="text-[#134288]">Métiers</Link>
             <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
-            <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
+            <Link href="/demande-demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <Link
             href="/agence/connexion"
@@ -228,7 +228,7 @@ export default function MetiersPage() {
             Définissez vos champs, votre message WhatsApp, vos labels de dashboard.
           </p>
           <Link
-            href="/demo"
+            href="/demande-demo"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#32ba5d] text-white font-bold rounded-lg hover:bg-[#28a54f] hover:-translate-y-0.5 transition-all shadow-lg"
           >
             Demander une démo

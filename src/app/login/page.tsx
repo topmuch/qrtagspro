@@ -134,7 +134,7 @@ export default function LoginPage() {
 
           {/* Demande de démo */}
           <Link
-            href="/demo"
+            href="/demande-demo"
             className="block text-center text-sm text-slate-600 hover:text-[#134288] transition"
           >
             Pas encore client ?{' '}

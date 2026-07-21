@@ -102,7 +102,7 @@ export default function HowItWorksPage() {
             <Link href="/comment-ca-marche" className="text-[#134288]">Comment ça marche</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
             <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
-            <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
+            <Link href="/demande-demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <Link
             href="/agence/connexion"
@@ -191,7 +191,7 @@ export default function HowItWorksPage() {
             Demandez une démo gratuite et découvrez QRTagsPro adapté à votre métier.
           </p>
           <Link
-            href="/demo"
+            href="/demande-demo"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#32ba5d] text-white font-bold rounded-lg hover:bg-[#28a54f] hover:-translate-y-0.5 transition-all shadow-lg"
           >
             Demander une démo

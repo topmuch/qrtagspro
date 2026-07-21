@@ -59,6 +59,19 @@ const CUSTOM_TYPE_INDEXES = [
   ['idx_customtype_key', 'CustomAgencyType', 'key'],
 ];
 
+// QRTagsPro V4 — DemoScan table (bac à sable, données supprimées après 2h)
+const DEMO_SCAN_COLUMNS = [
+  ['id',            'TEXT NOT NULL PRIMARY KEY'],
+  ['reference',     "TEXT NOT NULL DEFAULT 'DEMO-TEST'"],
+  ['finderName',    'TEXT NOT NULL'],
+  ['finderPhone',   'TEXT NOT NULL'],
+  ['location',      'TEXT'],
+  ['mapsLink',      'TEXT'],
+  ['message',       'TEXT'],
+  ['createdAt',     'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+  ['expiresAt',     'DATETIME NOT NULL'],
+];
+
 // Superadmin credentials (bcrypt hash for "admin123")
 const SUPERADMIN_ID = 'admin-001';
 const SUPERADMIN_EMAIL = 'admin@qrtags.com';
@@ -227,6 +240,28 @@ async function main() {
         if (col === 'id' || col === 'key') continue;
         await ensureColumn(prisma, 'CustomAgencyType', col, def);
       }
+    }
+
+    // 2d. Ensure DemoScan table exists (QRTagsPro V4 — bac à sable démo)
+    const hasDemoScan = await tableExists(prisma, 'DemoScan');
+    if (!hasDemoScan) {
+      console.log('  + Creating table DemoScan...');
+      await prisma.$executeRawUnsafe(
+        `CREATE TABLE "DemoScan" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "reference" TEXT NOT NULL DEFAULT 'DEMO-TEST',
+          "finderName" TEXT NOT NULL,
+          "finderPhone" TEXT NOT NULL,
+          "location" TEXT,
+          "mapsLink" TEXT,
+          "message" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "expiresAt" DATETIME NOT NULL
+        );`
+      );
+      console.log('  ✓ Table DemoScan created');
+    } else {
+      console.log('✓ Table DemoScan exists');
     }
 
     // 3. Ensure indexes
