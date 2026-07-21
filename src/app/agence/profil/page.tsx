@@ -15,9 +15,9 @@ import {
 import { useAgency } from '../layout';
 import { AGENCY_TYPES, getAgencyTypeDef } from '@/lib/agency-types';
 
-// ─── Brand constants (QRTags palette: blue #111111 + yellow #E3B23C) ───
+// ─── Brand constants (QRTags palette: blue #111111 + yellow #32ba5d) ───
 const BRAND = '#111111';   // bleu vif — boutons primaires
-const ACCENT = '#E3B23C';  // jaune vif — cards
+const ACCENT = '#32ba5d';  // jaune vif — cards
 const INK = '#1a1a1a';     // noir — texte sur jaune
 
 export default function ProfilPage() {

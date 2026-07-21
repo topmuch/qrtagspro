@@ -28,9 +28,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const INPUT =
-  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-black text-black ' +
-  'placeholder-gray-400 focus:outline-none focus:border-[#E3B23C] ' +
-  'focus:ring-2 focus:ring-[#E3B23C] transition';
+  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-[#134288] text-black ' +
+  'placeholder-gray-400 focus:outline-none focus:border-[#32ba5d] ' +
+  'focus:ring-2 focus:ring-[#32ba5d] transition';
 
 interface Props {
   reference: string;
@@ -119,8 +119,8 @@ export default function MedicalCheckInForm({ reference, agencyId, onBack, onSucc
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl space-y-4">
-      <div className="flex items-center justify-between p-3 rounded-xl bg-black/5 border-2 border-black/20 mb-2">
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-xl space-y-4">
+      <div className="flex items-center justify-between p-3 rounded-xl bg-black/5 border-2 border-[#134288]/20 mb-2">
         <div>
           <p className="text-xs text-slate-500 font-medium">Référence QR</p>
           <p className="font-mono font-bold text-black">{reference}</p>
@@ -128,7 +128,7 @@ export default function MedicalCheckInForm({ reference, agencyId, onBack, onSucc
         <button
           type="button"
           onClick={onBack}
-          className="text-xs px-3 py-1.5 rounded-lg bg-white border border-black/20 hover:bg-black/5 transition flex items-center gap-1"
+          className="text-xs px-3 py-1.5 rounded-lg bg-white border border-[#134288]/20 hover:bg-black/5 transition flex items-center gap-1"
         >
           <RotateCcw className="w-3 h-3" />
           Changer
@@ -205,7 +205,7 @@ export default function MedicalCheckInForm({ reference, agencyId, onBack, onSucc
       </div>
 
       {/* Contact d'urgence */}
-      <div className="pt-3 border-t-2 border-black/10">
+      <div className="pt-3 border-t-2 border-[#134288]/10">
         <h3 className="text-sm font-bold text-black mb-3 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" />
           Contact d&apos;urgence (famille)
@@ -241,7 +241,7 @@ export default function MedicalCheckInForm({ reference, agencyId, onBack, onSucc
       </div>
 
       {/* Dates admission / sortie */}
-      <div className="pt-3 border-t-2 border-black/10">
+      <div className="pt-3 border-t-2 border-[#134288]/10">
         <h3 className="text-sm font-bold text-black mb-3 flex items-center gap-2">
           <CalendarDays className="w-4 h-4" />
           Séjour
@@ -290,8 +290,8 @@ export default function MedicalCheckInForm({ reference, agencyId, onBack, onSucc
       </div>
 
       {/* Info: expiration */}
-      <div className="flex items-start gap-3 p-3 rounded-xl bg-[#E3B23C]/15 border-2 border-[#E3B23C]/40 text-sm text-black">
-        <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#111111]" />
+      <div className="flex items-start gap-3 p-3 rounded-xl bg-[#32ba5d]/15 border-2 border-[#32ba5d]/40 text-sm text-black">
+        <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#134288]" />
         <p>
           Le QR sera actif jusqu&apos;au <strong>{computeDischargeInfo()}</strong>.
           Le trouveur contactera la clinique (pas le patient directement). La clinique
@@ -303,7 +303,7 @@ export default function MedicalCheckInForm({ reference, agencyId, onBack, onSucc
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-black text-[#E3B23C] text-sm font-semibold border-2 border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#134288] text-white text-sm font-semibold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {submitting ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Check-in…</>

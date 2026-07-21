@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 
 // ─── Design tokens ──────────────────────────────────────────────────
 const INPUT_CLASS =
-  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-black text-black placeholder-gray-400 focus:outline-none focus:border-[#E3B23C] focus:ring-2 focus:ring-[#E3B23C] transition';
+  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-[#134288] text-black placeholder-gray-400 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d] transition';
 
 interface Agency {
   id: string;
@@ -165,7 +165,7 @@ export default function GenererQRPage() {
           width: 512,
           color: {
             dark: '#111111', // QR en noir
-            light: '#E3B23C', // fond jaune moutarde
+            light: '#32ba5d', // fond jaune moutarde
           },
         });
 
@@ -224,7 +224,7 @@ export default function GenererQRPage() {
       </div>
 
       {/* ─── Carte: Formulaire de génération ─── */}
-      <div className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl space-y-5">
+      <div className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-xl space-y-5">
         <h2 className="text-lg font-bold text-black flex items-center gap-2">
           <Sparkles className="w-5 h-5" />
           Nouveau lot de QR codes
@@ -269,7 +269,7 @@ export default function GenererQRPage() {
 
         {/* Infos agence sélectionnée */}
         {selectedAgency && (
-          <div className="p-4 rounded-xl bg-[#E3B23C]/15 border-2 border-[#E3B23C]/40 text-sm">
+          <div className="p-4 rounded-xl bg-[#32ba5d]/15 border-2 border-[#32ba5d]/40 text-sm">
             <p className="font-bold text-black mb-2">
               {AGENCY_TYPE_LABELS[selectedAgency.agencyType || 'generic'] || '💼'} {selectedAgency.name}
             </p>
@@ -321,8 +321,8 @@ export default function GenererQRPage() {
               onClick={() => setQuantity(q)}
               className={`px-3 py-1.5 rounded-lg text-sm font-semibold border-2 transition ${
                 quantity === q
-                  ? 'bg-black text-[#E3B23C] border-black'
-                  : 'bg-white text-black border-black/20 hover:bg-black/5'
+                  ? 'bg-[#134288] text-white border-[#134288]'
+                  : 'bg-white text-black border-[#134288]/20 hover:bg-black/5'
               }`}
             >
               {q}
@@ -335,7 +335,7 @@ export default function GenererQRPage() {
           type="button"
           onClick={handleGenerate}
           disabled={generating || !selectedAgencyId || quantity < 1}
-          className="w-full py-4 rounded-xl bg-black text-[#E3B23C] font-bold border-2 border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-xl bg-[#134288] text-white font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {generating ? (
             <>
@@ -353,7 +353,7 @@ export default function GenererQRPage() {
 
       {/* ─── Résultat de la génération ─── */}
       {lastResult && lastResult.success && (
-        <div className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl space-y-4">
+        <div className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-xl space-y-4">
           <div className="flex items-start gap-3">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 flex-shrink-0">
               <CheckCircle2 className="w-7 h-7 text-green-600" />
@@ -375,12 +375,12 @@ export default function GenererQRPage() {
               <p className="text-xs font-semibold text-black/70 mb-2">
                 RÉFÉRENCES GÉNÉRÉES ({lastResult.references.length})
               </p>
-              <div className="max-h-48 overflow-y-auto bg-gray-50 rounded-xl p-3 border-2 border-black/10">
+              <div className="max-h-48 overflow-y-auto bg-gray-50 rounded-xl p-3 border-2 border-[#134288]/10">
                 <div className="flex flex-wrap gap-1.5">
                   {lastResult.references.slice(0, 200).map(ref => (
                     <span
                       key={ref}
-                      className="px-2 py-1 bg-white border border-black/20 rounded font-mono text-xs text-black"
+                      className="px-2 py-1 bg-white border border-[#134288]/20 rounded font-mono text-xs text-black"
                     >
                       {ref}
                     </span>
@@ -401,7 +401,7 @@ export default function GenererQRPage() {
               type="button"
               onClick={handleExportPng}
               disabled={exporting}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#E3B23C] text-black font-bold border-2 border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#32ba5d] text-white font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {exporting ? (
                 <>
@@ -418,7 +418,7 @@ export default function GenererQRPage() {
             <button
               type="button"
               onClick={() => setLastResult(null)}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-black font-bold border-2 border-black hover:-translate-y-0.5 transition-transform"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-black font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform"
             >
               <RefreshCw className="w-4 h-4" />
               Nouveau lot
@@ -435,26 +435,26 @@ export default function GenererQRPage() {
       )}
 
       {/* ─── Info: comment ça marche ─── */}
-      <div className="bg-white rounded-2xl p-6 border-2 border-black/20 shadow-md">
+      <div className="bg-white rounded-2xl p-6 border-2 border-[#134288]/20 shadow-md">
         <h3 className="text-base font-bold text-black mb-3 flex items-center gap-2">
           <AlertCircle className="w-4 h-4" />
           Comment ça marche ?
         </h3>
         <ol className="space-y-2 text-sm text-black/80">
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-black text-[#E3B23C] flex items-center justify-center text-xs font-bold">1</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#134288] text-white flex items-center justify-center text-xs font-bold">1</span>
             <span>Le superadmin sélectionne une agence et génère un lot de QR (ex: 500 QR pour un hôtel).</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-black text-[#E3B23C] flex items-center justify-center text-xs font-bold">2</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#134288] text-white flex items-center justify-center text-xs font-bold">2</span>
             <span>Les QR sont créés en statut « en stock » et assignés à l&apos;agence.</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-black text-[#E3B23C] flex items-center justify-center text-xs font-bold">3</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#134288] text-white flex items-center justify-center text-xs font-bold">3</span>
             <span>Téléchargez les PNG et imprimez-les sur des stickers à poser sur les bagages/effets des clients.</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-black text-[#E3B23C] flex items-center justify-center text-xs font-bold">4</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#134288] text-white flex items-center justify-center text-xs font-bold">4</span>
             <span>L&apos;agence voit le stock dans son dashboard et fait le check-in client par client via <code className="bg-gray-100 px-1 rounded">/agence/check-in</code>.</span>
           </li>
         </ol>

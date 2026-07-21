@@ -290,7 +290,7 @@ export default function AdminLoginPage() {
     .join('');
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#111111] overflow-hidden">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#134288] overflow-hidden">
       {/* ════════════════════════════════════════════════════════
           LEFT PANEL — "Midnight Command Center" (desktop only)
           ════════════════════════════════════════════════════════ */}
@@ -474,7 +474,7 @@ export default function AdminLoginPage() {
       {/* ════════════════════════════════════════════════════════
           RIGHT PANEL — DARK MODE FORM
           ════════════════════════════════════════════════════════ */}
-      <div className="w-full lg:w-[48%] min-h-screen flex items-center justify-center bg-[#111111] px-6 py-12 sm:px-10 relative">
+      <div className="w-full lg:w-[48%] min-h-screen flex items-center justify-center bg-[#134288] px-6 py-12 sm:px-10 relative">
         {/* Subtle right-side background treatment */}
         <div className="absolute inset-0">
           <div

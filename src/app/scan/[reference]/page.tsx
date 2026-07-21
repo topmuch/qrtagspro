@@ -32,14 +32,17 @@ import {
 } from 'lucide-react';
 import QRTagsLogo from '@/components/qrtags/QRTagsLogo';
 
-// ─── Design tokens QRTagsPro ────────────────────────────────────────
-const QRTAGS_BG       = '#E3B23C';
-const QRTAGS_INK      = '#111111';
-const QRTAGS_RED      = '#DC2626';
-const QRTAGS_GREEN    = '#16A34A';
-const CARD_CLASS      = 'bg-white rounded-xl p-6 shadow-xl border-2 border-black';
+// ─── Design tokens QRTagsPro V4 ────────────────────────────────────
+const QRTAGS_BG       = '#32ba5d';   // Vert — fond de la page trouveur
+const QRTAGS_INK      = '#134288';   // Bleu corporate — texte et bordures
+const QRTAGS_RED      = '#DC2626';   // Rouge — erreurs
+const QRTAGS_GREEN    = '#134288';   // Bleu (utilisé pour "succès" — cohérence)
+const QRTAGS_CARD     = '#FFFFFF';
+const QRTAGS_BTN_WA   = '#134288';   // Bleu pour bouton WhatsApp (au lieu de vert)
+const FALLBACK_PHONE  = '33600000000';
+const CARD_CLASS      = 'bg-white rounded-xl p-6 shadow-xl border-2 border-[#134288]';
 const INPUT_CLASS     =
-  'w-full px-4 py-3 border-2 border-black rounded-lg bg-gray-50 text-black placeholder-gray-400 focus:outline-none focus:border-[#E3B23C] focus:ring-2 focus:ring-[#E3B23C] transition';
+  'w-full px-4 py-3 border-2 border-[#134288] rounded-lg bg-gray-50 text-black placeholder-gray-400 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d] transition';
 
 type GpsStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -48,6 +51,11 @@ interface AgencyInfo {
   agencyType: string | null;
   contactPhone: string | null;
   email: string | null;
+  customType?: {
+    name: string;
+    icon: string;
+    finderMessage: string | null;
+  } | null;
 }
 
 interface ScanData {

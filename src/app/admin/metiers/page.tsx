@@ -29,7 +29,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const INPUT =
-  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-black text-black placeholder-gray-400 focus:outline-none focus:border-[#E3B23C] focus:ring-2 focus:ring-[#E3B23C] transition';
+  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-[#134288] text-black placeholder-gray-400 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d] transition';
 
 const FIELD_TYPES = [
   { value: 'text', label: '📝 Texte court' },
@@ -154,7 +154,7 @@ export default function CustomTypesPage() {
           <button
             type="button"
             onClick={handleNew}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black text-[#E3B23C] font-bold border-2 border-black hover:-translate-y-0.5 transition-transform"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#134288] text-white font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform"
           >
             <Plus className="w-4 h-4" />
             Nouveau métier
@@ -169,7 +169,7 @@ export default function CustomTypesPage() {
           Chargement...
         </div>
       ) : types.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 border-2 border-black/20 shadow-md text-center">
+        <div className="bg-white rounded-2xl p-8 border-2 border-[#134288]/20 shadow-md text-center">
           <Building2 className="w-12 h-12 mx-auto mb-3 text-slate-400" />
           <h2 className="text-lg font-bold text-black mb-2">Aucun métier personnalisé</h2>
           <p className="text-sm text-slate-600 mb-4">
@@ -178,7 +178,7 @@ export default function CustomTypesPage() {
           <button
             type="button"
             onClick={handleNew}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E3B23C] text-black font-bold border-2 border-black hover:-translate-y-0.5 transition-transform"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#32ba5d] text-white font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform"
           >
             <Plus className="w-4 h-4" />
             Créer un métier
@@ -187,7 +187,7 @@ export default function CustomTypesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {types.map(t => (
-            <div key={t.id} className="bg-white rounded-2xl p-5 border-2 border-black shadow-xl">
+            <div key={t.id} className="bg-white rounded-2xl p-5 border-2 border-[#134288] shadow-xl">
               <div className="flex items-start gap-3 mb-3">
                 <div className="text-3xl">{t.icon}</div>
                 <div className="flex-1 min-w-0">
@@ -216,7 +216,7 @@ export default function CustomTypesPage() {
                 <button
                   type="button"
                   onClick={() => handleEdit(t)}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#E3B23C] text-black text-sm font-semibold border border-black hover:bg-[#d4a535] transition"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#32ba5d] text-white text-sm font-semibold border border-[#134288] hover:bg-[#d4a535] transition"
                 >
                   <Edit className="w-3.5 h-3.5" />
                   Éditer
@@ -388,11 +388,11 @@ function CustomTypeBuilder({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl border-2 border-black shadow-2xl max-w-3xl w-full my-8 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl border-2 border-[#134288] shadow-2xl max-w-3xl w-full my-8 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-[#111111] text-white p-4 flex items-center justify-between border-b-2 border-black z-10">
+        <div className="sticky top-0 bg-[#111111] text-white p-4 flex items-center justify-between border-b-2 border-[#134288] z-10">
           <h3 className="font-bold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#E3B23C]" />
+            <Sparkles className="w-5 h-5 text-[#32ba5d]" />
             {isEdit ? 'Éditer le métier' : 'Nouveau métier personnalisé'}
           </h3>
           <button
@@ -418,7 +418,7 @@ function CustomTypeBuilder({
                     onClick={() => setForm({ ...form, icon: e })}
                     className={`text-2xl p-2 rounded-lg border-2 transition ${
                       form.icon === e
-                        ? 'border-black bg-[#E3B23C]'
+                        ? 'border-[#134288] bg-[#32ba5d]'
                         : 'border-gray-200 hover:bg-gray-50'
                     }`}
                   >
@@ -472,7 +472,7 @@ function CustomTypeBuilder({
           </div>
 
           {/* Builder de champs */}
-          <div className="pt-3 border-t-2 border-black/10">
+          <div className="pt-3 border-t-2 border-[#134288]/10">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-bold text-black flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
@@ -481,7 +481,7 @@ function CustomTypeBuilder({
               <button
                 type="button"
                 onClick={addField}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#E3B23C] text-black text-xs font-bold border border-black hover:bg-[#d4a535] transition"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#32ba5d] text-white text-xs font-bold border border-[#134288] hover:bg-[#d4a535] transition"
               >
                 <Plus className="w-3 h-3" />
                 Ajouter
@@ -518,19 +518,19 @@ function CustomTypeBuilder({
                         value={field.label}
                         onChange={(e) => updateField(index, { label: e.target.value })}
                         placeholder="Libellé"
-                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#E3B23C]"
+                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#32ba5d]"
                       />
                       <input
                         type="text"
                         value={field.key}
                         onChange={(e) => updateField(index, { key: e.target.value.replace(/[^a-zA-Z0-9_]/g, '') })}
                         placeholder="cle_technique"
-                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-mono text-black focus:outline-none focus:border-[#E3B23C]"
+                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm font-mono text-black focus:outline-none focus:border-[#32ba5d]"
                       />
                       <select
                         value={field.type}
                         onChange={(e) => updateField(index, { type: e.target.value as CustomField['type'] })}
-                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#E3B23C]"
+                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#32ba5d]"
                       >
                         {FIELD_TYPES.map(ft => (
                           <option key={ft.value} value={ft.value}>{ft.label}</option>
@@ -541,7 +541,7 @@ function CustomTypeBuilder({
                         value={field.placeholder || ''}
                         onChange={(e) => updateField(index, { placeholder: e.target.value })}
                         placeholder="Placeholder (optionnel)"
-                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#E3B23C]"
+                        className="px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#32ba5d]"
                       />
                       {field.type === 'select' && (
                         <input
@@ -549,7 +549,7 @@ function CustomTypeBuilder({
                           value={(field.options || []).join(', ')}
                           onChange={(e) => updateField(index, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                           placeholder="Options séparées par virgule"
-                          className="sm:col-span-2 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#E3B23C]"
+                          className="sm:col-span-2 px-3 py-2 rounded-lg bg-white border border-gray-300 text-sm text-black focus:outline-none focus:border-[#32ba5d]"
                         />
                       )}
                       <label className="flex items-center gap-2 text-sm text-black">
@@ -595,7 +595,7 @@ function CustomTypeBuilder({
           </div>
 
           {/* Options avancées */}
-          <details className="pt-3 border-t-2 border-black/10">
+          <details className="pt-3 border-t-2 border-[#134288]/10">
             <summary className="cursor-pointer text-sm font-bold text-black mb-3">
               Options avancées (optionnel)
             </summary>
@@ -646,11 +646,11 @@ function CustomTypeBuilder({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white p-4 border-t-2 border-black flex gap-2 justify-end">
+        <div className="sticky bottom-0 bg-white p-4 border-t-2 border-[#134288] flex gap-2 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-white border-2 border-black text-sm font-semibold text-black hover:bg-gray-100 transition"
+            className="px-5 py-2.5 rounded-xl bg-white border-2 border-[#134288] text-sm font-semibold text-black hover:bg-gray-100 transition"
           >
             Annuler
           </button>
@@ -658,7 +658,7 @@ function CustomTypeBuilder({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-black text-[#E3B23C] text-sm font-bold border-2 border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#134288] text-white text-sm font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60"
           >
             {saving ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Sauvegarde...</>

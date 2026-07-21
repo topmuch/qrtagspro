@@ -4,12 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* ═══ QRTags Brand Tokens ═══ */
-  --qrtags-bg: #111111;            /* Noir — fond principal */
-  --qrtags-accent: #E3B23C;        /* Jaune Moutarde — accents */
-  --qrtags-accent-hover: #FFDB58;  /* Variante hover */
-  --qrtags-ink: #111111;           /* Noir — texte sur jaune */
-  --qrtags-text-on-dark: #f5f5f5;  /* Texte clair sur fond noir */
+  /* ═══ QRTagsPro V4 Brand Tokens ═══ */
+  /* Nouvelle charte: Bleu corporate #134288 + Vert #32ba5d */
+  --qrtags-bg: #134288;            /* Bleu corporate — fond principal */
+  --qrtags-accent: #32ba5d;        /* Vert — accents, boutons, highlights */
+  --qrtags-accent-hover: #28a54f;  /* Variante hover (vert plus foncé) */
+  --qrtags-ink: #134288;           /* Bleu — texte sur fond vert */
+  --qrtags-text-on-dark: #f5f5f5;  /* Texte clair sur fond bleu */
   --qrtags-muted: #9a9a9a;
 
   /* Modern Light Theme Colors (admin & dashboard) */
@@ -22,10 +23,13 @@
   --border-color: #e2e8f0;
   --card-bg: #ffffff;
 
-  /* Primary Brand Colors — QRTags (mustard on black) */
-  --primary: #E3B23C;
-  --primary-light: #FFDB58;
-  --primary-dark: #c89a2c;
+  /* Primary Brand Colors — QRTagsPro V4 (bleu + vert) */
+  --primary: #134288;              /* Bleu corporate */
+  --primary-light: #1e5bb0;        /* Bleu plus clair */
+  --primary-dark: #0d3266;         /* Bleu plus foncé */
+  --accent: #32ba5d;               /* Vert */
+  --accent-light: #4ecb76;         /* Vert plus clair */
+  --accent-dark: #28a54f;          /* Vert plus foncé */
 
   /* Sidebar Colors - White Modern (admin) */
   --sidebar-bg: #ffffff;

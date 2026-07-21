@@ -30,9 +30,9 @@ import LuggageLockerCheckInForm from '@/components/checkin/LuggageLockerCheckInF
 import DynamicCheckInForm, { CustomField } from '@/components/checkin/DynamicCheckInForm';
 
 const INPUT =
-  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-black text-black ' +
-  'placeholder-gray-400 focus:outline-none focus:border-[#E3B23C] ' +
-  'focus:ring-2 focus:ring-[#E3B23C] transition';
+  'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-[#134288] text-black ' +
+  'placeholder-gray-400 focus:outline-none focus:border-[#32ba5d] ' +
+  'focus:ring-2 focus:ring-[#32ba5d] transition';
 
 type Step = 'scan' | 'form' | 'success';
 
@@ -162,21 +162,21 @@ export default function CheckInPage() {
       {/* Progress steps */}
       <div className="flex items-center gap-2 text-xs font-semibold">
         <div className={`flex items-center gap-1.5 ${step === 'scan' ? 'text-black' : 'text-slate-400'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'scan' ? 'bg-black text-[#E3B23C]' : 'bg-slate-200 text-slate-500'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'scan' ? 'bg-[#134288] text-white' : 'bg-slate-200 text-slate-500'}`}>
             {step === 'scan' ? '1' : <CheckCircle2 className="w-3.5 h-3.5" />}
           </span>
           Scanner le QR
         </div>
         <div className="flex-1 h-0.5 bg-slate-200" />
         <div className={`flex items-center gap-1.5 ${step === 'form' ? 'text-black' : 'text-slate-400'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'form' ? 'bg-black text-[#E3B23C]' : step === 'success' ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'form' ? 'bg-[#134288] text-white' : step === 'success' ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
             {step === 'success' ? <CheckCircle2 className="w-3.5 h-3.5" /> : '2'}
           </span>
           Infos
         </div>
         <div className="flex-1 h-0.5 bg-slate-200" />
         <div className={`flex items-center gap-1.5 ${step === 'success' ? 'text-black' : 'text-slate-400'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'success' ? 'bg-black text-[#E3B23C]' : 'bg-slate-200 text-slate-500'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'success' ? 'bg-[#134288] text-white' : 'bg-slate-200 text-slate-500'}`}>
             3
           </span>
           Confirmation
@@ -185,9 +185,9 @@ export default function CheckInPage() {
 
       {/* ═════ STEP 1: SCAN ═════ */}
       {step === 'scan' && (
-        <div className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl space-y-5">
+        <div className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-xl space-y-5">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#E3B23C]/20 mb-3">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#32ba5d]/20 mb-3">
               <QrCode className="w-8 h-8 text-black" />
             </div>
             <h2 className="text-lg font-bold text-black mb-1">Étape 1 — Scanner le QR code</h2>
@@ -200,7 +200,7 @@ export default function CheckInPage() {
             type="button"
             onClick={() => setScannerOpen(true)}
             disabled={verifying}
-            className="w-full py-4 rounded-xl bg-black text-[#E3B23C] font-bold border-2 border-black hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full py-4 rounded-xl bg-[#134288] text-white font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-2 disabled:opacity-60"
           >
             <Camera className="w-5 h-5" />
             Ouvrir le scanner caméra
@@ -238,7 +238,7 @@ export default function CheckInPage() {
             <button
               type="submit"
               disabled={!reference.trim() || verifying}
-              className="w-full py-3 rounded-xl bg-[#E3B23C] text-black font-bold border-2 border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-[#32ba5d] text-white font-bold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {verifying ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Vérification...</>
@@ -248,8 +248,8 @@ export default function CheckInPage() {
             </button>
           </form>
 
-          <div className="flex items-start gap-3 p-3 rounded-xl bg-[#E3B23C]/15 border-2 border-[#E3B23C]/40 text-sm text-black">
-            <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#111111]" />
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-[#32ba5d]/15 border-2 border-[#32ba5d]/40 text-sm text-black">
+            <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#134288]" />
             <p>
               Le QR doit appartenir à votre stock (statut « en attente »).
               Si le QR est déjà activé, faites d&apos;abord un check-out.
@@ -338,7 +338,7 @@ export default function CheckInPage() {
               </p>
               <Link
                 href="/agence/tableau-de-bord"
-                className="inline-block px-5 py-2.5 rounded-xl bg-black text-[#E3B23C] font-semibold text-sm"
+                className="inline-block px-5 py-2.5 rounded-xl bg-[#134288] text-white font-semibold text-sm"
               >
                 Retour au tableau de bord
               </Link>
@@ -349,7 +349,7 @@ export default function CheckInPage() {
 
       {/* ═════ STEP 3: SUCCESS ═════ */}
       {step === 'success' && success && (
-        <div className="bg-white rounded-2xl p-8 border-2 border-black shadow-xl text-center space-y-4">
+        <div className="bg-white rounded-2xl p-8 border-2 border-[#134288] shadow-xl text-center space-y-4">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-2">
             <CheckCircle2 className="w-12 h-12 text-green-600" />
           </div>
@@ -358,7 +358,7 @@ export default function CheckInPage() {
             Le QR code est maintenant actif. {agencyLabel}.
           </p>
 
-          <div className="bg-gray-50 rounded-xl p-4 border-2 border-black/20 text-left space-y-2 my-4">
+          <div className="bg-gray-50 rounded-xl p-4 border-2 border-[#134288]/20 text-left space-y-2 my-4">
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Référence QR</span>
               <span className="font-mono font-bold text-black">{success.reference}</span>
@@ -377,14 +377,14 @@ export default function CheckInPage() {
             <button
               type="button"
               onClick={handleNewCheckIn}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-black text-[#E3B23C] text-sm font-semibold border-2 border-black hover:-translate-y-0.5 transition-transform"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#134288] text-white text-sm font-semibold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform"
             >
               <RotateCcw className="w-4 h-4" />
               Nouveau check-in
             </button>
             <Link
               href="/agence/tableau-de-bord"
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border-2 border-black text-sm font-semibold text-black hover:-translate-y-0.5 transition-transform"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border-2 border-[#134288] text-sm font-semibold text-black hover:-translate-y-0.5 transition-transform"
             >
               <ArrowLeft className="w-4 h-4" />
               Tableau de bord

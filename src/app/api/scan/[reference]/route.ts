@@ -37,6 +37,14 @@ export async function GET(
             contactPhone: true,
             phone: true, // fallback si contactPhone pas défini
             email: true,
+            customType: {
+              select: {
+                id: true,
+                name: true,
+                icon: true,
+                finderMessage: true,
+              },
+            },
           },
         },
       },
@@ -92,6 +100,11 @@ export async function GET(
         agencyType: baggage.agency.agencyType,
         contactPhone,
         email: baggage.agency.email,
+        customType: baggage.agency.customType ? {
+          name: baggage.agency.customType.name,
+          icon: baggage.agency.customType.icon,
+          finderMessage: baggage.agency.customType.finderMessage,
+        } : null,
       } : null,
       // POUR LE MOMENT on ne renvoie rien du client (privacy total V1)
       // Plus tard, on pourra renvoyer un message personnalisé configuré par l'agence
@@ -156,6 +169,13 @@ export async function POST(
             agencyType: true,
             contactPhone: true,
             phone: true,
+            customType: {
+              select: {
+                id: true,
+                name: true,
+                finderMessage: true,
+              },
+            },
           },
         },
       },
@@ -236,15 +256,32 @@ export async function POST(
       : (location || 'Position non précisée');
 
     // Message WhatsApp pré-rempli à destination de la RÉCEPTION
-    const whatsappText =
-      `Bonjour ${agencyName},\n\n` +
-      `J'ai trouvé un objet portant votre QR code (réf. ${reference}).\n\n` +
-      `📍 Ma position : ${locationLine}\n` +
-      (finderName ? `👤 Trouveur : ${finderName}\n` : '') +
-      (finderPhone ? `📞 Contact : ${finderPhone}\n` : '') +
-      (message ? `💬 Message : ${message}\n` : '') +
-      `\nMerci de me confirmer la marche à suite pour la restitution.\n\n` +
-      `— Message envoyé via QRTagsPro`;
+    // Si customType.finderMessage est défini, l'utiliser avec variables
+    // Variables supportées: {reference}, {agencyName}, {finderName}, {finderPhone}, {location}
+    let whatsappText: string;
+    const customFinderMessage = baggage.agency?.customType?.finderMessage;
+
+    if (customFinderMessage && customFinderMessage.trim()) {
+      // Substitution des variables
+      whatsappText = customFinderMessage
+        .replace(/\{reference\}/g, reference)
+        .replace(/\{agencyName\}/g, agencyName)
+        .replace(/\{finderName\}/g, finderName || 'Anonyme')
+        .replace(/\{finderPhone\}/g, finderPhone || 'Non fourni')
+        .replace(/\{location\}/g, locationLine)
+        .replace(/\{message\}/g, message || '');
+    } else {
+      // Message par défaut
+      whatsappText =
+        `Bonjour ${agencyName},\n\n` +
+        `J'ai trouvé un objet portant votre QR code (réf. ${reference}).\n\n` +
+        `📍 Ma position : ${locationLine}\n` +
+        (finderName ? `👤 Trouveur : ${finderName}\n` : '') +
+        (finderPhone ? `📞 Contact : ${finderPhone}\n` : '') +
+        (message ? `💬 Message : ${message}\n` : '') +
+        `\nMerci de me confirmer la marche à suite pour la restitution.\n\n` +
+        `— Message envoyé via QRTagsPro`;
+    }
 
     const whatsappUrl = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(whatsappText)}`;
 

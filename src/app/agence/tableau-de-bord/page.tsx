@@ -21,7 +21,7 @@
  *   - GET /api/agency/baggages?agencyId=X → { baggages: [...], stats: {...} }
  *   - POST /api/messages (type='qr_request') pour demander plus de QR
  *
- * FR only — black (#111111) + mustard yellow (#E3B23C) design tokens.
+ * FR only — black (#111111) + mustard yellow (#32ba5d) design tokens.
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -333,14 +333,14 @@ function StatCard({
   accent: 'yellow' | 'green' | 'orange' | 'red';
 }) {
   const accentMap: Record<typeof accent, string> = {
-    yellow: 'bg-[#E3B23C]/10 border-[#E3B23C]/40 text-[#E3B23C]',
+    yellow: 'bg-[#32ba5d]/10 border-[#32ba5d]/40 text-[#32ba5d]',
     green: 'bg-green-50 border-green-500/40 text-green-700',
     orange: 'bg-orange-50 border-orange-500/40 text-orange-700',
     red: 'bg-red-50 border-red-500/40 text-red-700',
   } as const;
 
   return (
-    <div className="bg-white rounded-2xl p-5 border-2 border-black shadow-xl">
+    <div className="bg-white rounded-2xl p-5 border-2 border-[#134288] shadow-xl">
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">{title}</p>
@@ -711,7 +711,7 @@ export default function AgencyDashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-[#111111]" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#134288]" />
           <span className="text-slate-600">Chargement du tableau de bord…</span>
         </div>
       </div>
@@ -735,7 +735,7 @@ export default function AgencyDashboardPage() {
             setRefreshing(true);
             fetchBaggages();
           }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-black text-sm font-semibold hover:-translate-y-0.5 transition-transform"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-[#134288] text-sm font-semibold hover:-translate-y-0.5 transition-transform"
           disabled={refreshing}
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -776,11 +776,11 @@ export default function AgencyDashboardPage() {
       </div>
 
       {/* ─── Demander plus de QR ─── */}
-      <div className="bg-[#E3B23C] rounded-2xl p-6 border-2 border-black shadow-xl">
+      <div className="bg-[#32ba5d] rounded-2xl p-6 border-2 border-[#134288] shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-black flex items-center justify-center shrink-0">
-              <QrCode className="w-6 h-6 text-[#E3B23C]" />
+              <QrCode className="w-6 h-6 text-[#32ba5d]" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-black">Stock de QR</h2>
@@ -798,7 +798,7 @@ export default function AgencyDashboardPage() {
           <button
             onClick={handleRequestMoreQr}
             disabled={requestingQr}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-black text-[#E3B23C] font-semibold border-2 border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#134288] text-white font-semibold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {requestingQr ? (
               <>
@@ -816,7 +816,7 @@ export default function AgencyDashboardPage() {
       </div>
 
       {/* ─── Check-out aujourd'hui / Fin d'année scolaire proche ─── */}
-      <section className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl">
+      <section className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-black">{LABELS.checkOutToday}</h2>
@@ -850,7 +850,7 @@ export default function AgencyDashboardPage() {
                   <button
                     onClick={() => handleCheckout(b)}
                     disabled={actionLoading === b.id}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-black text-[#E3B23C] text-sm font-semibold border-2 border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[#134288] text-white text-sm font-semibold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60"
                   >
                     {actionLoading === b.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -867,7 +867,7 @@ export default function AgencyDashboardPage() {
       </section>
 
       {/* ─── Clients actuels / Élèves enregistrés ─── */}
-      <section className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl">
+      <section className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-black">{LABELS.clientsTitle}</h2>
@@ -875,7 +875,7 @@ export default function AgencyDashboardPage() {
           </div>
           <Link
             href="/agence/baggages"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-black hover:text-[#111111] hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-black hover:text-[#134288] hover:underline"
           >
             Voir tous les QR
             <Search className="w-4 h-4" />
@@ -886,7 +886,7 @@ export default function AgencyDashboardPage() {
             <p className="text-sm text-slate-600 mb-3">{LABELS.emptyClients}</p>
             <Link
               href="/agence/check-in"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-[#E3B23C] text-sm font-semibold border-2 border-black hover:-translate-y-0.5 transition-transform"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#134288] text-white text-sm font-semibold border-2 border-[#134288] hover:-translate-y-0.5 transition-transform"
             >
               <LogOut className="w-4 h-4" />
               Nouveau check-in
@@ -929,7 +929,7 @@ export default function AgencyDashboardPage() {
                         <button
                           onClick={() => handleCheckout(b)}
                           disabled={actionLoading === b.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-[#E3B23C] text-xs font-semibold border border-black hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#134288] text-white text-xs font-semibold border border-[#134288] hover:-translate-y-0.5 transition-transform disabled:opacity-60"
                         >
                           {actionLoading === b.id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -954,7 +954,7 @@ export default function AgencyDashboardPage() {
       </section>
 
       {/* ─── Objets perdus récents ─── */}
-      <section className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl">
+      <section className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-black">Objets perdus récents</h2>

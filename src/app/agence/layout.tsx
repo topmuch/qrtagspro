@@ -122,7 +122,7 @@ function Sidebar({
       {/* Sidebar — QRTagsPro black background */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-[280px] bg-[#111111]
+        w-[280px] bg-[#134288]
         transform transition-transform duration-300
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         flex flex-col shadow-2xl
@@ -141,7 +141,7 @@ function Sidebar({
         {/* Agency Info */}
         <div className="p-4 border-b border-white/10">
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/20">
-            <div className="w-10 h-10 rounded-full bg-[#E3B23C] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-[#32ba5d] flex items-center justify-center">
               <span className="text-black font-semibold text-sm">
                 {userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'AG'}
               </span>
@@ -168,8 +168,8 @@ function Sidebar({
                       relative flex items-center gap-3 px-4 py-2.5 rounded-xl
                       transition-all duration-200 group
                       ${isActive
-                        ? 'bg-[#E3B23C] text-black shadow-lg'
-                        : 'bg-black/40 text-white hover:bg-black/60 hover:text-[#E3B23C]'}
+                        ? 'bg-[#32ba5d] text-black shadow-lg'
+                        : 'bg-black/40 text-white hover:bg-black/60 hover:text-[#32ba5d]'}
                     `}
                     onClick={() => setIsOpen(false)}
                   >
@@ -192,7 +192,7 @@ function Sidebar({
             <li>
               <Link
                 href="/agence/assistance"
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-black/30 text-white hover:bg-black/40 hover:text-[#E3B23C] transition-all duration-200"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-black/30 text-white hover:bg-black/40 hover:text-[#32ba5d] transition-all duration-200"
                 onClick={() => setIsOpen(false)}
               >
                 <HelpCircle className="w-5 h-5" />
@@ -269,7 +269,7 @@ function Header({
             </Link>
             <Link
               href="/agence/trouvailles"
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#111111]/10 hover:bg-[#111111]/20 text-[#111111] dark:text-[#111111] rounded-xl text-sm font-medium transition-colors border border-[#111111]/20 dark:border-[#111111]/30"
+              className="flex items-center gap-2 px-3 py-1.5 bg-[#134288]/10 hover:bg-[#134288]/20 text-[#134288] dark:text-[#134288] rounded-xl text-sm font-medium transition-colors border border-[#134288]/20 dark:border-[#134288]/30"
             >
               <CheckCircle className="w-4 h-4" />
               <span className="hidden xl:inline">Trouvailles</span>
@@ -284,7 +284,7 @@ function Header({
             aria-label="Basculer le thème"
           >
             {theme === 'dark' ? (
-              <Sun className="w-5 h-5 text-[#E3B23C]" />
+              <Sun className="w-5 h-5 text-[#32ba5d]" />
             ) : (
               <Moon className="w-5 h-5 text-slate-600" />
             )}
@@ -306,8 +306,8 @@ function Header({
 
           {/* User */}
           <div className="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-700">
-            <div className="w-9 h-9 rounded-full bg-[#111111] flex items-center justify-center">
-              <span className="text-[#E3B23C] font-semibold text-sm">
+            <div className="w-9 h-9 rounded-full bg-[#134288] flex items-center justify-center">
+              <span className="text-[#32ba5d] font-semibold text-sm">
                 {userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'AG'}
               </span>
             </div>
@@ -412,7 +412,7 @@ export default function AgencyRootLayout({
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 border-2 border-[#111111]/30 border-t-[#111111] rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[#134288]/30 border-t-[#111111] rounded-full animate-spin" />
           <span className="text-slate-500">Vérification...</span>
         </div>
       </div>

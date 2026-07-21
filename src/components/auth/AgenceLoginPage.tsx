@@ -295,7 +295,7 @@ export default function AgenceLoginPage() {
               </div>
               {/* Decorative dots */}
               <div
-                className="absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-[#E3B23C] animate-bounce"
+                className="absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-[#32ba5d] animate-bounce"
                 style={{ animationDelay: '0.4s' }}
               />
               <div
@@ -316,7 +316,7 @@ export default function AgenceLoginPage() {
             >
               Protégez chaque
               <br />
-              <span className="bg-gradient-to-r from-[#E3B23C] via-[#E3B23C] to-[#E3B23C] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#32ba5d] via-[#32ba5d] to-[#32ba5d] bg-clip-text text-transparent">
                 bagage, en toute
               </span>
               <br />
@@ -384,7 +384,7 @@ export default function AgenceLoginPage() {
                   aria-label={`Témoignage ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === activeTestimonial
-                      ? 'bg-[#E3B23C] w-4'
+                      ? 'bg-[#32ba5d] w-4'
                       : 'bg-white/20 w-1.5 hover:bg-white/35'
                   }`}
                 />
@@ -402,7 +402,7 @@ export default function AgenceLoginPage() {
         <div
           className="absolute top-0 left-0 right-0 h-1"
           style={{
-            background: 'linear-gradient(90deg, #111111, #E3B23C, #111111, #E3B23C, #111111)',
+            background: 'linear-gradient(90deg, #111111, #32ba5d, #111111, #32ba5d, #111111)',
           }}
         />
 
