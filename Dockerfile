@@ -12,7 +12,7 @@ WORKDIR /app
 # Copier le code source
 COPY . .
 
-# Installer les dépendétés (npm, pas bun)
+# Installer les dépendances (npm, pas bun)
 RUN npm install --legacy-peer-deps --no-audit --no-fund
 RUN npx prisma generate
 
@@ -20,6 +20,9 @@ RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
 RUN npm run build
+
+# QRTagsPro: supprimer les devDependencies pour réduire la taille de l'image
+RUN npm prune --production
 
 # Copier les fichiers nécessaires dans le standalone
 RUN cp -r .next/static .next/standalone/.next/ && \
@@ -30,7 +33,6 @@ RUN cp -r .next/static .next/standalone/.next/ && \
     cp package.json .next/standalone/package.json
 
 RUN mkdir -p /app/data
-RUN chmod +x init-db.sh
 
 EXPOSE 3000
 ENV PORT=3000
