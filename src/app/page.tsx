@@ -80,14 +80,14 @@ const METIERS: Metier[] = [
     title: 'Écoles',
     description:
       "Identifiez cartables et uniformes des élèves. Contact automatique des parents.",
-    badge: 'Bientôt',
+    badge: 'Disponible',
   },
   {
     icon: <Stethoscope className="w-7 h-7" />,
     title: 'Cliniques',
     description:
       "Étiquetez les effets personnels des patients. Contact d'urgence prévenu.",
-    badge: 'Bientôt',
+    badge: 'Disponible',
   },
   {
     icon: <Car className="w-7 h-7" />,

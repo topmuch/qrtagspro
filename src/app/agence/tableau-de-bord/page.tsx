@@ -67,6 +67,16 @@ interface CustomData {
   parent_phone?: string;
   parent_email?: string;
   school_year?: string;
+  // Medical (clinique)
+  patient_name?: string;
+  patient_first_name?: string;
+  patient_last_name?: string;
+  file_number?: string;
+  service?: string | null;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  admission_date?: string;
+  discharge_date?: string | null;
 }
 
 interface Baggage {
@@ -123,9 +133,13 @@ function parseCustomData(b: Baggage): CustomData | null {
  */
 function getDisplayName(b: Baggage, cd: CustomData | null): string {
   if (cd?.student_name) return cd.student_name;
+  if (cd?.patient_name) return cd.patient_name;
   if (cd?.client_name) return cd.client_name;
   if (cd?.student_first_name || cd?.student_last_name) {
     return `${cd.student_first_name || ''} ${cd.student_last_name || ''}`.trim();
+  }
+  if (cd?.patient_first_name || cd?.patient_last_name) {
+    return `${cd.patient_first_name || ''} ${cd.patient_last_name || ''}`.trim();
   }
   return [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || b.reference;
 }
@@ -134,24 +148,38 @@ function getDisplayName(b: Baggage, cd: CustomData | null): string {
  * Retourne l'info secondaire selon le métier :
  *   - Hôtel : "Chambre X"
  *   - École : classe (ex. "6ème B")
+ *   - Clinique : "Dossier X" (file_number) ou "Service Y"
  *   - Sinon : chaîne vide.
  */
 function getSubInfo(cd: CustomData | null): string {
-  if (cd?.room_number) return `Chambre ${cd.room_number}`;
+  // Médical: priorité au n° de dossier, puis service
+  if (cd?.agencyType === 'medical') {
+    if (cd.file_number) return `Dossier ${cd.file_number}`;
+    if (cd.service) return cd.service;
+    return '';
+  }
+  // Hôtel
+  if (cd?.agencyType === 'hotel' && cd?.room_number) return `Chambre ${cd.room_number}`;
+  if (cd?.room_number && cd?.agencyType === 'hotel') return `Chambre ${cd.room_number}`;
+  // École
   if (cd?.class_name) return cd.class_name;
+  // Fallback ancien format (avant agencyType dans customData)
+  if (cd?.room_number) return `Chambre ${cd.room_number}`;
   return '';
 }
 
-/** Récupère la date de départ (préfère customData.departure_date, sinon b.departureDate). */
+/** Récupère la date de départ (préfère customData.departure_date/discharge_date, sinon b.departureDate). */
 function getDepartureISO(b: Baggage, cd: CustomData | null): string | null {
   if (cd?.departure_date) return cd.departure_date;
+  if (cd?.discharge_date) return cd.discharge_date;
   if (b.departureDate) return b.departureDate.slice(0, 10);
   return null;
 }
 
-/** Récupère la date d'arrivée (hôtel) ou la date de check-in (école). */
+/** Récupère la date d'arrivée (hôtel), admission (clinique), ou check-in (école). */
 function getArrivalISO(b: Baggage, cd: CustomData | null): string | null {
   if (cd?.arrival_date) return cd.arrival_date;
+  if (cd?.admission_date) return cd.admission_date;
   if (cd?.checked_in_at) return cd.checked_in_at;
   return b.createdAt || null;
 }
@@ -281,7 +309,25 @@ function buildLabels(agencyType: string | null): DashboardLabels {
       headerTag: 'École',
     };
   }
-  // Hôtel (par défaut — couvre aussi luggage_locker, car_rental, medical, generic)
+  if (agencyType === 'medical') {
+    return {
+      itemsActive: 'Patients hospitalisés',
+      itemsActiveDesc: 'Patients actuellement à la clinique',
+      clientsTitle: 'Patients hospitalisés',
+      clientsSubtitle: 'Séjours en cours (QR actifs).',
+      checkOutToday: 'Sorties prévues aujourd\'hui',
+      checkOutTodaySubtitle: 'Patients dont la sortie est prévue le',
+      checkOutTodayEmpty: 'Aucune sortie prévue aujourd\'hui.',
+      emptyClients: 'Aucun patient hospitalisé. Faites un check-in pour commencer.',
+      checkOutButton: 'Sortie (check-out)',
+      colClient: 'Patient',
+      colSub: 'Dossier',
+      colArrival: 'Admission',
+      colDeparture: 'Sortie prévue',
+      headerTag: 'Clinique',
+    };
+  }
+  // Hôtel (par défaut — couvre aussi luggage_locker, car_rental, generic)
   return {
     itemsActive: 'QR actifs',
     itemsActiveDesc: 'Clients actuellement à l\'hôtel',

@@ -83,6 +83,7 @@ export async function GET(request: NextRequest) {
  * Schéma discriminé sur 'agencyType':
  *   - 'hotel': clientName, roomNumber, arrivalDate, departureDate, phone, email, notes
  *   - 'school': studentFirstName, studentLastName, className, parentName, parentPhone, parentEmail, schoolYear
+ *   - 'medical': patientName, fileNumber, service, roomNumber, emergencyContactName, emergencyContactPhone, admissionDate, dischargeDate, notes
  *
  * L'agencyType est récupéré depuis l'agence du QR (pas du body) pour sécurité.
  */
@@ -113,7 +114,22 @@ const schoolSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
-const checkInSchema = z.discriminatedUnion('agencyType', [hotelSchema, schoolSchema]);
+const medicalSchema = z.object({
+  reference: z.string().min(1),
+  agencyId: z.string().min(1),
+  agencyType: z.literal('medical'),
+  patientName: z.string().min(1, 'Nom du patient requis'),
+  fileNumber: z.string().min(1, 'N° de dossier requis'),
+  service: z.string().optional().nullable(),
+  roomNumber: z.string().optional().nullable(),
+  emergencyContactName: z.string().min(1, 'Nom du contact d\'urgence requis'),
+  emergencyContactPhone: z.string().min(1, 'Téléphone du contact d\'urgence requis'),
+  admissionDate: z.string().min(1, 'Date d\'admission requise'),
+  dischargeDate: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+const checkInSchema = z.discriminatedUnion('agencyType', [hotelSchema, schoolSchema, medicalSchema]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -199,7 +215,7 @@ export async function POST(request: NextRequest) {
         notes: data.notes || null,
         checked_in_at: new Date().toISOString(),
       };
-    } else {
+    } else if (data.agencyType === 'school') {
       // school
       // Date de départ = 30 juin de l'année scolaire en cours
       // Si on est entre janvier et juin, on prend le 30 juin de cette année
@@ -226,6 +242,52 @@ export async function POST(request: NextRequest) {
         parent_phone: data.parentPhone.trim(),
         parent_email: data.parentEmail || null,
         school_year: schoolYear,
+        notes: data.notes || null,
+        checked_in_at: new Date().toISOString(),
+      };
+    } else {
+      // medical (clinique)
+      const admission = new Date(data.admissionDate);
+      if (isNaN(admission.getTime())) {
+        return NextResponse.json({ error: 'Date d\'admission invalide' }, { status: 400 });
+      }
+
+      // DepartureDate: si dischargeDate fournie → l'utiliser, sinon +30 jours par défaut
+      if (data.dischargeDate) {
+        const discharge = new Date(data.dischargeDate);
+        if (isNaN(discharge.getTime())) {
+          return NextResponse.json({ error: 'Date de sortie invalide' }, { status: 400 });
+        }
+        if (discharge <= admission) {
+          return NextResponse.json(
+            { error: 'La date de sortie doit être après la date d\'admission' },
+            { status: 400 }
+          );
+        }
+        departureDate = discharge;
+      } else {
+        // Par défaut : 30 jours d'hospitalisation
+        departureDate = new Date(admission.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+
+      // Séparer le nom du patient en prénom + nom
+      const nameParts = data.patientName.trim().split(/\s+/);
+      travelerFirstName = nameParts[0] || '';
+      travelerLastName = nameParts.slice(1).join(' ') || '';
+      whatsappOwner = data.emergencyContactPhone || null;
+      summary = `${data.patientName} — Dossier ${data.fileNumber}`;
+      customData = {
+        agencyType: 'medical',
+        patient_name: data.patientName.trim(),
+        patient_first_name: travelerFirstName,
+        patient_last_name: travelerLastName,
+        file_number: data.fileNumber.trim(),
+        service: data.service || null,
+        room_number: data.roomNumber || null,
+        emergency_contact_name: data.emergencyContactName.trim(),
+        emergency_contact_phone: data.emergencyContactPhone.trim(),
+        admission_date: data.admissionDate,
+        discharge_date: data.dischargeDate || null,
         notes: data.notes || null,
         checked_in_at: new Date().toISOString(),
       };
