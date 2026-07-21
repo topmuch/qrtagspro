@@ -94,7 +94,7 @@ const METIERS: Metier[] = [
     title: 'Loueurs auto',
     description:
       "Traçabilité des clés, documents et équipements. Contact direct du locataire.",
-    badge: 'Bientôt',
+    badge: 'Disponible',
   },
   {
     icon: <Luggage className="w-7 h-7" />,

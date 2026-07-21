@@ -77,6 +77,17 @@ interface CustomData {
   emergency_contact_phone?: string;
   admission_date?: string;
   discharge_date?: string | null;
+  // Car rental (loueur auto)
+  tenant_name?: string;
+  tenant_first_name?: string;
+  tenant_last_name?: string;
+  contract_number?: string;
+  car_model?: string;
+  license_plate?: string;
+  start_date?: string;
+  end_date?: string;
+  tenant_phone?: string;
+  object_type?: string | null;
 }
 
 interface Baggage {
@@ -134,12 +145,16 @@ function parseCustomData(b: Baggage): CustomData | null {
 function getDisplayName(b: Baggage, cd: CustomData | null): string {
   if (cd?.student_name) return cd.student_name;
   if (cd?.patient_name) return cd.patient_name;
+  if (cd?.tenant_name) return cd.tenant_name;
   if (cd?.client_name) return cd.client_name;
   if (cd?.student_first_name || cd?.student_last_name) {
     return `${cd.student_first_name || ''} ${cd.student_last_name || ''}`.trim();
   }
   if (cd?.patient_first_name || cd?.patient_last_name) {
     return `${cd.patient_first_name || ''} ${cd.patient_last_name || ''}`.trim();
+  }
+  if (cd?.tenant_first_name || cd?.tenant_last_name) {
+    return `${cd.tenant_first_name || ''} ${cd.tenant_last_name || ''}`.trim();
   }
   return [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || b.reference;
 }
@@ -149,37 +164,47 @@ function getDisplayName(b: Baggage, cd: CustomData | null): string {
  *   - Hôtel : "Chambre X"
  *   - École : classe (ex. "6ème B")
  *   - Clinique : "Dossier X" (file_number) ou "Service Y"
+ *   - Loueur auto : "Contrat X" (contract_number) + immat
  *   - Sinon : chaîne vide.
  */
 function getSubInfo(cd: CustomData | null): string {
+  if (!cd) return '';
   // Médical: priorité au n° de dossier, puis service
-  if (cd?.agencyType === 'medical') {
+  if (cd.agencyType === 'medical') {
     if (cd.file_number) return `Dossier ${cd.file_number}`;
     if (cd.service) return cd.service;
     return '';
   }
+  // Loueur auto: contrat + immat
+  if (cd.agencyType === 'car_rental') {
+    const parts: string[] = [];
+    if (cd.contract_number) parts.push(`Contrat ${cd.contract_number}`);
+    if (cd.license_plate) parts.push(cd.license_plate);
+    return parts.join(' · ');
+  }
   // Hôtel
-  if (cd?.agencyType === 'hotel' && cd?.room_number) return `Chambre ${cd.room_number}`;
-  if (cd?.room_number && cd?.agencyType === 'hotel') return `Chambre ${cd.room_number}`;
+  if (cd.agencyType === 'hotel' && cd.room_number) return `Chambre ${cd.room_number}`;
   // École
-  if (cd?.class_name) return cd.class_name;
+  if (cd.class_name) return cd.class_name;
   // Fallback ancien format (avant agencyType dans customData)
-  if (cd?.room_number) return `Chambre ${cd.room_number}`;
+  if (cd.room_number) return `Chambre ${cd.room_number}`;
   return '';
 }
 
-/** Récupère la date de départ (préfère customData.departure_date/discharge_date, sinon b.departureDate). */
+/** Récupère la date de départ (préfère customData.departure_date/discharge_date/end_date, sinon b.departureDate). */
 function getDepartureISO(b: Baggage, cd: CustomData | null): string | null {
   if (cd?.departure_date) return cd.departure_date;
   if (cd?.discharge_date) return cd.discharge_date;
+  if (cd?.end_date) return cd.end_date;
   if (b.departureDate) return b.departureDate.slice(0, 10);
   return null;
 }
 
-/** Récupère la date d'arrivée (hôtel), admission (clinique), ou check-in (école). */
+/** Récupère la date d'arrivée (hôtel), admission (clinique), début location (loueur), ou check-in (école). */
 function getArrivalISO(b: Baggage, cd: CustomData | null): string | null {
   if (cd?.arrival_date) return cd.arrival_date;
   if (cd?.admission_date) return cd.admission_date;
+  if (cd?.start_date) return cd.start_date;
   if (cd?.checked_in_at) return cd.checked_in_at;
   return b.createdAt || null;
 }
@@ -327,7 +352,25 @@ function buildLabels(agencyType: string | null): DashboardLabels {
       headerTag: 'Clinique',
     };
   }
-  // Hôtel (par défaut — couvre aussi luggage_locker, car_rental, generic)
+  if (agencyType === 'car_rental') {
+    return {
+      itemsActive: 'Locations en cours',
+      itemsActiveDesc: 'Véhicules actuellement en location',
+      clientsTitle: 'Locations en cours',
+      clientsSubtitle: 'Locations actives (QR actifs).',
+      checkOutToday: 'Retours prévus aujourd\'hui',
+      checkOutTodaySubtitle: 'Véhicules dont le retour est prévu le',
+      checkOutTodayEmpty: 'Aucun retour prévu aujourd\'hui.',
+      emptyClients: 'Aucune location en cours. Faites un check-in pour commencer.',
+      checkOutButton: 'Retour (check-out)',
+      colClient: 'Locataire',
+      colSub: 'Contrat / Immat',
+      colArrival: 'Début location',
+      colDeparture: 'Fin location',
+      headerTag: 'Loueur auto',
+    };
+  }
+  // Hôtel (par défaut — couvre aussi luggage_locker, generic)
   return {
     itemsActive: 'QR actifs',
     itemsActiveDesc: 'Clients actuellement à l\'hôtel',

@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
  *   - 'hotel': clientName, roomNumber, arrivalDate, departureDate, phone, email, notes
  *   - 'school': studentFirstName, studentLastName, className, parentName, parentPhone, parentEmail, schoolYear
  *   - 'medical': patientName, fileNumber, service, roomNumber, emergencyContactName, emergencyContactPhone, admissionDate, dischargeDate, notes
+ *   - 'car_rental': tenantName, contractNumber, carModel, licensePlate, startDate, endDate, tenantPhone, objectType, notes
  *
  * L'agencyType est récupéré depuis l'agence du QR (pas du body) pour sécurité.
  */
@@ -129,7 +130,24 @@ const medicalSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
-const checkInSchema = z.discriminatedUnion('agencyType', [hotelSchema, schoolSchema, medicalSchema]);
+const carRentalSchema = z.object({
+  reference: z.string().min(1),
+  agencyId: z.string().min(1),
+  agencyType: z.literal('car_rental'),
+  tenantName: z.string().min(1, 'Nom du locataire requis'),
+  contractNumber: z.string().min(1, 'N° de contrat requis'),
+  carModel: z.string().min(1, 'Modèle du véhicule requis'),
+  licensePlate: z.string().min(1, 'Immatriculation requise'),
+  startDate: z.string().min(1, 'Date de début de location requise'),
+  endDate: z.string().min(1, 'Date de fin de location requise'),
+  tenantPhone: z.string().min(1, 'Téléphone du locataire requis'),
+  objectType: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+const checkInSchema = z.discriminatedUnion('agencyType', [
+  hotelSchema, schoolSchema, medicalSchema, carRentalSchema,
+]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -245,7 +263,7 @@ export async function POST(request: NextRequest) {
         notes: data.notes || null,
         checked_in_at: new Date().toISOString(),
       };
-    } else {
+    } else if (data.agencyType === 'medical') {
       // medical (clinique)
       const admission = new Date(data.admissionDate);
       if (isNaN(admission.getTime())) {
@@ -288,6 +306,42 @@ export async function POST(request: NextRequest) {
         emergency_contact_phone: data.emergencyContactPhone.trim(),
         admission_date: data.admissionDate,
         discharge_date: data.dischargeDate || null,
+        notes: data.notes || null,
+        checked_in_at: new Date().toISOString(),
+      };
+    } else {
+      // car_rental (loueur auto)
+      const startD = new Date(data.startDate);
+      const endD = new Date(data.endDate);
+      if (isNaN(startD.getTime()) || isNaN(endD.getTime())) {
+        return NextResponse.json({ error: 'Dates invalides' }, { status: 400 });
+      }
+      if (endD <= startD) {
+        return NextResponse.json(
+          { error: 'La date de fin doit être après la date de début' },
+          { status: 400 }
+        );
+      }
+      departureDate = endD;
+
+      // Séparer le nom du locataire en prénom + nom
+      const nameParts = data.tenantName.trim().split(/\s+/);
+      travelerFirstName = nameParts[0] || '';
+      travelerLastName = nameParts.slice(1).join(' ') || '';
+      whatsappOwner = data.tenantPhone || null;
+      summary = `${data.tenantName} — ${data.carModel} (${data.licensePlate})`;
+      customData = {
+        agencyType: 'car_rental',
+        tenant_name: data.tenantName.trim(),
+        tenant_first_name: travelerFirstName,
+        tenant_last_name: travelerLastName,
+        contract_number: data.contractNumber.trim(),
+        car_model: data.carModel.trim(),
+        license_plate: data.licensePlate.trim(),
+        start_date: data.startDate,
+        end_date: data.endDate,
+        tenant_phone: data.tenantPhone.trim(),
+        object_type: data.objectType || 'clés', // clés, documents, GPS, siège enfant...
         notes: data.notes || null,
         checked_in_at: new Date().toISOString(),
       };
