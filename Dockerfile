@@ -1,6 +1,6 @@
 FROM node:20-slim
 
-# Installer sqlite3 + git + libc (Debian-slim natif, pas besoin de libc6-compat)
+# Installer sqlite3 + outils nécessaires
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     sqlite3 \
@@ -9,17 +9,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-RUN git clone https://github.com/topmuch/qrtagsori.git .
+# Copier le code source
+COPY . .
+
+# Installer les dépendétés (npm, pas bun)
 RUN npm install --legacy-peer-deps --no-audit --no-fund
 RUN npx prisma generate
 
+# Build Next.js (standalone output)
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
 RUN npm run build
 
-# QRTags : Copier TOUT dans le standalone
-# Le standalone par défaut n'inclut que ~52 packages sur 653
-# Il manque prisma, bcryptjs, qrcode, etc. → crash runtime
+# Copier les fichiers nécessaires dans le standalone
 RUN cp -r .next/static .next/standalone/.next/ && \
     cp -r public .next/standalone/public && \
     cp -r node_modules .next/standalone/node_modules && \

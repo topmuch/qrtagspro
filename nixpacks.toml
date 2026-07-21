@@ -1,15 +1,12 @@
 # ════════════════════════════════════════════════════════════════════
-# QRTags — nixpacks.toml pour Coolify
+# QRTagsPro — nixpacks.toml pour Coolify
 #
-# ⚠️ IMPORTANT: Coolify utilise nixpacks (PAS le Dockerfile) pour builder.
-# Ce fichier EST UTILISÉ par Coolify.
+# ⚠️ Coolify utilise nixpacks (PAS le Dockerfile) pour builder.
 #
-# Notes:
-# - bun.lock a été supprimé pour forcer npm (bun a des problèmes avec
-#   lightningcss-linux-x64-gnu tarball extraction)
-# - Le start cmd lance prisma db push + le script de migration Node.js
-#   AVANT node server.js pour garantir que toutes les colonnes QRTags
-#   existent en DB
+# Setup:
+#   1. npm install (pas bun — problèmes avec lightningcss)
+#   2. npx prisma generate + npm run build
+#   3. Start: prisma db push + migration script + node server.js
 # ════════════════════════════════════════════════════════════════════
 
 [phases.setup]
@@ -17,7 +14,6 @@ nixPkgs = ['nodejs_20', 'openssl']
 aptPkgs = ['sqlite3', 'ca-certificates']
 
 [phases.install]
-# IMPORTANT: utiliser npm, pas bun (bun a des problèmes avec lightningcss)
 cmds = [
   'npm install --legacy-peer-deps --no-audit --no-fund'
 ]
@@ -30,12 +26,12 @@ cmds = [
 dependsOn = ['install']
 
 [start]
-# ÉTAPES (séparées par ; pour continuer même si une échoue):
-# 1. mkdir -p /app/data — crée le répertoire DB
-# 2. npx prisma db push — crée/met à jour le schéma DB
+# Étapes (séparées par ; pour continuer même si une échoue):
+# 1. mkdir — crée les répertoires nécessaires
+# 2. npx prisma db push — crée/met à jour le schéma DB (toutes les tables + colonnes)
 # 3. node scripts/migrate-qrtags-columns.cjs — migration idempotente (backup)
-# 4. node server.js — démarre le serveur Next.js standalone
-cmd = 'mkdir -p /app/data /app/data/backups /app/public/uploads/damage && npx prisma db push --skip-generate --accept-data-loss 2>&1; node scripts/migrate-qrtags-columns.cjs 2>&1; node server.js'
+# 4. npm start — démarre le serveur Next.js standalone (node .next/standalone/server.js)
+cmd = 'mkdir -p /app/data /app/data/backups /app/public/uploads/damage && npx prisma db push --skip-generate --accept-data-loss 2>&1; node scripts/migrate-qrtags-columns.cjs 2>&1; npm start'
 
 [variables]
 NODE_ENV = 'production'
