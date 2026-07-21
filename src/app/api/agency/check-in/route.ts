@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
  *   - 'medical': patientName, fileNumber, service, roomNumber, emergencyContactName, emergencyContactPhone, admissionDate, dischargeDate, notes
  *   - 'car_rental': tenantName, contractNumber, carModel, licensePlate, startDate, endDate, tenantPhone, objectType, notes
  *   - 'luggage_locker': lockerNumber, baggageDescription, depositTime, retrievalTime, travelerName, travelerPhone, depositType, notes
+ *   - 'custom': customTypeId, fields (Record<string, unknown>) — validé contre fieldsSchema du CustomAgencyType
  *
  * L'agencyType est récupéré depuis l'agence du QR (pas du body) pour sécurité.
  */
@@ -160,8 +161,16 @@ const luggageLockerSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
+const customSchema = z.object({
+  reference: z.string().min(1),
+  agencyId: z.string().min(1),
+  agencyType: z.literal('custom'),
+  customTypeId: z.string().min(1, 'customTypeId requis'),
+  fields: z.record(z.string(), z.unknown()),
+});
+
 const checkInSchema = z.discriminatedUnion('agencyType', [
-  hotelSchema, schoolSchema, medicalSchema, carRentalSchema, luggageLockerSchema,
+  hotelSchema, schoolSchema, medicalSchema, carRentalSchema, luggageLockerSchema, customSchema,
 ]);
 
 export async function POST(request: NextRequest) {
@@ -172,7 +181,15 @@ export async function POST(request: NextRequest) {
     // 1. Vérifier que le QR existe et appartient à l'agence
     const baggage = await db.baggage.findUnique({
       where: { reference: data.reference },
-      include: { agency: { select: { id: true, name: true, agencyType: true } } },
+      include: { agency: { select: {
+        id: true, name: true, agencyType: true,
+        customTypeId: true,
+        customType: { select: {
+          id: true, key: true, name: true, icon: true,
+          fieldsSchema: true, departureFieldKey: true,
+          finderMessage: true, colClientLabel: true, colSubLabel: true,
+        } },
+      } } },
     });
 
     if (!baggage) {
@@ -360,7 +377,7 @@ export async function POST(request: NextRequest) {
         notes: data.notes || null,
         checked_in_at: new Date().toISOString(),
       };
-    } else {
+    } else if (data.agencyType === 'luggage_locker') {
       // luggage_locker (consigne)
       // depositTime: heure HH:MM, retrievalTime: datetime-local yyyy-MM-ddTHH:mm
       const depositNow = new Date();
@@ -412,6 +429,99 @@ export async function POST(request: NextRequest) {
         traveler_phone: data.travelerPhone.trim(),
         deposit_type: data.depositType || '24h', // 24h, 48h, 7j
         notes: data.notes || null,
+        checked_in_at: new Date().toISOString(),
+      };
+    } else {
+      // custom (métier personnalisable V3)
+      const customType = baggage.agency?.customType;
+      if (!customType) {
+        return NextResponse.json(
+          { error: 'Métier personnalisé introuvable pour cette agence' },
+          { status: 400 }
+        );
+      }
+
+      // Vérifier que le customTypeId correspond
+      if (baggage.agency?.customTypeId !== data.customTypeId) {
+        return NextResponse.json(
+          { error: 'customTypeId ne correspond pas à l\'agence' },
+          { status: 400 }
+        );
+      }
+
+      // Parser fieldsSchema pour valider les champs requis
+      let fieldsSchema: Array<{
+        key: string; label: string; type: string;
+        required: boolean; placeholder?: string | null;
+        options?: string[] | null; helper?: string | null;
+      }>;
+      try {
+        fieldsSchema = JSON.parse(customType.fieldsSchema);
+      } catch {
+        return NextResponse.json(
+          { error: 'Schéma de champs invalide pour ce métier' },
+          { status: 500 }
+        );
+      }
+
+      // Valider les champs requis
+      for (const f of fieldsSchema) {
+        if (f.required) {
+          const val = data.fields[f.key];
+          if (val === undefined || val === null || String(val).trim() === '') {
+            return NextResponse.json(
+              { error: `Champ requis manquant: ${f.label}` },
+              { status: 400 }
+            );
+          }
+        }
+      }
+
+      // Déterminer departureDate depuis departureFieldKey (si défini)
+      const depKey = customType.departureFieldKey;
+      if (depKey && data.fields[depKey]) {
+        const depValue = String(data.fields[depKey]);
+        const parsed = new Date(depValue);
+        if (!isNaN(parsed.getTime())) {
+          departureDate = parsed;
+        } else {
+          // Si parsing échoue, on met une date lointaine (QR reste actif)
+          departureDate = new Date('2099-12-31T23:59:59');
+        }
+      } else {
+        // Pas de departureFieldKey → QR reste actif jusqu'au check-out manuel
+        departureDate = new Date('2099-12-31T23:59:59');
+      }
+
+      // Chercher un champ "nom" pour travelerFirstName/travelerLastName
+      const nameField = fieldsSchema.find(f =>
+        /name|nom|client|tenant|traveler|patient|student|participant/i.test(f.key) ||
+        /nom|name/i.test(f.label)
+      );
+      const nameValue = nameField ? String(data.fields[nameField.key] || '').trim() : '';
+      const nameParts = nameValue.split(/\s+/);
+      travelerFirstName = nameParts[0] || '';
+      travelerLastName = nameParts.slice(1).join(' ') || '';
+
+      // Chercher un champ téléphone pour whatsappOwner
+      const telField = fieldsSchema.find(f => f.type === 'tel');
+      whatsappOwner = telField ? String(data.fields[telField.key] || '').trim() || null : null;
+
+      // Construire le summary (premier champ non-vide + nom du métier)
+      const firstNonEmpty = fieldsSchema.find(f => {
+        const v = data.fields[f.key];
+        return v !== undefined && v !== null && String(v).trim() !== '';
+      });
+      const summaryValue = firstNonEmpty ? String(data.fields[firstNonEmpty.key]) : '';
+      summary = summaryValue ? `${summaryValue} — ${customType.name}` : customType.name;
+
+      // Construire customData
+      customData = {
+        agencyType: 'custom',
+        customTypeId: customType.id,
+        customTypeName: customType.name,
+        customTypeKey: customType.key,
+        fields: data.fields,
         checked_in_at: new Date().toISOString(),
       };
     }

@@ -40,7 +40,17 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
       include: {
         agency: {
-          select: { id: true, name: true, agencyType: true },
+          select: {
+            id: true, name: true, agencyType: true,
+            customTypeId: true,
+            customType: {
+              select: {
+                id: true, key: true, name: true, icon: true,
+                fieldsSchema: true, departureFieldKey: true,
+                colClientLabel: true, colSubLabel: true,
+              },
+            },
+          },
         },
       },
     });

@@ -31,8 +31,31 @@ const BAGGAGE_COLUMNS = [
 
 // Columns to ensure exist in Agency table
 // QRTagsPro V1 — WhatsApp reception phone (finder scan → wa.me click-to-chat)
+// QRTagsPro V3 — customTypeId (référence vers CustomAgencyType pour métiers custom)
 const AGENCY_COLUMNS = [
   ['contactPhone', 'TEXT'],
+  ['customTypeId', 'TEXT'],
+];
+
+// QRTagsPro V3 — CustomAgencyType table
+// Permet au superadmin de créer des métiers personnalisés sans coder
+const CUSTOM_TYPE_COLUMNS = [
+  ['id',                'TEXT NOT NULL PRIMARY KEY'],
+  ['key',               'TEXT NOT NULL'],
+  ['name',              'TEXT NOT NULL'],
+  ['icon',              "TEXT NOT NULL DEFAULT '💼'"],
+  ['description',       'TEXT'],
+  ['fieldsSchema',      'TEXT NOT NULL'],
+  ['departureFieldKey', 'TEXT'],
+  ['finderMessage',     'TEXT'],
+  ['colClientLabel',    'TEXT'],
+  ['colSubLabel',       'TEXT'],
+  ['createdAt',         'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+  ['updatedAt',         'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP'],
+];
+
+const CUSTOM_TYPE_INDEXES = [
+  ['idx_customtype_key', 'CustomAgencyType', 'key'],
 ];
 
 // Superadmin credentials (bcrypt hash for "admin123")
@@ -155,7 +178,7 @@ async function main() {
       await ensureColumn(prisma, 'Baggage', col, def);
     }
 
-    // 2b. Ensure Agency columns (QRTagsPro V1 — contactPhone)
+    // 2b. Ensure Agency columns (QRTagsPro V1 — contactPhone, V3 — customTypeId)
     const hasAgency = await tableExists(prisma, 'Agency');
     if (hasAgency) {
       console.log('✓ Table Agency exists');
@@ -167,11 +190,51 @@ async function main() {
       console.log('⚠ Table Agency does not exist — skipping Agency columns');
     }
 
-    // 3. Ensure index on trackingToken
+    // 2c. Ensure CustomAgencyType table exists (QRTagsPro V3 — métiers personnalisables)
+    const hasCustomType = await tableExists(prisma, 'CustomAgencyType');
+    if (!hasCustomType) {
+      console.log('  + Creating table CustomAgencyType...');
+      await prisma.$executeRawUnsafe(
+        `CREATE TABLE "CustomAgencyType" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "key" TEXT NOT NULL,
+          "name" TEXT NOT NULL,
+          "icon" TEXT NOT NULL DEFAULT '💼',
+          "description" TEXT,
+          "fieldsSchema" TEXT NOT NULL,
+          "departureFieldKey" TEXT,
+          "finderMessage" TEXT,
+          "colClientLabel" TEXT,
+          "colSubLabel" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );`
+      );
+      try {
+        await prisma.$executeRawUnsafe(
+          `CREATE UNIQUE INDEX IF NOT EXISTS "CustomAgencyType_key_key" ON "CustomAgencyType"("key");`
+        );
+      } catch (e) {
+        // ignore
+      }
+      console.log('  ✓ Table CustomAgencyType created');
+    } else {
+      console.log('✓ Table CustomAgencyType exists');
+      console.log('Ensuring CustomAgencyType columns...');
+      for (const [col, def] of CUSTOM_TYPE_COLUMNS) {
+        // Skip 'id' and 'key' since they exist (PRIMARY KEY + UNIQUE handled separately)
+        if (col === 'id' || col === 'key') continue;
+        await ensureColumn(prisma, 'CustomAgencyType', col, def);
+      }
+    }
+
+    // 3. Ensure indexes
     console.log('Ensuring indexes...');
     await ensureIndex(prisma, 'idx_baggage_trackingToken', 'Baggage', 'trackingToken');
     // QRTagsPro V1 — Index on departureDate for efficient cron auto-expire queries
     await ensureIndex(prisma, 'idx_baggage_departureDate', 'Baggage', 'departureDate');
+    // QRTagsPro V3 — Index on CustomAgencyType.key
+    await ensureIndex(prisma, 'idx_customtype_key', 'CustomAgencyType', 'key');
 
     // 4. Ensure superadmin exists with correct password
     console.log('Ensuring superadmin...');

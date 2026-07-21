@@ -20,6 +20,18 @@ export interface User {
     address?: string | null;
     agencyType?: string | null;
     contactPhone?: string | null;
+    customTypeId?: string | null;
+    customType?: {
+      id: string;
+      key: string;
+      name: string;
+      icon: string;
+      fieldsSchema: string;
+      departureFieldKey: string | null;
+      finderMessage: string | null;
+      colClientLabel: string | null;
+      colSubLabel: string | null;
+    } | null;
   } | null;
 }
 

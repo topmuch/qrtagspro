@@ -100,6 +100,10 @@ interface CustomData {
   traveler_last_name?: string;
   traveler_phone?: string;
   deposit_type?: string | null;
+  // Custom (métier personnalisable V3) — fields est un objet key-value dynamique
+  fields?: Record<string, unknown>;
+  customTypeName?: string;
+  customTypeKey?: string;
 }
 
 interface Baggage {
@@ -172,6 +176,16 @@ function getDisplayName(b: Baggage, cd: CustomData | null): string {
   if (cd?.traveler_first_name || cd?.traveler_last_name) {
     return `${cd.traveler_first_name || ''} ${cd.traveler_last_name || ''}`.trim();
   }
+  // Custom: chercher un champ type "name" dans cd.fields
+  if (cd?.agencyType === 'custom' && cd.fields) {
+    const nameKeys = Object.keys(cd.fields).filter(k =>
+      /name|nom|client|tenant|traveler|patient|student|participant/i.test(k)
+    );
+    for (const k of nameKeys) {
+      const v = cd.fields[k];
+      if (v && String(v).trim()) return String(v).trim();
+    }
+  }
   return [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || b.reference;
 }
 
@@ -182,6 +196,7 @@ function getDisplayName(b: Baggage, cd: CustomData | null): string {
  *   - Clinique : "Dossier X" (file_number) ou "Service Y"
  *   - Loueur auto : "Contrat X" (contract_number) + immat
  *   - Consigne : "Casier X"
+ *   - Custom : cherche un champ type "sub" (badge, dossier, casier, contract, room)
  *   - Sinon : chaîne vide.
  */
 function getSubInfo(cd: CustomData | null): string {
@@ -204,6 +219,22 @@ function getSubInfo(cd: CustomData | null): string {
     if (cd.locker_number) return `Casier ${cd.locker_number}`;
     return '';
   }
+  // Custom: chercher un champ type "sub" (badge, dossier, casier, contract, room)
+  if (cd.agencyType === 'custom' && cd.fields) {
+    const subKeys = Object.keys(cd.fields).filter(k =>
+      /badge|dossier|casier|contract|chambre|room|locker|matricule|number|numero/i.test(k)
+    );
+    for (const k of subKeys) {
+      const v = cd.fields[k];
+      if (v && String(v).trim()) return String(v).trim();
+    }
+    // Sinon prendre le premier champ non-name
+    for (const [k, v] of Object.entries(cd.fields)) {
+      if (/name|nom|client/i.test(k)) continue;
+      if (v && String(v).trim()) return String(v).trim();
+    }
+    return '';
+  }
   // Hôtel
   if (cd.agencyType === 'hotel' && cd.room_number) return `Chambre ${cd.room_number}`;
   // École
@@ -222,6 +253,19 @@ function getDepartureISO(b: Baggage, cd: CustomData | null): string | null {
   // On extrait juste la date yyyy-MM-dd pour comparaison avec today
   if (cd?.retrieval_time) return cd.retrieval_time.slice(0, 10);
   if (cd?.retrieval_iso) return cd.retrieval_iso.slice(0, 10);
+  // Custom: chercher un champ date dans cd.fields
+  if (cd?.agencyType === 'custom' && cd.fields) {
+    const dateKeys = Object.keys(cd.fields).filter(k =>
+      /departure|sortie|end|fin|retrieval|retour/i.test(k)
+    );
+    for (const k of dateKeys) {
+      const v = cd.fields[k];
+      if (v && String(v).trim()) {
+        const s = String(v).slice(0, 10);
+        return s;
+      }
+    }
+  }
   if (b.departureDate) return b.departureDate.slice(0, 10);
   return null;
 }
@@ -233,6 +277,18 @@ function getArrivalISO(b: Baggage, cd: CustomData | null): string | null {
   if (cd?.start_date) return cd.start_date;
   // luggage_locker: depositTime est HH:mm, on prend le jour du checked_in_at
   if (cd?.deposit_iso) return cd.deposit_iso.slice(0, 10);
+  // Custom: chercher un champ date d'arrivée
+  if (cd?.agencyType === 'custom' && cd.fields) {
+    const arrKeys = Object.keys(cd.fields).filter(k =>
+      /arrival|arrivee|admission|start|debut|deposit|entree/i.test(k)
+    );
+    for (const k of arrKeys) {
+      const v = cd.fields[k];
+      if (v && String(v).trim()) {
+        return String(v).slice(0, 10);
+      }
+    }
+  }
   if (cd?.checked_in_at) return cd.checked_in_at;
   return b.createdAt || null;
 }
@@ -343,7 +399,14 @@ interface DashboardLabels {
   headerTag: string; // "Hôtel" ou "École"
 }
 
-function buildLabels(agencyType: string | null): DashboardLabels {
+function buildLabels(
+  agencyType: string | null,
+  customType?: {
+    name: string;
+    colClientLabel?: string | null;
+    colSubLabel?: string | null;
+  } | null,
+): DashboardLabels {
   if (agencyType === 'school') {
     return {
       itemsActive: 'Cartables actifs',
@@ -416,6 +479,25 @@ function buildLabels(agencyType: string | null): DashboardLabels {
       headerTag: 'Consigne',
     };
   }
+  if (agencyType === 'custom' && customType) {
+    const ctName = customType.name || 'Élément';
+    return {
+      itemsActive: `${ctName}s actifs`,
+      itemsActiveDesc: `${ctName}s actuellement en cours`,
+      clientsTitle: `${ctName}s en cours`,
+      clientsSubtitle: `${ctName}s actifs (QR activés).`,
+      checkOutToday: 'Sorties prévues aujourd\'hui',
+      checkOutTodaySubtitle: `${ctName}s dont la sortie est prévue le`,
+      checkOutTodayEmpty: 'Aucune sortie prévue aujourd\'hui.',
+      emptyClients: `Aucun ${ctName.toLowerCase()} actif. Faites un check-in pour commencer.`,
+      checkOutButton: 'Check-out',
+      colClient: customType.colClientLabel || 'Client',
+      colSub: customType.colSubLabel || 'Détails',
+      colArrival: 'Enregistré le',
+      colDeparture: 'Sortie prévue',
+      headerTag: ctName,
+    };
+  }
   // Hôtel (par défaut — couvre aussi generic)
   return {
     itemsActive: 'QR actifs',
@@ -440,9 +522,9 @@ function buildLabels(agencyType: string | null): DashboardLabels {
 // ════════════════════════════════════════════════════════════════
 
 export default function AgencyDashboardPage() {
-  const { agencyId, agencyName, agencyType } = useAgency();
+  const { agencyId, agencyName, agencyType, customType } = useAgency();
   const { toast } = useToast();
-  const LABELS = useMemo(() => buildLabels(agencyType), [agencyType]);
+  const LABELS = useMemo(() => buildLabels(agencyType, customType), [agencyType, customType]);
   const isSchool = agencyType === 'school';
 
   const [baggages, setBaggages] = useState<Baggage[]>([]);

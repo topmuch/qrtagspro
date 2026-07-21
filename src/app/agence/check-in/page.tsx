@@ -27,6 +27,7 @@ import SchoolCheckInForm from '@/components/checkin/SchoolCheckInForm';
 import MedicalCheckInForm from '@/components/checkin/MedicalCheckInForm';
 import CarRentalCheckInForm from '@/components/checkin/CarRentalCheckInForm';
 import LuggageLockerCheckInForm from '@/components/checkin/LuggageLockerCheckInForm';
+import DynamicCheckInForm, { CustomField } from '@/components/checkin/DynamicCheckInForm';
 
 const INPUT =
   'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-black text-black ' +
@@ -52,7 +53,7 @@ const AGENCY_TYPE_LABELS: Record<string, string> = {
 };
 
 export default function CheckInPage() {
-  const { agencyId, agencyName, agencyType } = useAgency();
+  const { agencyId, agencyName, agencyType, customTypeId, customType } = useAgency();
   const { toast } = useToast();
 
   const [step, setStep] = useState<Step>('scan');
@@ -306,7 +307,27 @@ export default function CheckInPage() {
               onSuccess={handleSuccess}
             />
           )}
-          {agencyType && !['hotel', 'school', 'medical', 'car_rental', 'luggage_locker'].includes(agencyType) && (
+          {agencyType === 'custom' && customType && customTypeId && (
+            <DynamicCheckInForm
+              reference={reference}
+              agencyId={agencyId}
+              customTypeId={customTypeId}
+              customTypeName={customType.name}
+              fieldsSchema={JSON.parse(customType.fieldsSchema) as CustomField[]}
+              onBack={() => setStep('scan')}
+              onSuccess={handleSuccess}
+            />
+          )}
+          {agencyType === 'custom' && (!customType || !customTypeId) && (
+            <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 text-sm text-red-700">
+              <p className="font-bold mb-1">⚠️ Configuration incomplète</p>
+              <p>
+                Type d&apos;agence personnalisé mais aucune configuration trouvée.
+                Contactez le superadmin pour configurer le métier personnalisé de votre agence.
+              </p>
+            </div>
+          )}
+          {agencyType && !['hotel', 'school', 'medical', 'car_rental', 'luggage_locker', 'custom'].includes(agencyType) && (
             <div className="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-6 text-center">
               <p className="font-bold text-black mb-2">
                 🚧 Type d&apos;agence « {agencyType} » — formulaire en développement

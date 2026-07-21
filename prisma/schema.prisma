@@ -62,6 +62,37 @@ model LoginLog {
   createdAt    DateTime  @default(now())
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// QRTagsPro V3 — CustomAgencyType (métier générique personnalisable)
+// ═══════════════════════════════════════════════════════════════════
+// Permet au superadmin de créer un nouveau métier sans coder:
+//   - Schéma de champs dynamique (JSON)
+//   - Champ date de départ pour cron auto-checkout
+//   - Message WhatsApp personnalisé
+//   - Labels colonnes dashboard
+model CustomAgencyType {
+  id                String   @id @default(cuid())
+  key               String   @unique        // ex: "spa", "gym", "entreprise"
+  name              String                   // affichage (ex: "Spa & Thalasso")
+  icon              String   @default("💼")  // emoji
+  description       String?
+  // JSON string: tableau de champs
+  // [{ key, label, type, required, placeholder, options?, helper? }]
+  // type: "text" | "tel" | "email" | "date" | "datetime-local" | "textarea" | "number" | "select"
+  fieldsSchema      String
+  // Clé du champ (dans fieldsSchema) à utiliser comme date de départ
+  // pour le cron auto-checkout. Si null → pas d'auto-expiration
+  departureFieldKey String?
+  // Message WhatsApp personnalisé (optionnel). Variables: {reference}, {agencyName}, {finderName}, {finderPhone}, {location}
+  finderMessage     String?
+  // Labels personnalisés pour le dashboard (optionnel)
+  colClientLabel    String?  // ex: "Client", "Adhérent", "Participant"
+  colSubLabel       String?  // ex: "Dossier", "Badge", "Casier"
+  agencies          Agency[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 // Agency model - QRTags multi-business agencies (hotel, school, luggage_locker, car_rental, medical, generic)
 model Agency {
   id                 String    @id @default(cuid())
@@ -72,7 +103,9 @@ model Agency {
   address            String?
   // QRTagsPro V1 — WhatsApp reception phone (used by finder scan → wa.me click-to-chat)
   contactPhone       String?
-  agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "generic"
+  agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
+  customTypeId       String?   // Si agencyType = "custom", référence vers CustomAgencyType
+  customType         CustomAgencyType? @relation(fields: [customTypeId], references: [id], onDelete: SetNull)
   active             Boolean   @default(true)
   createdAt          DateTime  @default(now())
   baggages           Baggage[]

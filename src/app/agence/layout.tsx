@@ -33,6 +33,18 @@ export const DEMO_AGENCY = {
   address: 'Dakar, Sénégal',
   agencyType: 'generic' as string | null,
   contactPhone: null as string | null,
+  customTypeId: null as string | null,
+  customType: null as {
+    id: string;
+    key: string;
+    name: string;
+    icon: string;
+    fieldsSchema: string;
+    departureFieldKey: string | null;
+    finderMessage: string | null;
+    colClientLabel: string | null;
+    colSubLabel: string | null;
+  } | null,
 };
 
 // Agency Context for sharing agency data across pages
@@ -41,6 +53,8 @@ interface AgencyContextType {
   agencyName: string;
   agencyType: string | null;
   contactPhone: string | null;
+  customTypeId: string | null;
+  customType: typeof DEMO_AGENCY.customType;
   agencyData: typeof DEMO_AGENCY | null;
   userName: string;
   userEmail: string;
@@ -51,6 +65,8 @@ export const AgencyContext = createContext<AgencyContextType>({
   agencyName: DEMO_AGENCY.name,
   agencyType: DEMO_AGENCY.agencyType,
   contactPhone: DEMO_AGENCY.contactPhone,
+  customTypeId: DEMO_AGENCY.customTypeId,
+  customType: DEMO_AGENCY.customType,
   agencyData: null,
   userName: '',
   userEmail: ''
@@ -372,6 +388,8 @@ export default function AgencyRootLayout({
   const agencySlug = user?.agency?.slug || DEMO_AGENCY.slug;
   const agencyType = user?.agency?.agencyType || null;
   const contactPhone = user?.agency?.contactPhone || user?.agency?.phone || null;
+  const customTypeId = user?.agency?.customTypeId || null;
+  const customType = user?.agency?.customType || null;
   const agencyData = user?.agency ? {
     id: user.agency.id,
     name: user.agency.name,
@@ -381,6 +399,8 @@ export default function AgencyRootLayout({
     address: user.agency.address || DEMO_AGENCY.address,
     agencyType: user.agency.agencyType || null,
     contactPhone: user.agency.contactPhone || null,
+    customTypeId: user.agency.customTypeId || null,
+    customType: user.agency.customType || null,
   } : null;
 
   // Don't wrap login page with sidebar
@@ -409,6 +429,8 @@ export default function AgencyRootLayout({
       agencyName,
       agencyType,
       contactPhone,
+      customTypeId,
+      customType,
       agencyData: agencyData || DEMO_AGENCY,
       userName: user.name || 'Agence',
       userEmail: user.email
