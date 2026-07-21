@@ -3,29 +3,36 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
-// Schéma simplifié — uniquement les champs de base
-const agencySchema = z.object({
-  context: z.literal('agency'),
-  agencyId: z.union([z.string().min(1), z.literal('')]).optional(),
-  count: z.number().min(1).max(3),
-  travelerCount: z.number().min(1).max(5000),
+/**
+ * POST /api/admin/baggages/generate
+ *
+ * Génère un lot de QR codes assignés à une agence (Pro).
+ *
+ * Body:
+ *   agencyId: string  — l'agence destinataire (OBLIGATOIRE en Pro)
+ *   quantity: number  — nombre de QR à générer (1 à 5000)
+ *
+ * Le QR est créé avec:
+ *   - reference: QRT{YY}-{6 chars aléatoires}
+ *   - type: 'voyageur' (compat)
+ *   - agencyId: fourni
+ *   - status: 'in_stock' (en attente de check-in par l'agence)
+ *
+ * Retourne:
+ *   { success, generated, references }
+ */
+const generateSchema = z.object({
+  agencyId: z.string().min(1, 'Agency ID requis'),
+  quantity: z.number().min(1).max(5000, 'Maximum 5000 QR par lot'),
 });
 
-const individualSchema = z.object({
-  context: z.literal('individual'),
-  firstName: z.string().min(1).max(50),
-  lastName: z.string().min(1).max(50),
-  whatsapp: z.string().min(6).max(20),
-  duration: z.enum(['7d', '1y']),
-  baggageCount: z.number().min(1).max(2),
-});
-
-const combinedSchema = z.discriminatedUnion('context', [individualSchema, agencySchema]);
-
-function generateRandomCode(length = 6) {
+function generateRandomCode(length = 6): string {
+  // Caractères sans ambigüité (pas de 0/O, 1/I/L)
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let result = '';
-  for (let i = 0; i < length; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
   return result;
 }
 
@@ -33,64 +40,55 @@ async function generateUniqueReference(): Promise<string> {
   const year = new Date().getFullYear().toString().slice(-2);
   for (let i = 0; i < 100; i++) {
     const ref = `QRT${year}-${generateRandomCode(6)}`;
-    const existing = await db.baggage.findUnique({ where: { reference: ref }, select: { id: true } });
+    const existing = await db.baggage.findUnique({
+      where: { reference: ref },
+      select: { id: true },
+    });
     if (!existing) return ref;
   }
-  return `QRT${year}-${Date.now()}`;
+  // Fallback improbable : timestamp
+  return `QRT${year}-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const data = combinedSchema.parse(body);
+    const data = generateSchema.parse(body);
 
+    // 1. Vérifier que l'agence existe
+    const agency = await db.agency.findUnique({
+      where: { id: data.agencyId },
+      select: { id: true, name: true, agencyType: true },
+    });
+
+    if (!agency) {
+      return NextResponse.json(
+        { error: 'Agence introuvable' },
+        { status: 404 }
+      );
+    }
+
+    // 2. Générer les références uniques
     const references: string[] = [];
-    const total = data.context === 'individual' ? data.baggageCount : data.travelerCount * data.count;
-
-    // Générer les références uniques
-    for (let i = 0; i < total; i++) {
+    for (let i = 0; i < data.quantity; i++) {
       references.push(await generateUniqueReference());
     }
 
-    // ─── INSERT ULTRA-SIMPLIFIÉ ───
-    // Uniquement les colonnes qui existent à 100% dans TOUTES les versions de DB
-    // Pas de transitMode, transportMode, assignedToAgencyAt, lotId, etc.
-    const agencyId = data.context === 'agency' && data.agencyId && data.agencyId.trim() !== ''
-      ? data.agencyId
-      : null;
+    // 3. Créer les baggages en lot (uniquement les colonnes de base)
+    // Status: 'in_stock' = en attente de check-in par l'agence
+    await db.baggage.createMany({
+      data: references.map(ref => ({
+        reference: ref,
+        type: 'voyageur',
+        agencyId: agency.id,
+        status: 'in_stock',
+      })),
+    });
 
-    if (data.context === 'individual') {
-      // Individuel : créer avec infos client
-      for (const ref of references) {
-        await db.baggage.create({
-          data: {
-            reference: ref,
-            type: 'voyageur',
-            agencyId: null,
-            travelerFirstName: data.firstName,
-            travelerLastName: data.lastName,
-            whatsappOwner: data.whatsapp,
-            status: 'in_stock',
-            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          },
-        });
-      }
-    } else {
-      // Agence : créer en stock ou assigné à l'agence (PAS activated)
-      for (const ref of references) {
-        await db.baggage.create({
-          data: {
-            reference: ref,
-            type: 'voyageur',
-            agencyId: agencyId,
-            status: agencyId ? 'assigned_to_agency' : 'in_stock',
-          },
-        });
-      }
-    }
-
+    // 4. Revalider les pages concernées
     revalidatePath('/admin/etiquettes');
     revalidatePath('/admin/qrcodes');
+    revalidatePath('/admin/generer');
     revalidatePath('/agence/baggages');
     revalidatePath('/agence/tableau-de-bord');
 
@@ -98,26 +96,35 @@ export async function POST(request: NextRequest) {
       success: true,
       generated: references.length,
       references,
+      agency: {
+        id: agency.id,
+        name: agency.name,
+        agencyType: agency.agencyType,
+      },
     });
   } catch (error) {
-    console.error('[QRTags/generate] Erreur:', error);
+    console.error('[generate] Error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Erreur de validation', details: error.issues },
-        { status: 400 },
+        { error: 'Données invalides', details: error.issues },
+        { status: 400 }
       );
     }
 
-    const errMsg = error instanceof Error ? error.message : 'Erreur inconnue';
+    const message = error instanceof Error ? error.message : 'Erreur inconnue';
     return NextResponse.json(
-      { error: `Erreur génération: ${errMsg}` },
-      { status: 500 },
+      { error: `Erreur génération: ${message}` },
+      { status: 500 }
     );
   }
 }
 
-// GET
+/**
+ * GET /api/admin/baggages/generate
+ *
+ * Liste les QR codes (avec filtres optionnels).
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -133,14 +140,19 @@ export async function GET(request: NextRequest) {
 
     const baggages = await db.baggage.findMany({
       where,
-      include: { agency: { select: { id: true, name: true, agencyType: true } } },
+      include: {
+        agency: { select: { id: true, name: true, agencyType: true } },
+      },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
 
     return NextResponse.json({ baggages });
   } catch (error) {
-    console.error('[QRTags/generate GET] Erreur:', error);
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+    console.error('[generate GET] Error:', error);
+    return NextResponse.json(
+      { error: 'Erreur serveur' },
+      { status: 500 }
+    );
   }
 }
