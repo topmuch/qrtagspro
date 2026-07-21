@@ -256,11 +256,43 @@ export default function FinderPage() {
   // ─── Pending activation ──────────────────────────────────────────
   if (data.status === 'pending_activation') {
     return (
-      <ErrorScreen
-        icon={<Clock style={{ color: QRTAGS_INK }} />}
-        title="QR code non activé"
-        message={`Ce QR code n'a pas encore été activé${data.agency?.name ? ` par ${data.agency.name}` : ''}. Veuillez prévenir l'établissement.`}
-      />
+      <main className="min-h-screen py-8 px-4" style={{ backgroundColor: QRTAGS_BG, color: QRTAGS_INK }}>
+        <div className="max-w-md mx-auto">
+          <div className={`${CARD_CLASS} text-center space-y-4`}>
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#134288]/10 mb-2">
+              <Clock className="w-12 h-12" style={{ color: QRTAGS_INK }} />
+            </div>
+            <h1 className="text-2xl font-black text-[#134288]">QR code en attente d'activation</h1>
+            <p className="text-sm text-slate-600">
+              Ce QR code appartient à{' '}
+              <strong className="text-[#134288]">{data.agency?.name || 'un établissement'}</strong>{' '}
+              mais n'a pas encore été activé.
+            </p>
+            <div className="bg-[#32ba5d]/10 border-2 border-[#32ba5d]/30 rounded-xl p-4 text-left">
+              <p className="text-sm font-bold text-[#134288] mb-2">📋 Pour le staff de l'établissement :</p>
+              <p className="text-xs text-slate-700 mb-3">
+                Ce QR est en stock. Pour l'activer, connectez-vous à votre espace agence
+                et faites le check-in du client :
+              </p>
+              <ol className="text-xs text-slate-700 space-y-1 list-decimal list-inside">
+                <li>Connectez-vous sur <strong>/agence/connexion</strong></li>
+                <li>Allez dans <strong>Check-in</strong></li>
+                <li>Scannez ce QR ou saisissez la référence</li>
+                <li>Remplissez les infos client (nom, chambre, dates...)</li>
+              </ol>
+            </div>
+            <p className="text-xs text-slate-500">
+              Référence : <span className="font-mono font-bold">{reference}</span>
+            </p>
+            <a
+              href="/"
+              className="inline-block px-6 py-3 rounded-lg bg-[#134288] text-white font-bold text-sm hover:bg-[#0d3266] transition"
+            >
+              Retour à l'accueil
+            </a>
+          </div>
+        </div>
+      </main>
     );
   }
 

@@ -160,13 +160,13 @@ export default function HomePage() {
               href="/login"
               className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-semibold text-[#134288] hover:bg-slate-100 rounded-lg transition"
             >
-              Espace superadmin
+              Connexion
             </Link>
             <Link
-              href="/agence/connexion"
+              href="/demo"
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-[#32ba5d] text-white rounded-lg hover:bg-[#28a54f] transition"
             >
-              Espace agence
+              S'inscrire
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -498,6 +498,100 @@ export default function HomePage() {
                 </button>
               </form>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ ONBOARDING / INSCRIPTION ═══ */}
+      <section className="py-20 bg-gradient-to-br from-[#134288] to-[#0d3266] text-white">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black mb-3">
+              Démarrez en 3 étapes
+            </h2>
+            <p className="text-lg text-blue-100 max-w-2xl mx-auto">
+              Que vous soyez superadmin ou gérant d'établissement, QRTagsPro
+              s'adapte à votre besoin.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            {/* Étape 1 — Superadmin */}
+            <div className="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20">
+              <div className="w-12 h-12 rounded-xl bg-[#32ba5d] flex items-center justify-center text-white font-bold text-xl mb-4">
+                1
+              </div>
+              <h3 className="font-bold text-lg mb-2">Superadmin</h3>
+              <p className="text-sm text-blue-100 mb-4">
+                Créez les agences, générez les lots de QR, gérez les métiers personnalisés.
+              </p>
+              <Link
+                href="/admin/connexion"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#134288] text-sm font-bold rounded-lg hover:bg-blue-50 transition"
+              >
+                Espace superadmin
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Étape 2 — Agence */}
+            <div className="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20">
+              <div className="w-12 h-12 rounded-xl bg-[#32ba5d] flex items-center justify-center text-white font-bold text-xl mb-4">
+                2
+              </div>
+              <h3 className="font-bold text-lg mb-2">Agence</h3>
+              <p className="text-sm text-blue-100 mb-4">
+                Connectez-vous, faites le check-in de vos clients, suivez vos QR actifs.
+              </p>
+              <Link
+                href="/agence/connexion"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#32ba5d] text-white text-sm font-bold rounded-lg hover:bg-[#28a54f] transition"
+              >
+                Espace agence
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Étape 3 — Démo */}
+            <div className="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20">
+              <div className="w-12 h-12 rounded-xl bg-[#32ba5d] flex items-center justify-center text-white font-bold text-xl mb-4">
+                3
+              </div>
+              <h3 className="font-bold text-lg mb-2">Pas encore client ?</h3>
+              <p className="text-sm text-blue-100 mb-4">
+                Demandez une démo gratuite. Découvrez QRTagsPro adapté à votre métier.
+              </p>
+              <Link
+                href="/demo"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#134288] text-sm font-bold rounded-lg hover:bg-blue-50 transition"
+              >
+                Demander une démo
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Workflow résumé */}
+          <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+            <p className="text-sm font-bold text-[#32ba5d] mb-3 text-center">📋 WORKFLOW COMPLET</p>
+            <div className="grid md:grid-cols-4 gap-4 text-center text-sm">
+              <div>
+                <p className="font-bold text-white mb-1">1. Génération</p>
+                <p className="text-blue-200 text-xs">Superadmin génère QR → agence</p>
+              </div>
+              <div>
+                <p className="font-bold text-white mb-1">2. Check-in</p>
+                <p className="text-blue-200 text-xs">Agence scanne QR + infos client</p>
+              </div>
+              <div>
+                <p className="font-bold text-white mb-1">3. Perte → Scan</p>
+                <p className="text-blue-200 text-xs">Trouveur scanne → WhatsApp réception</p>
+              </div>
+              <div>
+                <p className="font-bold text-white mb-1">4. Restitution</p>
+                <p className="text-blue-200 text-xs">Réception vérifie + restitue</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
