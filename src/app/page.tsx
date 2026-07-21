@@ -77,25 +77,88 @@ const METIERS = [
 const STEPS = [
   {
     num: 1,
-    icon: <QrCode className="w-7 h-7" />,
+    emoji: '🔢',
+    visual: (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div className="grid grid-cols-3 gap-1">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="w-6 h-6 bg-[#134288] rounded flex items-center justify-center">
+              <QrCode className="w-4 h-4 text-white" />
+            </div>
+          ))}
+        </div>
+        <div className="absolute -bottom-1 -right-1 bg-[#32ba5d] text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+          ×500
+        </div>
+      </div>
+    ),
     title: 'Génération des QR',
     description: 'Le superadmin crée des lots de QR codes assignés à votre entreprise.',
   },
   {
     num: 2,
-    icon: <Users className="w-7 h-7" />,
+    emoji: '📋',
+    visual: (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="bg-white rounded-lg p-3 shadow-md border border-slate-200 w-32">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded bg-[#134288] flex items-center justify-center">
+              <QrCode className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="h-2 bg-slate-200 rounded w-full mb-1" />
+              <div className="h-2 bg-slate-200 rounded w-2/3" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="h-2 bg-[#32ba5d]/30 rounded w-full" />
+            <div className="h-2 bg-slate-100 rounded w-3/4" />
+            <div className="h-2 bg-slate-100 rounded w-1/2" />
+          </div>
+        </div>
+      </div>
+    ),
     title: 'Check-in client',
     description: 'Votre staff scanne le QR et saisit les infos client (nom, chambre, dates).',
   },
   {
     num: 3,
-    icon: <Bell className="w-7 h-7" />,
+    emoji: '📱',
+    visual: (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="relative">
+          <div className="w-20 h-32 bg-slate-900 rounded-xl p-1.5 shadow-lg">
+            <div className="w-full h-full bg-white rounded-lg flex flex-col items-center justify-center p-2">
+              <QrCode className="w-8 h-8 text-[#134288] mb-1" />
+              <div className="w-full h-1.5 bg-[#32ba5d] rounded mb-1" />
+              <div className="w-2/3 h-1.5 bg-slate-200 rounded" />
+            </div>
+          </div>
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-[#32ba5d] rounded-full flex items-center justify-center shadow-lg">
+            <Bell className="w-4 h-4 text-white" />
+          </div>
+        </div>
+      </div>
+    ),
     title: 'Le trouveur scanne',
     description: 'En cas de perte, le trouveur scanne le QR et contacte votre réception via WhatsApp.',
   },
   {
     num: 4,
-    icon: <CheckCircle2 className="w-7 h-7" />,
+    emoji: '✅',
+    visual: (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="bg-white rounded-lg p-3 shadow-md border border-slate-200 flex items-center gap-2">
+          <div className="w-10 h-10 rounded-full bg-[#32ba5d] flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className="h-2 bg-[#32ba5d]/30 rounded w-full mb-1" />
+            <div className="h-2 bg-slate-100 rounded w-2/3" />
+          </div>
+        </div>
+      </div>
+    ),
     title: 'Restitution',
     description: 'Votre réception reçoit le message, vérifie le client et organise la restitution.',
   },
@@ -164,7 +227,7 @@ export default function HomePage() {
               Connexion
             </Link>
             <Link
-              href="#onboarding"
+              href="/onboarding"
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-[#32ba5d] text-white rounded-lg hover:bg-[#28a54f] transition"
             >
               S'inscrire
@@ -329,8 +392,8 @@ export default function HomePage() {
             {STEPS.map((step, i) => (
               <div key={i} className="relative">
                 <div className="bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-[#32ba5d] transition-colors h-full">
-                  <div className="w-14 h-14 rounded-xl bg-[#134288] flex items-center justify-center text-white mb-4">
-                    {step.icon}
+                  <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                    {step.visual}
                   </div>
                   <div className="text-xs font-bold text-[#32ba5d] mb-2">ÉTAPE {step.num}</div>
                   <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
@@ -602,14 +665,14 @@ export default function HomePage() {
               </div>
               <h3 className="font-bold text-lg mb-2">Pas encore client ?</h3>
               <p className="text-sm text-blue-100 mb-4">
-                Testez QRTagsPro en temps réel : scannez un QR, remplissez le formulaire,
-                recevez un message WhatsApp. Aucune inscription requise.
+                Créez votre compte établissement en 2 minutes et commencez à protéger
+                les effets de vos clients.
               </p>
               <Link
-                href="/demo"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#134288] text-sm font-bold rounded-lg hover:bg-blue-50 transition"
+                href="/onboarding"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#32ba5d] text-white text-sm font-bold rounded-lg hover:bg-[#28a54f] transition"
               >
-                Essayer la démo
+                S'inscrire maintenant
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
