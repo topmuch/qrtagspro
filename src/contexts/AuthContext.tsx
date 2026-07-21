@@ -18,6 +18,8 @@ export interface User {
     email?: string | null;
     phone?: string | null;
     address?: string | null;
+    agencyType?: string | null;
+    contactPhone?: string | null;
   } | null;
 }
 

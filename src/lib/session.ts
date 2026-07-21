@@ -23,6 +23,8 @@ export interface SessionUser {
     email: string | null;
     phone: string | null;
     address: string | null;
+    agencyType: string | null;
+    contactPhone: string | null;
   } | null;
 }
 
@@ -153,6 +155,8 @@ export async function getSession(): Promise<SessionUser | null> {
                 email: true,
                 phone: true,
                 address: true,
+                agencyType: true,
+                contactPhone: true,
               },
             },
           },

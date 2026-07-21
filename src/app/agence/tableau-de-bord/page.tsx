@@ -1,13 +1,20 @@
 'use client';
 
 /**
- * QRTagsPro V1 — Dashboard hôtel
+ * QRTagsPro V2 — Dashboard multi-métiers (école + hôtel)
+ *
+ * Le dashboard s'adapte selon `agencyType` (depuis useAgency()) :
+ *   - 'hotel'  : 'QR actifs', 'Clients actuels', 'Check-out aujourd'hui',
+ *                colonnes Client / Chambre / Arrivée / Départ
+ *   - 'school' : 'Cartables actifs', 'Élèves enregistrés', 'Fin d'année scolaire proche',
+ *                colonnes Élève / Classe / Enregistré le / Fin année
+ *   - autres métiers (luggage_locker, car_rental, medical, generic) : fallback hôtel.
  *
  * Affiche :
- *   - 4 cartes de stats : QR en stock, QR actifs, Check-out aujourd'hui, Perdus cette semaine
- *   - Section "Clients actuels" (table) : client / chambre / arrivée / départ / statut / actions
- *   - Section "Check-out aujourd'hui" : liste des clients dont departure_date = today
+ *   - 4 cartes de stats : QR en stock, [items actifs], [check-out aujourd'hui / fin année], Perdus cette semaine
  *   - Section "Demander plus de QR" : carte jaune avec stock + bouton demande
+ *   - Section "[check-out aujourd'hui / fin d'année scolaire proche]" : liste contextuelle
+ *   - Section "[clients actuels / élèves enregistrés]" (table) : nom / sub-info / arrivée / départ / statut / actions
  *   - Section "Objets perdus récents" : 5 derniers baggages isLost=true
  *
  * Sources de données :
@@ -37,12 +44,29 @@ import { useToast } from '@/hooks/use-toast';
 
 // ─── Types ───
 
-interface HotelCustomData {
+interface CustomData {
+  // Common
+  agencyType?: string;
+  notes?: string | null;
+  checked_in_at?: string;
+  // Hotel
   client_name?: string;
+  client_first_name?: string;
+  client_last_name?: string;
   room_number?: string;
   arrival_date?: string; // ISO yyyy-mm-dd
   departure_date?: string; // ISO yyyy-mm-dd
   phone?: string;
+  email?: string;
+  // School
+  student_first_name?: string;
+  student_last_name?: string;
+  student_name?: string;
+  class_name?: string;
+  parent_name?: string;
+  parent_phone?: string;
+  parent_email?: string;
+  school_year?: string;
 }
 
 interface Baggage {
@@ -82,13 +106,54 @@ interface Stats {
 
 // ─── Helpers ───
 
-function parseCustomData(b: Baggage): HotelCustomData | null {
+function parseCustomData(b: Baggage): CustomData | null {
   if (!b.customData) return null;
   try {
-    return JSON.parse(b.customData) as HotelCustomData;
+    return JSON.parse(b.customData) as CustomData;
   } catch {
     return null;
   }
+}
+
+/**
+ * Retourne le nom affichable selon le métier :
+ *   - École : student_name (ou student_first/last_name combinés)
+ *   - Hôtel : client_name
+ *   - Fallback : travelerFirstName/travelerLastName, puis référence.
+ */
+function getDisplayName(b: Baggage, cd: CustomData | null): string {
+  if (cd?.student_name) return cd.student_name;
+  if (cd?.client_name) return cd.client_name;
+  if (cd?.student_first_name || cd?.student_last_name) {
+    return `${cd.student_first_name || ''} ${cd.student_last_name || ''}`.trim();
+  }
+  return [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || b.reference;
+}
+
+/**
+ * Retourne l'info secondaire selon le métier :
+ *   - Hôtel : "Chambre X"
+ *   - École : classe (ex. "6ème B")
+ *   - Sinon : chaîne vide.
+ */
+function getSubInfo(cd: CustomData | null): string {
+  if (cd?.room_number) return `Chambre ${cd.room_number}`;
+  if (cd?.class_name) return cd.class_name;
+  return '';
+}
+
+/** Récupère la date de départ (préfère customData.departure_date, sinon b.departureDate). */
+function getDepartureISO(b: Baggage, cd: CustomData | null): string | null {
+  if (cd?.departure_date) return cd.departure_date;
+  if (b.departureDate) return b.departureDate.slice(0, 10);
+  return null;
+}
+
+/** Récupère la date d'arrivée (hôtel) ou la date de check-in (école). */
+function getArrivalISO(b: Baggage, cd: CustomData | null): string | null {
+  if (cd?.arrival_date) return cd.arrival_date;
+  if (cd?.checked_in_at) return cd.checked_in_at;
+  return b.createdAt || null;
 }
 
 function todayISO(): string {
@@ -178,13 +243,72 @@ function StatusBadge({ departureDate, status }: { departureDate: string | null; 
   );
 }
 
+// ─── Labels object (multi-métier) ───
+
+interface DashboardLabels {
+  itemsActive: string;
+  itemsActiveDesc: string;
+  clientsTitle: string;
+  clientsSubtitle: string;
+  checkOutToday: string;
+  checkOutTodaySubtitle: string;
+  checkOutTodayEmpty: string;
+  emptyClients: string;
+  checkOutButton: string;
+  colClient: string;
+  colSub: string;
+  colArrival: string;
+  colDeparture: string;
+  headerTag: string; // "Hôtel" ou "École"
+}
+
+function buildLabels(agencyType: string | null): DashboardLabels {
+  if (agencyType === 'school') {
+    return {
+      itemsActive: 'Cartables actifs',
+      itemsActiveDesc: 'Élèves enregistrés cette année',
+      clientsTitle: 'Élèves enregistrés',
+      clientsSubtitle: 'Élèves actifs (QR activés).',
+      checkOutToday: 'Fin d\'année scolaire',
+      checkOutTodaySubtitle: 'Élèves dont l\'année scolaire se termine dans les 30 prochains jours.',
+      checkOutTodayEmpty: 'Aucune fin d\'année scolaire imminente.',
+      emptyClients: 'Aucun élève enregistré. Faites un check-in pour commencer.',
+      checkOutButton: 'Check-out',
+      colClient: 'Élève',
+      colSub: 'Classe',
+      colArrival: 'Enregistré le',
+      colDeparture: 'Fin année',
+      headerTag: 'École',
+    };
+  }
+  // Hôtel (par défaut — couvre aussi luggage_locker, car_rental, medical, generic)
+  return {
+    itemsActive: 'QR actifs',
+    itemsActiveDesc: 'Clients actuellement à l\'hôtel',
+    clientsTitle: 'Clients actuels',
+    clientsSubtitle: 'Séjours en cours (QR actifs).',
+    checkOutToday: 'Check-out aujourd\'hui',
+    checkOutTodaySubtitle: 'Clients dont le départ est prévu le',
+    checkOutTodayEmpty: 'Aucun check-out prévu aujourd\'hui.',
+    emptyClients: 'Aucun client actif. Faites un check-in pour commencer.',
+    checkOutButton: 'Check-out',
+    colClient: 'Client',
+    colSub: 'Chambre',
+    colArrival: 'Arrivée',
+    colDeparture: 'Départ',
+    headerTag: 'Hôtel',
+  };
+}
+
 // ════════════════════════════════════════════════════════════════
 //  Page
 // ════════════════════════════════════════════════════════════════
 
-export default function HotelDashboardPage() {
-  const { agencyId, agencyName } = useAgency();
+export default function AgencyDashboardPage() {
+  const { agencyId, agencyName, agencyType } = useAgency();
   const { toast } = useToast();
+  const LABELS = useMemo(() => buildLabels(agencyType), [agencyType]);
+  const isSchool = agencyType === 'school';
 
   const [baggages, setBaggages] = useState<Baggage[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -263,13 +387,28 @@ export default function HotelDashboardPage() {
     [baggages],
   );
 
+  // Section "Check-out aujourd'hui" (hôtel) ou "Fin d'année scolaire proche" (école)
   const todayCheckouts = useMemo(() => {
+    if (isSchool) {
+      // École : departureDate dans les 30 prochains jours (à partir de maintenant)
+      const now = Date.now();
+      const d30 = 30 * 24 * 60 * 60 * 1000;
+      return activeBaggages.filter(b => {
+        const cd = parseCustomData(b);
+        const dep = getDepartureISO(b, cd);
+        if (!dep) return false;
+        const t = new Date(dep).getTime();
+        if (isNaN(t)) return false;
+        return t >= now && (t - now) <= d30;
+      });
+    }
+    // Hôtel : departure_date === today
     return activeBaggages.filter(b => {
       const cd = parseCustomData(b);
-      const dep = cd?.departure_date || (b.departureDate ? b.departureDate.slice(0, 10) : null);
+      const dep = getDepartureISO(b, cd);
       return dep === today;
     });
-  }, [activeBaggages, today]);
+  }, [activeBaggages, today, isSchool]);
 
   const lostThisWeek = useMemo(
     () => baggages.filter(b => b.isLost === true && withinLast7Days(b.lostReportedAt)),
@@ -371,7 +510,7 @@ export default function HotelDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-black">Tableau de bord</h1>
           <p className="text-sm text-slate-500">
-            {agencyName} — Vue d'ensemble de votre activité hôtelière.
+            {agencyName} — {LABELS.headerTag}
           </p>
         </div>
         <button
@@ -397,16 +536,16 @@ export default function HotelDashboardPage() {
           accent="yellow"
         />
         <StatCard
-          title="QR actifs"
+          title={LABELS.itemsActive}
           value={activeBaggages.length}
-          subtitle="Clients actuellement en séjour"
+          subtitle={LABELS.itemsActiveDesc}
           icon={<CheckCircle2 className="w-5 h-5" />}
           accent="green"
         />
         <StatCard
-          title="Check-out aujourd'hui"
+          title={LABELS.checkOutToday}
           value={todayCheckouts.length}
-          subtitle={formatDateFR(today)}
+          subtitle={isSchool ? '30 prochains jours' : formatDateFR(today)}
           icon={<CalendarClock className="w-5 h-5" />}
           accent="orange"
         />
@@ -459,31 +598,36 @@ export default function HotelDashboardPage() {
         </div>
       </div>
 
-      {/* ─── Check-out aujourd'hui ─── */}
+      {/* ─── Check-out aujourd'hui / Fin d'année scolaire proche ─── */}
       <section className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-black">Check-out aujourd'hui</h2>
-            <p className="text-sm text-slate-500">Clients dont le départ est prévu le {formatDateFR(today)}.</p>
+            <h2 className="text-lg font-bold text-black">{LABELS.checkOutToday}</h2>
+            <p className="text-sm text-slate-500">
+              {isSchool
+                ? LABELS.checkOutTodaySubtitle
+                : `${LABELS.checkOutTodaySubtitle} ${formatDateFR(today)}.`}
+            </p>
           </div>
           <CalendarClock className="w-6 h-6 text-orange-600" />
         </div>
         {todayCheckouts.length === 0 ? (
           <div className="py-8 text-center text-sm text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
-            Aucun check-out prévu aujourd'hui.
+            {LABELS.checkOutTodayEmpty}
           </div>
         ) : (
           <ul className="divide-y divide-slate-200">
             {todayCheckouts.map((b) => {
               const cd = parseCustomData(b);
+              const sub = getSubInfo(cd);
               return (
                 <li key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-black truncate">
-                      {cd?.client_name || [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || b.reference}
+                      {getDisplayName(b, cd)}
                     </p>
                     <p className="text-xs text-slate-500">
-                      Chambre {cd?.room_number || '—'} · Réf. {b.reference}
+                      {sub ? `${sub} · ` : ''}Réf. {b.reference}
                     </p>
                   </div>
                   <button
@@ -496,7 +640,7 @@ export default function HotelDashboardPage() {
                     ) : (
                       <LogOut className="w-4 h-4" />
                     )}
-                    Check-out
+                    {LABELS.checkOutButton}
                   </button>
                 </li>
               );
@@ -505,12 +649,12 @@ export default function HotelDashboardPage() {
         )}
       </section>
 
-      {/* ─── Clients actuels ─── */}
+      {/* ─── Clients actuels / Élèves enregistrés ─── */}
       <section className="bg-white rounded-2xl p-6 border-2 border-black shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-black">Clients actuels</h2>
-            <p className="text-sm text-slate-500">Séjours en cours (QR actifs).</p>
+            <h2 className="text-lg font-bold text-black">{LABELS.clientsTitle}</h2>
+            <p className="text-sm text-slate-500">{LABELS.clientsSubtitle}</p>
           </div>
           <Link
             href="/agence/baggages"
@@ -522,7 +666,7 @@ export default function HotelDashboardPage() {
         </div>
         {activeBaggages.length === 0 ? (
           <div className="py-10 text-center bg-slate-50 rounded-xl border border-slate-200">
-            <p className="text-sm text-slate-600 mb-3">Aucun client actif. Faites un check-in pour commencer.</p>
+            <p className="text-sm text-slate-600 mb-3">{LABELS.emptyClients}</p>
             <Link
               href="/agence/check-in"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-[#E3B23C] text-sm font-semibold border-2 border-black hover:-translate-y-0.5 transition-transform"
@@ -536,10 +680,10 @@ export default function HotelDashboardPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="py-2 pr-4">Client</th>
-                  <th className="py-2 pr-4">Chambre</th>
-                  <th className="py-2 pr-4">Arrivée</th>
-                  <th className="py-2 pr-4">Départ</th>
+                  <th className="py-2 pr-4">{LABELS.colClient}</th>
+                  <th className="py-2 pr-4">{LABELS.colSub}</th>
+                  <th className="py-2 pr-4">{LABELS.colArrival}</th>
+                  <th className="py-2 pr-4">{LABELS.colDeparture}</th>
                   <th className="py-2 pr-4">Statut</th>
                   <th className="py-2 pr-2 text-right">Actions</th>
                 </tr>
@@ -547,17 +691,19 @@ export default function HotelDashboardPage() {
               <tbody className="divide-y divide-slate-100">
                 {activeBaggages.slice(0, 20).map((b) => {
                   const cd = parseCustomData(b);
-                  const dep = cd?.departure_date || (b.departureDate ? b.departureDate.slice(0, 10) : null);
+                  const dep = getDepartureISO(b, cd);
+                  const arrival = getArrivalISO(b, cd);
+                  const sub = getSubInfo(cd);
                   return (
                     <tr key={b.id} className="hover:bg-slate-50">
                       <td className="py-3 pr-4">
                         <div className="font-medium text-black">
-                          {cd?.client_name || [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || '—'}
+                          {getDisplayName(b, cd)}
                         </div>
                         <div className="text-xs text-slate-400">{b.reference}</div>
                       </td>
-                      <td className="py-3 pr-4 text-slate-700">{cd?.room_number || '—'}</td>
-                      <td className="py-3 pr-4 text-slate-700">{formatDateFR(cd?.arrival_date)}</td>
+                      <td className="py-3 pr-4 text-slate-700">{sub || '—'}</td>
+                      <td className="py-3 pr-4 text-slate-700">{formatDateFR(arrival)}</td>
                       <td className="py-3 pr-4 text-slate-700">{formatDateFR(dep)}</td>
                       <td className="py-3 pr-4">
                         <StatusBadge departureDate={dep ? new Date(dep).toISOString() : null} status={b.status} />
@@ -573,7 +719,7 @@ export default function HotelDashboardPage() {
                           ) : (
                             <LogOut className="w-3.5 h-3.5" />
                           )}
-                          Check-out
+                          {LABELS.checkOutButton}
                         </button>
                       </td>
                     </tr>
@@ -617,7 +763,7 @@ export default function HotelDashboardPage() {
                 <li key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-semibold text-black truncate">
-                      {cd?.client_name || [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || b.reference}
+                      {getDisplayName(b, cd)}
                     </p>
                     <p className="text-xs text-slate-500">
                       Réf. {b.reference}
@@ -645,7 +791,9 @@ export default function HotelDashboardPage() {
         <p>
           Astuce : les QR sont générés par le superadmin et assignés à votre établissement.
           Pour de nouveaux stocks, utilisez le bouton « Demander plus de QR » ci-dessus.
-          Le check-out auto s'effectue à la date de départ (cron job).
+          {isSchool
+            ? " Le check-out auto s'effectue à la fin de l'année scolaire (30 juin — cron job)."
+            : " Le check-out auto s'effectue à la date de départ (cron job)."}
         </p>
       </div>
     </div>

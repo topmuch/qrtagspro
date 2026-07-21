@@ -30,13 +30,17 @@ export const DEMO_AGENCY = {
   slug: 'diop',
   email: 'contact@francine-makela.com',
   phone: '+221 77 123 45 67',
-  address: 'Dakar, Sénégal'
+  address: 'Dakar, Sénégal',
+  agencyType: 'generic' as string | null,
+  contactPhone: null as string | null,
 };
 
 // Agency Context for sharing agency data across pages
 interface AgencyContextType {
   agencyId: string;
   agencyName: string;
+  agencyType: string | null;
+  contactPhone: string | null;
   agencyData: typeof DEMO_AGENCY | null;
   userName: string;
   userEmail: string;
@@ -45,6 +49,8 @@ interface AgencyContextType {
 export const AgencyContext = createContext<AgencyContextType>({
   agencyId: DEMO_AGENCY.id,
   agencyName: DEMO_AGENCY.name,
+  agencyType: DEMO_AGENCY.agencyType,
+  contactPhone: DEMO_AGENCY.contactPhone,
   agencyData: null,
   userName: '',
   userEmail: ''
@@ -364,13 +370,17 @@ export default function AgencyRootLayout({
   const agencyId = user?.agencyId || user?.agency?.id || '';
   const agencyName = user?.agency?.name || user?.name || DEMO_AGENCY.name;
   const agencySlug = user?.agency?.slug || DEMO_AGENCY.slug;
+  const agencyType = user?.agency?.agencyType || null;
+  const contactPhone = user?.agency?.contactPhone || user?.agency?.phone || null;
   const agencyData = user?.agency ? {
     id: user.agency.id,
     name: user.agency.name,
     slug: user.agency.slug,
     email: user.agency.email || DEMO_AGENCY.email,
     phone: user.agency.phone || DEMO_AGENCY.phone,
-    address: user.agency.address || DEMO_AGENCY.address
+    address: user.agency.address || DEMO_AGENCY.address,
+    agencyType: user.agency.agencyType || null,
+    contactPhone: user.agency.contactPhone || null,
   } : null;
 
   // Don't wrap login page with sidebar
@@ -397,6 +407,8 @@ export default function AgencyRootLayout({
     <AgencyContext.Provider value={{
       agencyId,
       agencyName,
+      agencyType,
+      contactPhone,
       agencyData: agencyData || DEMO_AGENCY,
       userName: user.name || 'Agence',
       userEmail: user.email

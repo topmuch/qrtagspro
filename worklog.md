@@ -282,3 +282,137 @@ Notes / deviations from initial instructions:
 - Kept `src/components/admin/ExtendValidityModal.tsx` (used by `/admin/baggage/[id]` — admin pages must NOT be touched)
 - Kept `prisma/seed.ts` as-is (broken pre-existing — flightNumber schema mismatch — but unused, no build impact)
 - Did not modify `src/lib/agency-types.ts` per final instruction ("keep them all but mark school/medical/etc as 'coming soon' in the UI. The schema stays the same.").
+
+---
+Task ID: qrtagspro-v2-school-dashboard
+Agent: full-stack-developer
+Task: V2 — Dashboard multi-métiers (école + hôtel)
+
+Work Log:
+
+**File 1 — `src/app/agence/tableau-de-bord/page.tsx` (rewrite)**
+
+Le dashboard s'adapte maintenant selon `agencyType` (récupéré via `useAgency()`).
+
+- Interface `HotelCustomData` renommée en `CustomData` et étendue pour couvrir tous les
+  métiers : champs communs (agencyType, notes, checked_in_at) + hôtel (client_name,
+  client_first_name, client_last_name, room_number, arrival_date, departure_date, phone,
+  email) + école (student_first_name, student_last_name, student_name, class_name,
+  parent_name, parent_phone, parent_email, school_year).
+
+- `parseCustomData(b)` retourne désormais `CustomData | null` (au lieu de
+  `HotelCustomData | null`).
+
+- Nouveaux helpers ajoutés :
+  - `getDisplayName(b, cd)` → retourne `student_name` (école) ou `client_name` (hôtel),
+    sinon la combinaison student_first/last, sinon travelerFirstName/travelerLastName,
+    sinon `b.reference` (fallback).
+  - `getSubInfo(cd)` → `"Chambre X"` (hôtel) ou `class_name` (école, ex. "6ème B"),
+    sinon chaîne vide.
+  - `getDepartureISO(b, cd)` → préfère `customData.departure_date`, sinon
+    `b.departureDate` (colonne schéma V1) tronquée en yyyy-mm-dd.
+  - `getArrivalISO(b, cd)` → `arrival_date` (hôtel) ou `checked_in_at` (école) ou
+    `b.createdAt` (fallback).
+
+- Nouvel objet `LABELS` (interface `DashboardLabels`) construit via
+  `buildLabels(agencyType)` et mémoïsé. Deux variantes :
+  - **school** : itemsActive='Cartables actifs', itemsActiveDesc='Élèves enregistrés
+    cette année', clientsTitle='Élèves enregistrés', checkOutToday='Fin d'année
+    scolaire', checkOutTodaySubtitle='…30 prochains jours', checkOutTodayEmpty='Aucune
+    fin d'année scolaire imminente.', emptyClients='Aucun élève enregistré…',
+    colClient='Élève', colSub='Classe', colArrival='Enregistré le',
+    colDeparture='Fin année', headerTag='École'.
+  - **hotel (défaut)** : itemsActive='QR actifs', itemsActiveDesc='Clients actuellement
+    à l\'hôtel', clientsTitle='Clients actuels', checkOutToday='Check-out
+    aujourd\'hui', checkOutTodayEmpty='Aucun check-out prévu aujourd\'hui.',
+    emptyClients='Aucun client actif…', colClient='Client', colSub='Chambre',
+    colArrival='Arrivée', colDeparture='Départ', headerTag='Hôtel'.
+  - Le fallback hôtel couvre aussi luggage_locker, car_rental, medical, generic.
+
+- `useAgency()` déstructuré pour récupérer `agencyType` en plus de `agencyId`/`agencyName`.
+
+- Memo `todayCheckouts` rendu multi-métier :
+  - **school** : filtre les baggages actifs dont `departureDate` (30 juin de l'année
+    scolaire) tombe dans les 30 prochains jours (>= now ET <= now + 30j).
+  - **hotel** : inchangé — `departure_date === today` (ISO yyyy-mm-dd).
+
+- En-tête de page : sous-titre passé de `"{agencyName} — Vue d'ensemble de votre activité
+  hôtelière."` à `"{agencyName} — {LABELS.headerTag}"` (donc "École" ou "Hôtel").
+
+- Carte de stats "QR actifs" / "Cartables actifs" → utilise `LABELS.itemsActive` et
+  `LABELS.itemsActiveDesc`. Sous-titre de la carte check-out : `formatDateFR(today)`
+  (hôtel) ou "30 prochains jours" (école).
+
+- Section "Check-out aujourd'hui" / "Fin d'année scolaire proche" :
+  - Titre, sous-titre et message vide pilotés par LABELS.
+  - Pour l'hôtel, le sous-titre reste "Clients dont le départ est prévu le {date}.".
+  - 3 occurrences de `cd?.client_name || [travelerFirstName, …].join(' ') || reference`
+    remplacées par `getDisplayName(b, cd)` (lignes ~483, ~555, ~620 dans la V1).
+  - `Chambre ${cd?.room_number || '—'}` remplacé par `getSubInfo(cd)` (avec préfixe
+    '— ' si vide).
+
+- Section "Clients actuels" / "Élèves enregistrés" :
+  - Titre, sous-titre, message vide → LABELS.
+  - En-têtes de tableau → LABELS.colClient / colSub / colArrival / colDeparture.
+  - Cellule "Client/Élève" → `getDisplayName(b, cd)`.
+  - Cellule "Chambre/Classe" → `getSubInfo(cd) || '—'`.
+  - Cellule "Arrivée/Enregistré le" → `formatDateFR(getArrivalISO(b, cd))` (gère
+    arrival_date pour hôtel et checked_in_at pour école).
+  - Cellule "Départ/Fin année" → `formatDateFR(getDepartureISO(b, cd))`.
+  - Bouton "Check-out" → `LABELS.checkOutButton` (bien que la valeur soit identique
+    pour les deux métiers, on utilise le LABELS pour cohérence).
+
+- Bloc info de pied de page : phrase finale adaptée — "Le check-out auto s'effectue à
+  la fin de l'année scolaire (30 juin — cron job)." (école) vs "à la date de départ"
+  (hôtel).
+
+- Commentaire d'en-tête de fichier mis à jour : "QRTagsPro V2 — Dashboard multi-métiers
+  (école + hôtel)" avec description des deux variantes de labels et note sur le fallback
+  hôtel pour les autres métiers.
+
+- Composant renommé `HotelDashboardPage` → `AgencyDashboardPage` (export par défaut,
+  aucun impact sur les imports).
+
+**File 2 — `src/app/agence/layout.tsx` (vérification)**
+
+- Vérifié : aucun "Bagages" (pluriel) dans la sidebar — le menu utilise déjà "QR actifs"
+  (href `/agence/baggages`), "Tableau de bord", "Check-in", "Objets perdus",
+  "Trouvailles", "Assistance", "Profil". Aucun changement nécessaire.
+- Le contexte `AgencyContext` expose déjà `agencyType` (depuis
+  `user?.agency?.agencyType`), consommé par le dashboard via `useAgency()`. Aucun
+  changement nécessaire.
+
+**TypeScript / lint**
+
+- `npx tsc --noEmit -p tsconfig.json` : 0 erreur dans les fichiers touchés
+  (`tableau-de-bord/page.tsx`, `agence/layout.tsx`). Les 33 erreurs restantes sont toutes
+  pré-existantes dans des fichiers non touchés (admin/*, seed.ts, declare-lost,
+  mark-found — problèmes de colonnes legacy flightNumber/destination/validityExtendedAt
+  et de modèle tagLot absent).
+- `npx eslint src/app/agence/tableau-de-bord/page.tsx` : 0 erreur.
+
+Stage Summary:
+- Le dashboard `/agence/tableau-de-bord` est désormais multi-métier : hôtel ET école.
+- Helpers `getDisplayName` / `getSubInfo` / `getDepartureISO` / `getArrivalISO`
+  centralisent la logique de lecture de customData pour les deux métiers.
+- L'objet `LABELS` (mémoïsé) pilote tous les libellés visibles : titres de cartes,
+  titres de sections, en-têtes de tableau, messages vides, boutons.
+- La section "Check-out aujourd'hui" devient "Fin d'année scolaire proche" pour les
+  écoles (departureDate dans les 30 prochains jours), avec message vide dédié.
+- Sidebar layout.tsx déjà conforme (aucun "Bagages" pluriel) — pas de changement.
+- 0 nouvelle erreur TypeScript ou ESLint introduite.
+
+Notes / deviations:
+- Le path `/agent-ctx` (racine FS) n'est pas inscriptible dans le sandbox (propriété
+  root). Le work record agent a été écrit dans `/home/z/agent-ctx/` à la place —
+  équivalent fonctionnel, même convention de nommage `{task id}-{agent name}.md`.
+- `LABELS` contient 2 clés supplémentaires non listées dans le spec initial
+  (`checkOutTodaySubtitle`, `clientsSubtitle`, `headerTag`) pour éviter des ternaires
+  éparses dans le JSX et garder la logique de labellisation centralisée. Les clés du
+  spec (itemsActive, itemsActiveDesc, clientsTitle, checkOutToday, emptyClients,
+  checkOutButton, colClient, colSub, colArrival, colDeparture) sont toutes présentes
+  avec les valeurs exactes demandées.
+- Le composant `StatusBadge` (badge "Expire bientôt" / "Actif") n'a pas été modifié —
+  il reste calibré sur 24h, ce qui convient à l'hôtel. Pour l'école, la fin d'année
+  (30 juin) est signalée par la section dédiée "Fin d'année scolaire proche", donc le
+  badge reste "Actif" la majeure partie de l'année (comportement attendu).
