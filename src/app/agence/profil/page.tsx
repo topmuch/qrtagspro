@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   User,
   Mail,
@@ -11,23 +11,28 @@ import {
   CheckCircle,
   Key,
   Briefcase,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { useAgency } from '../layout';
+import { useToast } from '@/hooks/use-toast';
 import { AGENCY_TYPES, getAgencyTypeDef } from '@/lib/agency-types';
 
-// ─── Brand constants (QRTags palette: blue #111111 + yellow #32ba5d) ───
-const BRAND = '#111111';   // bleu vif — boutons primaires
-const ACCENT = '#32ba5d';  // jaune vif — cards
-const INK = '#1a1a1a';     // noir — texte sur jaune
+const BRAND = '#134288';
+const ACCENT = '#32ba5d';
+const INK = '#134288';
 
 export default function ProfilPage() {
-  const { agencyData, userName, userEmail } = useAgency();
+  const { agencyId, agencyData, userName, userEmail } = useAgency();
+  const { toast } = useToast();
   const [form, setForm] = useState({
     name: agencyData?.name || '',
     email: agencyData?.email || userEmail || '',
     phone: agencyData?.phone || '',
+    contactPhone: (agencyData as any)?.contactPhone || '',
     address: agencyData?.address || '',
     agencyType: (agencyData as any)?.agencyType || 'generic',
+    logoUrl: (agencyData as any)?.logoUrl || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
@@ -38,13 +43,49 @@ export default function ProfilPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    try {
+      // Sauvegarder via l'API admin/agencies PUT
+      const res = await fetch('/api/admin/agencies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: agencyId,
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          contactPhone: form.contactPhone,
+          address: form.address,
+          logoUrl: form.logoUrl,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur sauvegarde');
+      setSuccess(true);
+      toast({ title: 'Profil mis à jour ✅' });
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      toast({
+        title: 'Erreur',
+        description: err instanceof Error ? err.message : 'Erreur inconnue',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setSuccess(true);
-    setSaving(false);
-
-    setTimeout(() => setSuccess(false), 3000);
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 500000) {
+      toast({ title: 'Logo trop volumineux', description: 'Max 500KB', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm({ ...form, logoUrl: reader.result as string });
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -56,38 +97,70 @@ export default function ProfilPage() {
       </div>
 
       {success && (
-        <div
-          className="mb-6 p-4 rounded-xl flex items-center gap-3 border-2"
-          style={{ backgroundColor: ACCENT, borderColor: INK }}
-        >
-          <CheckCircle className="w-5 h-5" style={{ color: INK }} />
-          <span className="font-medium" style={{ color: INK }}>Modifications enregistrées avec succès !</span>
+        <div className="mb-6 p-4 rounded-xl flex items-center gap-3 border-2 bg-[#32ba5d]/10 border-[#32ba5d]">
+          <CheckCircle className="w-5 h-5 text-[#32ba5d]" />
+          <span className="font-medium text-[#134288]">Modifications enregistrées avec succès !</span>
         </div>
       )}
 
       <div className="space-y-6">
-        {/* Agency Info — Yellow card */}
-        <div
-          className="rounded-2xl p-6 border-2"
-          style={{ backgroundColor: ACCENT, borderColor: INK }}
-        >
+        {/* Logo + Infos agence */}
+        <div className="bg-white rounded-2xl p-6 border-2 border-[#134288] shadow-lg">
           <div className="flex items-center gap-3 mb-6">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: INK }}
-            >
-              <Building className="w-5 h-5" style={{ color: ACCENT }} />
+            <div className="w-10 h-10 rounded-xl bg-[#134288] flex items-center justify-center">
+              <Building className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold" style={{ color: INK }}>Informations de l&apos;agence</h2>
-              <p className="text-sm" style={{ color: INK, opacity: 0.7 }}>Ces informations apparaîtront sur vos documents</p>
+              <h2 className="text-lg font-semibold text-slate-900">Informations de l&apos;agence</h2>
+              <p className="text-sm text-slate-500">Ces informations apparaîtront sur la page trouveur et le dashboard</p>
+            </div>
+          </div>
+
+          {/* Logo upload */}
+          <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
+              <Camera className="w-4 h-4 inline mr-1" />
+              Logo de l&apos;établissement
+            </label>
+            <div className="flex items-center gap-4">
+              {form.logoUrl ? (
+                <img
+                  src={form.logoUrl}
+                  alt="Logo"
+                  className="h-20 w-20 object-contain border-2 border-slate-300 rounded-xl bg-white p-1"
+                />
+              ) : (
+                <div className="h-20 w-20 border-2 border-dashed border-slate-300 rounded-xl bg-white flex items-center justify-center">
+                  <Building className="w-8 h-8 text-slate-300" />
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#32ba5d] file:text-white hover:file:bg-[#28a54f] cursor-pointer"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Affiché sur la page trouveur quand un QR est scanné. Max 500KB, PNG/JPG.
+                </p>
+                {form.logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, logoUrl: '' })}
+                    className="text-xs text-red-600 hover:underline mt-1"
+                  >
+                    Supprimer le logo
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: INK }}>
+                <label className="block text-sm font-medium mb-2 text-slate-700">
                   <User className="w-4 h-4 inline mr-2" />
                   Nom de l&apos;agence
                 </label>
@@ -95,13 +168,12 @@ export default function ProfilPage() {
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ borderColor: INK, color: INK }}
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: INK }}>
+                <label className="block text-sm font-medium mb-2 text-slate-700">
                   <Mail className="w-4 h-4 inline mr-2" />
                   Email
                 </label>
@@ -109,13 +181,12 @@ export default function ProfilPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ borderColor: INK, color: INK }}
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: INK }}>
+                <label className="block text-sm font-medium mb-2 text-slate-700">
                   <Phone className="w-4 h-4 inline mr-2" />
                   Téléphone
                 </label>
@@ -123,13 +194,27 @@ export default function ProfilPage() {
                   type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ borderColor: INK, color: INK }}
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: INK }}>
+                <label className="block text-sm font-medium mb-2 text-slate-700">
+                  <Phone className="w-4 h-4 inline mr-2" />
+                  Téléphone réception (WhatsApp) *
+                </label>
+                <input
+                  type="tel"
+                  value={form.contactPhone}
+                  onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
+                  placeholder="+33 1 23 45 67 89"
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
+                />
+                <p className="text-xs text-slate-500 mt-1">Numéro contacté par le trouveur via WhatsApp</p>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2 text-slate-700">
                   <MapPin className="w-4 h-4 inline mr-2" />
                   Adresse
                 </label>
@@ -137,45 +222,19 @@ export default function ProfilPage() {
                   type="text"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ borderColor: INK, color: INK }}
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
                 />
-              </div>
-
-              {/* QRTags : sélecteur de type d'agence (multi-métiers) */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-2" style={{ color: INK }}>
-                  <Briefcase className="w-4 h-4 inline mr-2" />
-                  Type d&apos;activité
-                </label>
-                <select
-                  value={form.agencyType}
-                  onChange={(e) => setForm({ ...form, agencyType: e.target.value })}
-                  className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ borderColor: INK, color: INK }}
-                >
-                  {AGENCY_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label} — {t.description}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs mt-2" style={{ color: INK, opacity: 0.7 }}>
-                  Le type d&apos;activité détermine les champs dynamiques affichés lors de l&apos;activation d&apos;un tag
-                  (ex : N° chambre pour un hôtel, N° casier pour une consigne, etc.).
-                </p>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="text-white py-3 px-6 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50 hover:opacity-90"
-              style={{ backgroundColor: BRAND }}
+              className="text-white py-3 px-6 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50 hover:opacity-90 bg-[#134288]"
             >
               {saving ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Enregistrement...
                 </>
               ) : (
@@ -188,98 +247,59 @@ export default function ProfilPage() {
           </form>
         </div>
 
-        {/* Password Change — Yellow card */}
-        <div
-          className="rounded-2xl p-6 border-2"
-          style={{ backgroundColor: ACCENT, borderColor: INK }}
-        >
+        {/* Password Change */}
+        <div className="bg-white rounded-2xl p-6 border-2 border-slate-300 shadow-lg">
           <div className="flex items-center gap-3 mb-6">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: INK }}
-            >
-              <Key className="w-5 h-5" style={{ color: ACCENT }} />
+            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center">
+              <Key className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold" style={{ color: INK }}>Changer le mot de passe</h2>
-              <p className="text-sm" style={{ color: INK, opacity: 0.7 }}>Mettez à jour votre mot de passe régulièrement</p>
+              <h2 className="text-lg font-semibold text-slate-900">Sécurité</h2>
+              <p className="text-sm text-slate-500">Changez votre mot de passe</p>
             </div>
           </div>
 
-          <form className="space-y-4">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: INK }}>Mot de passe actuel</label>
+              <label className="block text-sm font-medium mb-2 text-slate-700">Mot de passe actuel</label>
               <input
                 type="password"
                 value={form.currentPassword}
                 onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
-                placeholder="••••••••"
-                className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                style={{ borderColor: INK, color: INK }}
+                className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
               />
             </div>
-
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: INK }}>Nouveau mot de passe</label>
+                <label className="block text-sm font-medium mb-2 text-slate-700">Nouveau mot de passe</label>
                 <input
                   type="password"
                   value={form.newPassword}
                   onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ borderColor: INK, color: INK }}
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: INK }}>Confirmer le mot de passe</label>
+                <label className="block text-sm font-medium mb-2 text-slate-700">Confirmer</label>
                 <input
                   type="password"
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full bg-white border-2 rounded-xl py-3 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ borderColor: INK, color: INK }}
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d]/30 transition"
                 />
               </div>
             </div>
-
             <button
               type="button"
-              className="text-white py-3 px-6 rounded-xl font-medium transition-colors hover:opacity-90"
-              style={{ backgroundColor: BRAND }}
+              className="text-white py-3 px-6 rounded-xl font-medium bg-slate-800 hover:bg-slate-900 transition-colors flex items-center gap-2"
             >
+              <Key className="w-4 h-4" />
               Changer le mot de passe
             </button>
-          </form>
-        </div>
-
-        {/* Account Stats — Blue cards with yellow accents */}
-        <div className="grid md:grid-cols-3 gap-4">
-          <div
-            className="p-5 rounded-2xl border-2"
-            style={{ backgroundColor: BRAND, borderColor: INK }}
-          >
-            <p className="text-sm mb-1" style={{ color: ACCENT }}>Statut du compte</p>
-            <p className="text-xl font-bold text-white">Actif</p>
-          </div>
-          <div
-            className="p-5 rounded-2xl border-2"
-            style={{ backgroundColor: BRAND, borderColor: INK }}
-          >
-            <p className="text-sm mb-1" style={{ color: ACCENT }}>Membre depuis</p>
-            <p className="text-xl font-bold text-white">Jan 2024</p>
-          </div>
-          <div
-            className="p-5 rounded-2xl border-2"
-            style={{ backgroundColor: BRAND, borderColor: INK }}
-          >
-            <p className="text-sm mb-1" style={{ color: ACCENT }}>Abonnement</p>
-            <p className="text-xl font-bold text-white">Premium</p>
           </div>
         </div>
       </div>
     </div>
   );
 }
+// end
