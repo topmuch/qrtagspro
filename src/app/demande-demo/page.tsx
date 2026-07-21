@@ -41,7 +41,7 @@ export default function DemoPage() {
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
             <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
-            <Link href="/demande-demo" className="text-[#134288]">Démo</Link>
+            <Link href="/demo" className="text-[#134288]">Démo</Link>
           </nav>
           <Link
             href="/agence/connexion"

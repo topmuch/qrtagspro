@@ -102,7 +102,7 @@ export default function HowItWorksPage() {
             <Link href="/comment-ca-marche" className="text-[#134288]">Comment ça marche</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
             <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
-            <Link href="/demande-demo" className="hover:text-[#134288] transition">Démo</Link>
+            <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <Link
             href="/agence/connexion"

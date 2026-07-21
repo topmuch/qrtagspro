@@ -153,7 +153,7 @@ export default function HomePage() {
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
             <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
-            <Link href="/demande-demo" className="hover:text-[#134288] transition">Démo</Link>
+            <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link
@@ -163,7 +163,7 @@ export default function HomePage() {
               Connexion
             </Link>
             <Link
-              href="/login"
+              href="#onboarding"
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-[#32ba5d] text-white rounded-lg hover:bg-[#28a54f] transition"
             >
               S'inscrire
@@ -503,7 +503,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ ONBOARDING / INSCRIPTION ═══ */}
-      <section className="py-20 bg-gradient-to-br from-[#134288] to-[#0d3266] text-white">
+      <section id="onboarding" className="py-20 bg-gradient-to-br from-[#134288] to-[#0d3266] text-white">
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black mb-3">
