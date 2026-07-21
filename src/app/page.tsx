@@ -59,7 +59,7 @@ const METIERS = [
     color: '#32ba5d',
   },
   {
-    image: 'https://images.unsplash.com/photo-1551632436-cbf8dd9ad7f7?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&h=300&fit=crop',
     title: 'Consignes',
     description: 'Étiquetage des bagages en consigne. Suivi par casier avec retrait programmé.',
     badge: 'Disponible',
