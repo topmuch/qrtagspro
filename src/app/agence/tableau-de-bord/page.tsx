@@ -290,26 +290,26 @@ export default function HotelDashboardPage() {
   const handleCheckout = async (b: Baggage) => {
     setActionLoading(b.id);
     try {
-      // V1: stub — call existing /api/baggage/[reference] PATCH to mark as expired
-      const res = await fetch(`/api/baggage/${b.reference}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/agency/checkout', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'expired', expiresAt: new Date().toISOString() }),
+        body: JSON.stringify({ reference: b.reference, agencyId }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        // Fallback: try DELETE
-        await fetch(`/api/baggage/${b.id}`, { method: 'DELETE' });
+        throw new Error(data.error || 'Échec du check-out');
       }
       toast({
         title: 'Check-out effectué',
-        description: `${b.reference} marqué comme expiré.`,
+        description: data.message || `${b.reference} — check-out effectué.`,
       });
       await fetchBaggages();
     } catch (e) {
       console.error(e);
+      const message = e instanceof Error ? e.message : 'Erreur inconnue';
       toast({
-        title: 'Erreur',
-        description: "Impossible d'effectuer le check-out.",
+        title: 'Erreur de check-out',
+        description: message,
         variant: 'destructive',
       });
     } finally {
