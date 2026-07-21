@@ -26,11 +26,11 @@ export type QRTagsLogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type QRTagsLogoVariant = 'auto' | 'light' | 'dark';
 
 const SIZE_CLASSES: Record<QRTagsLogoSize, string> = {
-  xs: 'h-5',
-  sm: 'h-8',
-  md: 'h-12',
-  lg: 'h-16',
-  xl: 'h-24',
+  xs: 'h-8',
+  sm: 'h-12',
+  md: 'h-20',
+  lg: 'h-28',
+  xl: 'h-40',
 };
 
 interface QRTagsLogoProps {

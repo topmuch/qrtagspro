@@ -150,10 +150,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <QRTagsLogo size="sm" href="/" withHover />
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
-            <a href="#how" className="hover:text-[#134288] transition">Comment ça marche</a>
-            <a href="#metiers" className="hover:text-[#134288] transition">Métiers</a>
-            <a href="#avantages" className="hover:text-[#134288] transition">Avantages</a>
-            <a href="#demo" className="hover:text-[#134288] transition">Démo</a>
+            <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
+            <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
+            <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
+            <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link
@@ -198,19 +198,19 @@ export default function HomePage() {
               avec des QR codes traçables. Le trouveur vous contacte directement via WhatsApp.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a
-                href="#demo"
+              <Link
+                href="/demo"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-[#32ba5d] text-white font-bold rounded-lg hover:bg-[#28a54f] hover:-translate-y-0.5 transition-all shadow-lg"
               >
                 Demander une démo
                 <ArrowRight className="w-4 h-4" />
-              </a>
-              <a
-                href="#how"
+              </Link>
+              <Link
+                href="/comment-ca-marche"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-bold rounded-lg border border-white/30 hover:bg-white/20 transition-all"
               >
                 Voir comment ça marche
-              </a>
+              </Link>
             </div>
 
             {/* Stats */}
