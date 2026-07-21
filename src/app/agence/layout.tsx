@@ -19,6 +19,7 @@ import {
   Sun,
   HelpCircle,
   LogIn,
+  Settings,
 } from "lucide-react";
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -107,6 +108,7 @@ function Sidebar({
     { label: "Objets perdus",   icon: <AlertTriangle className="w-5 h-5" />,  href: "/agence/perdus" },
     { label: "Trouvailles",     icon: <CheckCircle className="w-5 h-5" />,    href: "/agence/trouvailles" },
     { label: "Assistance",      icon: <MessageCircle className="w-5 h-5" />,  href: "/agence/assistance", badge: unreadMessages },
+    { label: "Intégration PMS", icon: <Settings className="w-5 h-5" />,       href: "/agence/pms" },
     { label: "Profil",          icon: <User className="w-5 h-5" />,           href: "/agence/profil" },
   ];
 

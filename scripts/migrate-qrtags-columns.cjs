@@ -36,6 +36,9 @@ const AGENCY_COLUMNS = [
   ['contactPhone', 'TEXT'],
   ['customTypeId', 'TEXT'],
   ['logoUrl', 'TEXT'],
+  ['pmsProvider', 'TEXT'],
+  ['pmsApiKeys', 'TEXT'],
+  ['pmsPropertyId', 'TEXT'],
 ];
 
 // QRTagsPro V3 — CustomAgencyType table

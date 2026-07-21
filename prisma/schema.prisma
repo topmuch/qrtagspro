@@ -109,6 +109,10 @@ model Agency {
   agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
   customTypeId       String?   // Si agencyType = "custom", référence vers CustomAgencyType
   customType         CustomAgencyType? @relation(fields: [customTypeId], references: [id], onDelete: SetNull)
+  // QRTagsPro V4 — PMS Integration (Property Management System)
+  pmsProvider        String?   // "CLOUDBEDS" | "MEWS" | "SIRVOY" | null
+  pmsApiKeys         String?   // JSON string: { apiKey, propertyId, baseUrl }
+  pmsPropertyId      String?   // ID de l'hôtel dans le PMS
   active             Boolean   @default(true)
   createdAt          DateTime  @default(now())
   baggages           Baggage[]
