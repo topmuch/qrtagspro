@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import {
   LogIn, Loader2, User, Phone, Mail, BedDouble,
-  CalendarDays, FileText, RotateCcw, CheckCircle2,
+  CalendarDays, FileText, RotateCcw, CheckCircle2, MessageCircle,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,6 +34,8 @@ export default function HotelCheckInForm({ reference, agencyId, onBack, onSucces
     phone: '',
     email: '',
     notes: '',
+    clientOptIn: true, // Cochée par défaut (Q1: Option B)
+    clientWhatsapp: '', // WhatsApp du client pour contact direct après séjour
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,6 +45,15 @@ export default function HotelCheckInForm({ reference, agencyId, onBack, onSucces
       toast({
         title: 'Champs manquants',
         description: 'Nom, chambre et date de départ sont obligatoires',
+        variant: 'destructive',
+      });
+      return;
+    }
+    // Si opt-in coché, le WhatsApp client est requis
+    if (form.clientOptIn && !form.clientWhatsapp.trim()) {
+      toast({
+        title: 'WhatsApp client requis',
+        description: 'Le client a autorisé le contact direct — saisissez son numéro WhatsApp',
         variant: 'destructive',
       });
       return;
@@ -63,6 +74,8 @@ export default function HotelCheckInForm({ reference, agencyId, onBack, onSucces
           phone: form.phone || null,
           email: form.email || null,
           notes: form.notes || null,
+          clientOptIn: form.clientOptIn,
+          clientWhatsapp: form.clientOptIn ? (form.clientWhatsapp || null) : null,
         }),
       });
       const data = await res.json();
@@ -203,6 +216,44 @@ export default function HotelCheckInForm({ reference, agencyId, onBack, onSucces
           placeholder="Ex: Valise noire rigide, sac à dos rouge..."
           className={INPUT + ' resize-none'}
         />
+      </div>
+
+      {/* Opt-in contact direct après séjour */}
+      <div className="pt-3 border-t-2 border-[#134288]/10">
+        <h3 className="text-sm font-bold text-[#134288] mb-3 flex items-center gap-2">
+          <MessageCircle className="w-4 h-4" />
+          Fidélisation client (après séjour)
+        </h3>
+        <label className="flex items-start gap-3 cursor-pointer mb-3">
+          <input
+            type="checkbox"
+            checked={form.clientOptIn}
+            onChange={(e) => setForm({ ...form, clientOptIn: e.target.checked })}
+            className="mt-1 w-5 h-5 accent-[#32ba5d] border-2 border-[#134288] rounded"
+          />
+          <span className="text-sm text-[#134288]">
+            Le client autorise le <strong>contact direct via WhatsApp</strong> après son séjour.
+            Si quelqu'un trouve son objet après son départ, le trouveur pourra contacter directement le client.
+          </span>
+        </label>
+        {form.clientOptIn && (
+          <div>
+            <label className="block text-sm font-semibold text-[#134288] mb-1.5">
+              <Phone className="w-3.5 h-3.5 inline mr-1" />
+              Numéro WhatsApp du client *
+            </label>
+            <input
+              type="tel"
+              value={form.clientWhatsapp}
+              onChange={(e) => setForm({ ...form, clientWhatsapp: e.target.value })}
+              placeholder="+33 6 12 34 56 78"
+              className={INPUT}
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Utilisé uniquement après le départ du client. Pendant le séjour, le trouveur contacte la réception.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="pt-2 flex items-center justify-end gap-2">

@@ -4,29 +4,22 @@ import { db } from '@/lib/db';
 /**
  * POST /api/cron/auto-checkout
  *
- * Cron job — fait passer en 'expired' tous les QR dont la departureDate
- * est dépassée. À appeler toutes les heures (ou toutes les 6h) via Coolify
- * cron ou service externe (cron-job.org, etc.).
+ * Cron job — fait passer en 'post_stay' tous les QR dont la departureDate
+ * est dépassée. À appeler toutes les heures via Coolify cron.
  *
- * Header requis:
- *   Authorization: Bearer ${CRON_SECRET}
+ * V4 — Fidélisation:
+ *   Le statut passe à 'post_stay' (au lieu de 'expired') pour permettre:
+ *   - Affichage du logo hôtel (pub gratuite)
+ *   - Contact direct client si opt-in activé
+ *   - Réactivation du QR pour un nouveau séjour
  *
- * Logique:
- *   - Sélectionne les baggages où:
- *     status IN ('activated', 'active', 'lost') (pas déjà expired/blocked)
- *     AND departureDate < now()
- *   - Pour chaque baggage:
- *     * status → 'expired'
- *     * expiresAt → now() (si pas déjà passé)
- *     * foundAt → now() si wasLost (l'objet a été "retrouvé" par check-out)
- *   - Crée une Notification pour chaque check-out auto (à l'agence)
+ * Le statut 'expired' est réservé au check-out MANUEL explicite
+ * (bouton "Check-out" dans le dashboard agence).
  *
- * Retourne:
- *   { success, expired: number, notified: number }
+ * Header requis: Authorization: Bearer ${CRON_SECRET}
  */
 export async function POST(request: NextRequest) {
   try {
-    // Vérifier le secret cron
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
@@ -39,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
 
-    // 1. Sélectionner les baggages dont departureDate < now() et pas encore expired
+    // 1. Sélectionner les baggages dont departureDate < now() et encore actifs
     const toExpire = await db.baggage.findMany({
       where: {
         status: { in: ['activated', 'active', 'lost'] },
@@ -61,19 +54,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Aucun check-out automatique à faire',
-        expired: 0,
+        processed: 0,
         notified: 0,
       });
     }
 
-    // 2. Faire passer en 'expired'
+    // 2. Faire passer en 'post_stay' (V4 — au lieu de 'expired')
     const updateResult = await db.baggage.updateMany({
       where: {
         id: { in: toExpire.map(b => b.id) },
       },
       data: {
-        status: 'expired',
-        // Si l'objet était perdu et qu'on fait un check-out, on le marque "retrouvé"
+        status: 'post_stay',
         foundAt: now,
       },
     });
@@ -93,16 +85,15 @@ export async function POST(request: NextRequest) {
       });
       notifiedCount = notifications.length;
     } catch (notifErr) {
-      // Non-bloquant si la notification échoue
       console.error('[auto-checkout] Notification creation failed:', notifErr);
     }
 
-    console.log(`[auto-checkout] ${updateResult.count} QR expirés automatiquement`);
+    console.log(`[auto-checkout] ${updateResult.count} QR passés en post_stay`);
 
     return NextResponse.json({
       success: true,
-      message: `${updateResult.count} check-out automatique(s) effectué(s)`,
-      expired: updateResult.count,
+      message: `${updateResult.count} QR passés en mode après-séjour (post_stay)`,
+      processed: updateResult.count,
       notified: notifiedCount,
       references: toExpire.map(b => b.reference),
     });
@@ -115,7 +106,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET pour test facile depuis le navigateur (avec secret en query param)
+// GET pour test facile depuis le navigateur
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   const url = new URL(request.url);
@@ -128,6 +119,5 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Re-utiliser POST
   return POST(request);
 }

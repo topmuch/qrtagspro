@@ -101,6 +101,9 @@ const hotelSchema = z.object({
   phone: z.string().optional().nullable(),
   email: z.string().email().optional().nullable(),
   notes: z.string().optional().nullable(),
+  // V4 — Fidélisation
+  clientOptIn: z.boolean().optional().default(true),
+  clientWhatsapp: z.string().optional().nullable(),
 });
 
 const schoolSchema = z.object({
@@ -263,6 +266,9 @@ export async function POST(request: NextRequest) {
         phone: data.phone || null,
         email: data.email || null,
         notes: data.notes || null,
+        // V4 — Fidélisation: opt-in contact direct après séjour
+        client_opt_in: data.clientOptIn ?? false,
+        client_whatsapp: data.clientWhatsapp || null,
         checked_in_at: new Date().toISOString(),
       };
     } else if (data.agencyType === 'school') {

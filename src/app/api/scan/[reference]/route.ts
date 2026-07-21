@@ -77,8 +77,46 @@ export async function GET(
       });
     }
 
-    // ─── Statut: expiré (check-out fait ou date dépassée) ────────
-    if (baggage.expiresAt && new Date() > baggage.expiresAt) {
+    // ─── Statut: post_stay (après séjour — V4 fidélisation) ───────
+    if (baggage.status === 'post_stay') {
+      // Parser customData pour vérifier l'opt-in
+      let clientOptIn = false;
+      let clientWhatsapp: string | null = null;
+      let clientName = '';
+      if (baggage.customData) {
+        try {
+          const cd = JSON.parse(baggage.customData);
+          clientOptIn = cd.client_opt_in === true;
+          clientWhatsapp = cd.client_whatsapp || null;
+          clientName = cd.client_name || '';
+        } catch {
+          // ignore
+        }
+      }
+
+      return NextResponse.json({
+        status: 'post_stay',
+        reference: baggage.reference,
+        agency: baggage.agency ? {
+          name: baggage.agency.name,
+          agencyType: baggage.agency.agencyType,
+          contactPhone: baggage.agency.contactPhone || baggage.agency.phone || null,
+          email: baggage.agency.email,
+          logoUrl: baggage.agency.logoUrl,
+        } : null,
+        // V4 — Si opt-in, on expose le WhatsApp du client pour contact direct
+        postStay: {
+          clientOptIn,
+          clientWhatsapp: clientOptIn ? clientWhatsapp : null,
+          clientFirstName: clientName ? clientName.split(' ')[0] : '',
+        },
+      }, {
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+      });
+    }
+
+    // ─── Statut: expiré (check-out manuel explicite) ─────────────
+    if (baggage.status === 'expired' || (baggage.expiresAt && new Date() > baggage.expiresAt)) {
       return NextResponse.json({
         status: 'expired',
         message: 'Ce QR code a expiré (séjour terminé).',
@@ -237,8 +275,53 @@ export async function POST(
       console.error('[scan POST] Baggage update failed:', err);
     }
 
-    // ─── Construire l'URL WhatsApp WAME vers l'agence ────────────
+    // ─── Construire l'URL WhatsApp WAME ───────────────────────────
+    // V4 — Si post_stay + opt-in, le WhatsApp va au CLIENT, pas à l'agence
     const agencyName = baggage.agency.name;
+
+    // Parser customData pour vérifier post_stay + opt-in
+    let clientOptIn = false;
+    let clientWhatsapp: string | null = null;
+    let clientFirstName = '';
+    if (baggage.customData) {
+      try {
+        const cd = JSON.parse(baggage.customData);
+        clientOptIn = cd.client_opt_in === true;
+        clientWhatsapp = cd.client_whatsapp || null;
+        clientFirstName = cd.client_name ? cd.client_name.split(' ')[0] : '';
+      } catch {
+        // ignore
+      }
+    }
+
+    // V4 — Mode après-séjour: WhatsApp vers le CLIENT
+    if (baggage.status === 'post_stay' && clientOptIn && clientWhatsapp) {
+      const clientPhoneDigits = clientWhatsapp.replace(/[^0-9]/g, '');
+      const locationLine = latitude && longitude
+        ? `https://www.google.com/maps?q=${latitude},${longitude}`
+        : (location || 'Position non précisée');
+
+      const whatsappText =
+        `Bonjour${clientFirstName ? ` ${clientFirstName}` : ''},\n\n` +
+        `J'ai trouvé votre objet portant le QR code de l'Hôtel ${agencyName} (réf. ${reference}).\n\n` +
+        `📍 Ma position : ${locationLine}\n` +
+        (finderName ? `👤 Trouveur : ${finderName}\n` : '') +
+        (finderPhone ? `📞 Contact : ${finderPhone}\n` : '') +
+        `\nPouvez-vous me contacter pour organiser la restitution ?\n\n` +
+        `— Message envoyé via QRTagsPro`;
+
+      const whatsappUrl = `https://wa.me/${clientPhoneDigits}?text=${encodeURIComponent(whatsappText)}`;
+
+      return NextResponse.json({
+        success: true,
+        whatsappUrl,
+        agencyName,
+        isLost: false,
+        mode: 'post_stay_direct',
+      });
+    }
+
+    // Mode séjour: WhatsApp vers la RÉCEPTION (comme avant)
     const contactPhone = baggage.agency.contactPhone || baggage.agency.phone || '';
 
     if (!contactPhone) {
@@ -258,13 +341,10 @@ export async function POST(
       : (location || 'Position non précisée');
 
     // Message WhatsApp pré-rempli à destination de la RÉCEPTION
-    // Si customType.finderMessage est défini, l'utiliser avec variables
-    // Variables supportées: {reference}, {agencyName}, {finderName}, {finderPhone}, {location}
     let whatsappText: string;
     const customFinderMessage = baggage.agency?.customType?.finderMessage;
 
     if (customFinderMessage && customFinderMessage.trim()) {
-      // Substitution des variables
       whatsappText = customFinderMessage
         .replace(/\{reference\}/g, reference)
         .replace(/\{agencyName\}/g, agencyName)
@@ -273,7 +353,6 @@ export async function POST(
         .replace(/\{location\}/g, locationLine)
         .replace(/\{message\}/g, message || '');
     } else {
-      // Message par défaut
       whatsappText =
         `Bonjour ${agencyName},\n\n` +
         `J'ai trouvé un objet portant votre QR code (réf. ${reference}).\n\n` +
