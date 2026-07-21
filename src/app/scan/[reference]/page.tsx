@@ -51,6 +51,7 @@ interface AgencyInfo {
   agencyType: string | null;
   contactPhone: string | null;
   email: string | null;
+  logoUrl?: string | null;
   customType?: {
     name: string;
     icon: string;
@@ -318,10 +319,23 @@ export default function FinderPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="bg-white inline-block px-6 py-3 rounded-lg mb-4 shadow-lg border-2 border-black">
+          {/* Logo QRTagsPro */}
+          <div className="bg-white inline-block px-6 py-3 rounded-lg mb-4 shadow-lg border-2 border-[#134288]">
             <QRTagsLogo size="md" variant="light" />
           </div>
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-4 border-2 border-black">
+
+          {/* Logo de l'agence (si configuré) */}
+          {agency?.logoUrl && (
+            <div className="mb-4">
+              <img
+                src={agency.logoUrl}
+                alt={agencyName}
+                className="h-20 w-auto mx-auto object-contain bg-white rounded-xl p-3 shadow-lg border-2 border-[#134288]"
+              />
+            </div>
+          )}
+
+          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-4 border-2 border-[#134288]">
             <div
               className="w-3 h-3 rounded-full animate-pulse"
               style={{ backgroundColor: isLost ? QRTAGS_RED : QRTAGS_GREEN }}

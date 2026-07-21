@@ -37,6 +37,7 @@ export async function GET(
             contactPhone: true,
             phone: true, // fallback si contactPhone pas défini
             email: true,
+            logoUrl: true,
             customType: {
               select: {
                 id: true,
@@ -100,6 +101,7 @@ export async function GET(
         agencyType: baggage.agency.agencyType,
         contactPhone,
         email: baggage.agency.email,
+        logoUrl: baggage.agency.logoUrl,
         customType: baggage.agency.customType ? {
           name: baggage.agency.customType.name,
           icon: baggage.agency.customType.icon,

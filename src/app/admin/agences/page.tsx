@@ -72,6 +72,9 @@ export default function AgencesPage() {
     slug: '',
     email: '',
     phone: '',
+    contactPhone: '',
+    address: '',
+    logoUrl: '',
     agencyType: 'generic',
     password: '',
     confirmPassword: '',
@@ -131,9 +134,12 @@ export default function AgencesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: agencyForm.name,
-          slug: agencyForm.slug || undefined, // API auto-génère si vide
+          slug: agencyForm.slug || undefined,
           email: agencyForm.email,
           phone: agencyForm.phone,
+          contactPhone: agencyForm.contactPhone || undefined,
+          address: agencyForm.address || undefined,
+          logoUrl: agencyForm.logoUrl || undefined,
           agencyType: agencyForm.agencyType,
         }),
       });
@@ -174,7 +180,7 @@ export default function AgencesPage() {
       // QRTags : refresh liste EN PREMIER, avant de fermer le dialog/reset form
       await fetchAgencies(true);
       setDialogOpen(false);
-      setAgencyForm({ name: '', slug: '', email: '', phone: '', agencyType: 'generic', password: '', confirmPassword: '' });
+      setAgencyForm({ name: '', slug: '', email: '', phone: '', contactPhone: '', address: '', logoUrl: '', agencyType: 'generic', password: '', confirmPassword: '' });
       setTimeout(() => setSuccessMessage(''), 6000);
     } catch (error) {
       console.error('Error creating agency:', error);
@@ -418,6 +424,66 @@ export default function AgencesPage() {
                       onChange={(e) => setAgencyForm({ ...agencyForm, phone: e.target.value })}
                       className="bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-white"
                     />
+                  </div>
+                </div>
+
+                {/* Téléphone réception (WhatsApp) + Adresse */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 dark:text-slate-300">Téléphone réception (WhatsApp)</Label>
+                    <Input
+                      placeholder="+33 1 23 45 67 89"
+                      value={agencyForm.contactPhone}
+                      onChange={(e) => setAgencyForm({ ...agencyForm, contactPhone: e.target.value })}
+                      className="bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-white"
+                    />
+                    <p className="text-xs text-slate-500">Numéro contacté par le trouveur via WhatsApp</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 dark:text-slate-300">Adresse</Label>
+                    <Input
+                      placeholder="123 Rue de l'Hôtel, Paris"
+                      value={agencyForm.address}
+                      onChange={(e) => setAgencyForm({ ...agencyForm, address: e.target.value })}
+                      className="bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Logo de l'agence */}
+                <div className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">Logo de l'établissement (optionnel)</Label>
+                  <div className="flex items-center gap-3">
+                    {agencyForm.logoUrl && (
+                      <img
+                        src={agencyForm.logoUrl}
+                        alt="Logo"
+                        className="h-16 w-16 object-contain border-2 border-slate-200 rounded-lg bg-white p-1"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 500000) {
+                            alert('Logo trop volumineux (max 500KB). Utilisez une image plus petite.');
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setAgencyForm({ ...agencyForm, logoUrl: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                        className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#32ba5d] file:text-white hover:file:bg-[#28a54f] cursor-pointer"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        Affiché sur la page trouveur quand un QR est scanné. Max 500KB, format PNG/JPG.
+                      </p>
+                    </div>
                   </div>
                 </div>
 

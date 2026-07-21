@@ -35,6 +35,7 @@ const BAGGAGE_COLUMNS = [
 const AGENCY_COLUMNS = [
   ['contactPhone', 'TEXT'],
   ['customTypeId', 'TEXT'],
+  ['logoUrl', 'TEXT'],
 ];
 
 // QRTagsPro V3 — CustomAgencyType table

@@ -103,6 +103,9 @@ model Agency {
   address            String?
   // QRTagsPro V1 — WhatsApp reception phone (used by finder scan → wa.me click-to-chat)
   contactPhone       String?
+  // QRTagsPro V4 — Logo de l'agence (base64 data URL ou URL externe)
+  // Affiché sur la page trouveur /scan/[reference]
+  logoUrl            String?
   agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
   customTypeId       String?   // Si agencyType = "custom", référence vers CustomAgencyType
   customType         CustomAgencyType? @relation(fields: [customTypeId], references: [id], onDelete: SetNull)

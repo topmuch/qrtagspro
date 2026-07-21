@@ -163,7 +163,7 @@ export default function HomePage() {
               Connexion
             </Link>
             <Link
-              href="/demo"
+              href="/login"
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-[#32ba5d] text-white rounded-lg hover:bg-[#28a54f] transition"
             >
               S'inscrire

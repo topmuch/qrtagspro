@@ -18,6 +18,7 @@ const agencySchema = z.object({
   phone: z.string().optional(),
   contactPhone: z.string().optional(),
   address: z.string().optional(),
+  logoUrl: z.string().optional().nullable(),
   agencyType: z.enum(['hotel', 'school', 'luggage_locker', 'car_rental', 'medical', 'custom', 'generic']).optional(),
   customTypeId: z.string().optional().nullable(),
 });
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
         phone: validatedData.phone || null,
         contactPhone: validatedData.contactPhone || null,
         address: validatedData.address || null,
+        logoUrl: validatedData.logoUrl || null,
         agencyType,
         customTypeId,
       }
@@ -180,6 +182,7 @@ export async function PUT(request: NextRequest) {
     if (data.email !== undefined) updateData.email = data.email || null;
     if (data.phone !== undefined) updateData.phone = data.phone || null;
     if (data.contactPhone !== undefined) updateData.contactPhone = data.contactPhone || null;
+    if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl || null;
     if (data.address !== undefined) updateData.address = data.address || null;
     if (data.agencyType !== undefined) {
       updateData.agencyType = data.agencyType;
