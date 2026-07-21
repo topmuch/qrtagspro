@@ -71,7 +71,7 @@ export default function DemoPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
-          <QRTagsLogo size="xs" href="/" withHover />
+          <QRTagsLogo size="sm" href="/" withHover />
           <Link
             href="/demande-demo"
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-[#32ba5d] text-white rounded-lg hover:bg-[#28a54f] transition"

@@ -36,7 +36,7 @@ export default function DemoPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
-          <QRTagsLogo size="xs" href="/" withHover />
+          <QRTagsLogo size="sm" href="/" withHover />
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>

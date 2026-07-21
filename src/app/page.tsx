@@ -225,45 +225,87 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Visuel mockup */}
+          {/* Visuel: Objets avec QR codes */}
           <div className="relative hidden md:block">
-            <div className="bg-white rounded-2xl p-6 shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500">
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
-                <div className="w-8 h-8 rounded-lg bg-[#134288] flex items-center justify-center">
-                  <QrCode className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-900">Dashboard Hôtel</p>
-                  <p className="text-xs text-slate-500">5 QR actifs</p>
+            {/* Conteneur principal */}
+            <div className="relative">
+              {/* Valise avec QR */}
+              <div className="bg-white rounded-2xl p-6 shadow-2xl rotate-[-3deg] hover:rotate-0 transition-transform duration-500 mb-4">
+                <div className="flex items-center gap-4">
+                  {/* QR code visuel */}
+                  <div className="flex-shrink-0 w-24 h-24 rounded-xl bg-[#134288] p-2">
+                    <div className="w-full h-full bg-white rounded-lg flex items-center justify-center">
+                      <QrCode className="w-12 h-12 text-[#134288]" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#32ba5d] uppercase tracking-wide">Valise</p>
+                    <p className="text-lg font-bold text-slate-900">Marie Dupont</p>
+                    <p className="text-sm text-slate-500">Chambre 204 — Hôtel Radisson</p>
+                  </div>
+                  <span className="ml-auto text-xs px-3 py-1 rounded-full font-semibold bg-[#32ba5d]/15 text-[#28a54f]">
+                    ✅ Actif
+                  </span>
                 </div>
               </div>
-              <div className="space-y-2">
-                {[
-                  { name: 'Marie Dupont', room: '204', status: 'Actif' },
-                  { name: 'Karim Benali', room: '108', status: 'Actif' },
-                  { name: 'Sophie Martin', room: '302', status: 'Check-out' },
-                ].map((c, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{c.name}</p>
-                      <p className="text-xs text-slate-500">Chambre {c.room}</p>
+
+              {/* Cartable avec QR */}
+              <div className="bg-white rounded-2xl p-6 shadow-2xl rotate-[2deg] hover:rotate-0 transition-transform duration-500 mb-4 ml-12">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-24 h-24 rounded-xl bg-[#32ba5d] p-2">
+                    <div className="w-full h-full bg-white rounded-lg flex items-center justify-center">
+                      <QrCode className="w-12 h-12 text-[#32ba5d]" />
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                      c.status === 'Actif' ? 'bg-[#32ba5d]/15 text-[#28a54f]' : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {c.status}
-                    </span>
                   </div>
-                ))}
+                  <div>
+                    <p className="text-xs font-bold text-[#134288] uppercase tracking-wide">Cartable</p>
+                    <p className="text-lg font-bold text-slate-900">Luc Martin</p>
+                    <p className="text-sm text-slate-500">6ème B — École Jules Ferry</p>
+                  </div>
+                  <span className="ml-auto text-xs px-3 py-1 rounded-full font-semibold bg-[#32ba5d]/15 text-[#28a54f]">
+                    ✅ Actif
+                  </span>
+                </div>
+              </div>
+
+              {/* Clés avec QR */}
+              <div className="bg-white rounded-2xl p-6 shadow-2xl rotate-[-1deg] hover:rotate-0 transition-transform duration-500 ml-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-24 h-24 rounded-xl bg-slate-800 p-2">
+                    <div className="w-full h-full bg-white rounded-lg flex items-center justify-center">
+                      <QrCode className="w-12 h-12 text-slate-800" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">Clés voiture</p>
+                    <p className="text-lg font-bold text-slate-900">Karim Benali</p>
+                    <p className="text-sm text-slate-500">Clio 5 — AB-123-CD</p>
+                  </div>
+                  <span className="ml-auto text-xs px-3 py-1 rounded-full font-semibold bg-[#32ba5d]/15 text-[#28a54f]">
+                    ✅ Actif
+                  </span>
+                </div>
               </div>
             </div>
-            {/* Badge flottant */}
-            <div className="absolute -bottom-4 -left-4 bg-[#32ba5d] text-white p-4 rounded-xl shadow-xl -rotate-3">
+
+            {/* Badge flottant: notification WhatsApp */}
+            <div className="absolute -bottom-4 -left-4 bg-[#32ba5d] text-white p-4 rounded-xl shadow-xl -rotate-3 z-10">
               <div className="flex items-center gap-2">
                 <Bell className="w-5 h-5" />
                 <div>
-                  <p className="text-xs font-bold">Nouveau scan !</p>
-                  <p className="text-xs opacity-90">Il y a 2 min</p>
+                  <p className="text-xs font-bold">Objet trouvé !</p>
+                  <p className="text-xs opacity-90">WhatsApp envoyé ✅</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Badge flottant: QR code animé */}
+            <div className="absolute -top-4 -right-4 bg-[#134288] text-white p-3 rounded-xl shadow-xl rotate-6 z-10">
+              <div className="flex items-center gap-2">
+                <QrCode className="w-6 h-6 text-[#32ba5d]" />
+                <div>
+                  <p className="text-xs font-bold">QR scanné</p>
+                  <p className="text-xs opacity-90">Trouveur notifié</p>
                 </div>
               </div>
             </div>
@@ -641,7 +683,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <QRTagsLogo size="sm" />
+              <QRTagsLogo size="md" />
               <p className="text-sm text-blue-200 mt-4 max-w-sm">
                 La solution de gestion d&apos;objets perdus pour les entreprises.
                 Simple, professionnelle, multi-métiers.
