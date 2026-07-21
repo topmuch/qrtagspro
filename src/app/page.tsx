@@ -559,13 +559,14 @@ export default function HomePage() {
               </div>
               <h3 className="font-bold text-lg mb-2">Pas encore client ?</h3>
               <p className="text-sm text-blue-100 mb-4">
-                Demandez une démo gratuite. Découvrez QRTagsPro adapté à votre métier.
+                Testez QRTagsPro en temps réel : scannez un QR, remplissez le formulaire,
+                recevez un message WhatsApp. Aucune inscription requise.
               </p>
               <Link
-                href="/demande-demo"
+                href="/demo"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#134288] text-sm font-bold rounded-lg hover:bg-blue-50 transition"
               >
-                Demander une démo
+                Essayer la démo
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

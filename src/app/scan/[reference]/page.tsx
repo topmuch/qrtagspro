@@ -31,6 +31,7 @@ import {
   Building2, ArrowLeft,
 } from 'lucide-react';
 import QRTagsLogo from '@/components/qrtags/QRTagsLogo';
+import { useCountryDetection, formatPhoneWithDialCode } from '@/hooks/useCountryDetection';
 
 // ─── Design tokens QRTagsPro V4 ────────────────────────────────────
 const QRTAGS_BG       = '#32ba5d';   // Vert — fond de la page trouveur
@@ -73,6 +74,7 @@ interface ScanData {
 export default function FinderPage() {
   const params = useParams();
   const reference = (params?.reference as string) || '';
+  const { dialCode, country } = useCountryDetection();
 
   const [data, setData] = useState<ScanData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -187,7 +189,7 @@ export default function FinderPage() {
         body: JSON.stringify({
           location: otherLocation.trim() || gpsAddress || '',
           finderName: finderName.trim(),
-          finderPhone: finderPhone.trim(),
+          finderPhone: formatPhoneWithDialCode(finderPhone, dialCode),
           message: finderMessage.trim() || null,
           latitude: gpsCoords?.lat,
           longitude: gpsCoords?.lng,
@@ -207,7 +209,7 @@ export default function FinderPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [finderName, finderPhone, otherLocation, finderMessage, gpsCoords, gpsAddress, reference]);
+  }, [finderName, finderPhone, otherLocation, finderMessage, gpsCoords, gpsAddress, reference, dialCode]);
 
   // ─── Loading ──────────────────────────────────────────────────────
   if (loading) {
@@ -487,14 +489,21 @@ export default function FinderPage() {
               <label className="block text-sm font-bold text-black mb-2">
                 <Phone className="w-3 h-3 inline mr-1" /> Votre téléphone *
               </label>
-              <input
-                type="tel"
-                value={finderPhone}
-                onChange={(e) => setFinderPhone(e.target.value)}
-                placeholder="+33 6 12 34 56 78"
-                className={INPUT_CLASS}
-              />
-              <p className="text-xs text-black/60 mt-1">Format international recommandé</p>
+              <div className="flex">
+                <span className="inline-flex items-center px-3 py-3 rounded-l-lg bg-[#134288] text-white font-bold text-sm border-2 border-r-0 border-[#134288]">
+                  {dialCode}
+                </span>
+                <input
+                  type="tel"
+                  value={finderPhone}
+                  onChange={(e) => setFinderPhone(e.target.value)}
+                  placeholder="6 12 34 56 78"
+                  className={`${INPUT_CLASS} rounded-l-none border-l-0`}
+                />
+              </div>
+              <p className="text-xs text-black/60 mt-1">
+                Pays détecté : {country} — tapez juste votre numéro local
+              </p>
             </div>
 
             <div>

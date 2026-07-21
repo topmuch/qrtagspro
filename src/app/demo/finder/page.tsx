@@ -22,6 +22,7 @@ import {
   MapPin, User, Phone, MessageCircle, Navigation, RefreshCw,
 } from 'lucide-react';
 import QRTagsLogo from '@/components/qrtags/QRTagsLogo';
+import { useCountryDetection, formatPhoneWithDialCode } from '@/hooks/useCountryDetection';
 
 const DEMO_PHONE = '33600000000'; // Numéro fictif pour la démo WhatsApp
 
@@ -34,6 +35,7 @@ const INPUT_CLASS =
 function DemoFinderContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get('t') || 'DEMO-TEST';
+  const { dialCode, country } = useCountryDetection();
 
   const [step, setStep] = useState<Step>('form');
   const [finderName, setFinderName] = useState('');
@@ -86,6 +88,7 @@ function DemoFinderContent() {
     }
     setIsSubmitting(true);
 
+    const formattedPhone = formatPhoneWithDialCode(finderPhone, dialCode);
     const locationStr = otherLocation.trim() || gpsAddress || '';
     const mapsLink = gpsCoords
       ? `https://www.google.com/maps?q=${gpsCoords.lat},${gpsCoords.lng}`
@@ -98,7 +101,7 @@ function DemoFinderContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           finderName,
-          finderPhone,
+          finderPhone: formattedPhone,
           location: locationStr,
           mapsLink,
           message: finderMessage || null,
@@ -112,7 +115,7 @@ function DemoFinderContent() {
         `📍 Ma position : ${mapsLink}\n` +
         (locationStr ? `📌 Adresse : ${locationStr}\n` : '') +
         `👤 Trouveur : ${finderName}\n` +
-        `📞 Contact : ${finderPhone}\n` +
+        `📞 Contact : ${formattedPhone}\n` +
         (finderMessage ? `💬 Message : ${finderMessage}\n` : '') +
         `\n— Message envoyé via la démo QRTagsPro`;
 
@@ -129,7 +132,7 @@ function DemoFinderContent() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [finderName, finderPhone, otherLocation, gpsAddress, gpsCoords, finderMessage, reference]);
+  }, [finderName, finderPhone, otherLocation, gpsAddress, gpsCoords, finderMessage, reference, dialCode]);
 
   // ─── Succès ─────────────────────────────────────────────────────
   if (step === 'success') {
@@ -280,15 +283,22 @@ function DemoFinderContent() {
               <label className="block text-sm font-bold text-[#134288] mb-2">
                 <Phone className="w-3 h-3 inline mr-1" /> Votre numéro WhatsApp *
               </label>
-              <input
-                type="tel"
-                required
-                value={finderPhone}
-                onChange={(e) => setFinderPhone(e.target.value)}
-                placeholder="+33 6 12 34 56 78"
-                className={INPUT_CLASS}
-              />
-              <p className="text-xs text-slate-500 mt-1">Format international recommandé</p>
+              <div className="flex">
+                <span className="inline-flex items-center px-3 py-3 rounded-l-lg bg-[#134288] text-white font-bold text-sm border-2 border-r-0 border-[#134288]">
+                  {dialCode}
+                </span>
+                <input
+                  type="tel"
+                  required
+                  value={finderPhone}
+                  onChange={(e) => setFinderPhone(e.target.value)}
+                  placeholder="6 12 34 56 78"
+                  className={`${INPUT_CLASS} rounded-l-none border-l-0`}
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Pays détecté : {country} — tapez juste votre numéro local
+              </p>
             </div>
 
             <div>
