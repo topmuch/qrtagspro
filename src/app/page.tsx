@@ -101,7 +101,7 @@ const METIERS: Metier[] = [
     title: 'Consignes',
     description:
       "Étiquetage des bagages en consigne. Suivi par casier.",
-    badge: 'Bientôt',
+    badge: 'Disponible',
   },
   {
     icon: <Briefcase className="w-7 h-7" />,

@@ -26,6 +26,7 @@ import HotelCheckInForm from '@/components/checkin/HotelCheckInForm';
 import SchoolCheckInForm from '@/components/checkin/SchoolCheckInForm';
 import MedicalCheckInForm from '@/components/checkin/MedicalCheckInForm';
 import CarRentalCheckInForm from '@/components/checkin/CarRentalCheckInForm';
+import LuggageLockerCheckInForm from '@/components/checkin/LuggageLockerCheckInForm';
 
 const INPUT =
   'w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-black text-black ' +
@@ -297,7 +298,15 @@ export default function CheckInPage() {
               onSuccess={handleSuccess}
             />
           )}
-          {agencyType && !['hotel', 'school', 'medical', 'car_rental'].includes(agencyType) && (
+          {agencyType === 'luggage_locker' && (
+            <LuggageLockerCheckInForm
+              reference={reference}
+              agencyId={agencyId}
+              onBack={() => setStep('scan')}
+              onSuccess={handleSuccess}
+            />
+          )}
+          {agencyType && !['hotel', 'school', 'medical', 'car_rental', 'luggage_locker'].includes(agencyType) && (
             <div className="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-6 text-center">
               <p className="font-bold text-black mb-2">
                 🚧 Type d&apos;agence « {agencyType} » — formulaire en développement

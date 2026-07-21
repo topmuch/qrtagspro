@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
  *   - 'school': studentFirstName, studentLastName, className, parentName, parentPhone, parentEmail, schoolYear
  *   - 'medical': patientName, fileNumber, service, roomNumber, emergencyContactName, emergencyContactPhone, admissionDate, dischargeDate, notes
  *   - 'car_rental': tenantName, contractNumber, carModel, licensePlate, startDate, endDate, tenantPhone, objectType, notes
+ *   - 'luggage_locker': lockerNumber, baggageDescription, depositTime, retrievalTime, travelerName, travelerPhone, depositType, notes
  *
  * L'agencyType est récupéré depuis l'agence du QR (pas du body) pour sécurité.
  */
@@ -145,8 +146,22 @@ const carRentalSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
+const luggageLockerSchema = z.object({
+  reference: z.string().min(1),
+  agencyId: z.string().min(1),
+  agencyType: z.literal('luggage_locker'),
+  lockerNumber: z.string().min(1, 'N° de casier requis'),
+  baggageDescription: z.string().min(1, 'Description du bagage requise'),
+  depositTime: z.string().min(1, 'Heure de dépôt requise'),
+  retrievalTime: z.string().min(1, 'Date/heure de retrait prévu requis'),
+  travelerName: z.string().min(1, 'Nom du voyageur requis'),
+  travelerPhone: z.string().min(1, 'Téléphone du voyageur requis'),
+  depositType: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
 const checkInSchema = z.discriminatedUnion('agencyType', [
-  hotelSchema, schoolSchema, medicalSchema, carRentalSchema,
+  hotelSchema, schoolSchema, medicalSchema, carRentalSchema, luggageLockerSchema,
 ]);
 
 export async function POST(request: NextRequest) {
@@ -309,7 +324,7 @@ export async function POST(request: NextRequest) {
         notes: data.notes || null,
         checked_in_at: new Date().toISOString(),
       };
-    } else {
+    } else if (data.agencyType === 'car_rental') {
       // car_rental (loueur auto)
       const startD = new Date(data.startDate);
       const endD = new Date(data.endDate);
@@ -342,6 +357,60 @@ export async function POST(request: NextRequest) {
         end_date: data.endDate,
         tenant_phone: data.tenantPhone.trim(),
         object_type: data.objectType || 'clés', // clés, documents, GPS, siège enfant...
+        notes: data.notes || null,
+        checked_in_at: new Date().toISOString(),
+      };
+    } else {
+      // luggage_locker (consigne)
+      // depositTime: heure HH:MM, retrievalTime: datetime-local yyyy-MM-ddTHH:mm
+      const depositNow = new Date();
+      // Si depositTime est au format HH:mm, on combine avec aujourd'hui
+      let depositDate: Date;
+      if (data.depositTime.length <= 5) {
+        // Format HH:mm
+        const [hh, mm] = data.depositTime.split(':').map(n => parseInt(n, 10));
+        depositDate = new Date(depositNow);
+        if (!isNaN(hh) && !isNaN(mm)) {
+          depositDate.setHours(hh, mm, 0, 0);
+        }
+      } else {
+        depositDate = new Date(data.depositTime);
+      }
+
+      const retrievalD = new Date(data.retrievalTime);
+      if (isNaN(retrievalD.getTime())) {
+        return NextResponse.json(
+          { error: 'Date/heure de retrait invalide' },
+          { status: 400 }
+        );
+      }
+      if (retrievalD <= depositDate) {
+        return NextResponse.json(
+          { error: 'La date de retrait doit être après l\'heure de dépôt' },
+          { status: 400 }
+        );
+      }
+      departureDate = retrievalD;
+
+      // Séparer le nom du voyageur en prénom + nom
+      const nameParts = data.travelerName.trim().split(/\s+/);
+      travelerFirstName = nameParts[0] || '';
+      travelerLastName = nameParts.slice(1).join(' ') || '';
+      whatsappOwner = data.travelerPhone || null;
+      summary = `Casier ${data.lockerNumber} — ${data.travelerName}`;
+      customData = {
+        agencyType: 'luggage_locker',
+        locker_number: data.lockerNumber.trim(),
+        baggage_description: data.baggageDescription.trim(),
+        deposit_time: data.depositTime,
+        deposit_iso: depositDate.toISOString(),
+        retrieval_time: data.retrievalTime,
+        retrieval_iso: retrievalD.toISOString(),
+        traveler_name: data.travelerName.trim(),
+        traveler_first_name: travelerFirstName,
+        traveler_last_name: travelerLastName,
+        traveler_phone: data.travelerPhone.trim(),
+        deposit_type: data.depositType || '24h', // 24h, 48h, 7j
         notes: data.notes || null,
         checked_in_at: new Date().toISOString(),
       };

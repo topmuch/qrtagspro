@@ -88,6 +88,18 @@ interface CustomData {
   end_date?: string;
   tenant_phone?: string;
   object_type?: string | null;
+  // Luggage locker (consigne)
+  locker_number?: string;
+  baggage_description?: string;
+  deposit_time?: string;
+  deposit_iso?: string;
+  retrieval_time?: string;
+  retrieval_iso?: string;
+  traveler_name?: string;
+  traveler_first_name?: string;
+  traveler_last_name?: string;
+  traveler_phone?: string;
+  deposit_type?: string | null;
 }
 
 interface Baggage {
@@ -146,6 +158,7 @@ function getDisplayName(b: Baggage, cd: CustomData | null): string {
   if (cd?.student_name) return cd.student_name;
   if (cd?.patient_name) return cd.patient_name;
   if (cd?.tenant_name) return cd.tenant_name;
+  if (cd?.traveler_name) return cd.traveler_name;
   if (cd?.client_name) return cd.client_name;
   if (cd?.student_first_name || cd?.student_last_name) {
     return `${cd.student_first_name || ''} ${cd.student_last_name || ''}`.trim();
@@ -156,6 +169,9 @@ function getDisplayName(b: Baggage, cd: CustomData | null): string {
   if (cd?.tenant_first_name || cd?.tenant_last_name) {
     return `${cd.tenant_first_name || ''} ${cd.tenant_last_name || ''}`.trim();
   }
+  if (cd?.traveler_first_name || cd?.traveler_last_name) {
+    return `${cd.traveler_first_name || ''} ${cd.traveler_last_name || ''}`.trim();
+  }
   return [b.travelerFirstName, b.travelerLastName].filter(Boolean).join(' ') || b.reference;
 }
 
@@ -165,6 +181,7 @@ function getDisplayName(b: Baggage, cd: CustomData | null): string {
  *   - École : classe (ex. "6ème B")
  *   - Clinique : "Dossier X" (file_number) ou "Service Y"
  *   - Loueur auto : "Contrat X" (contract_number) + immat
+ *   - Consigne : "Casier X"
  *   - Sinon : chaîne vide.
  */
 function getSubInfo(cd: CustomData | null): string {
@@ -182,6 +199,11 @@ function getSubInfo(cd: CustomData | null): string {
     if (cd.license_plate) parts.push(cd.license_plate);
     return parts.join(' · ');
   }
+  // Consigne: n° de casier
+  if (cd.agencyType === 'luggage_locker') {
+    if (cd.locker_number) return `Casier ${cd.locker_number}`;
+    return '';
+  }
   // Hôtel
   if (cd.agencyType === 'hotel' && cd.room_number) return `Chambre ${cd.room_number}`;
   // École
@@ -191,20 +213,26 @@ function getSubInfo(cd: CustomData | null): string {
   return '';
 }
 
-/** Récupère la date de départ (préfère customData.departure_date/discharge_date/end_date, sinon b.departureDate). */
+/** Récupère la date de départ (préfère customData fields, sinon b.departureDate). */
 function getDepartureISO(b: Baggage, cd: CustomData | null): string | null {
   if (cd?.departure_date) return cd.departure_date;
   if (cd?.discharge_date) return cd.discharge_date;
   if (cd?.end_date) return cd.end_date;
+  // luggage_locker: retrievalTime est au format datetime-local yyyy-MM-ddTHH:mm
+  // On extrait juste la date yyyy-MM-dd pour comparaison avec today
+  if (cd?.retrieval_time) return cd.retrieval_time.slice(0, 10);
+  if (cd?.retrieval_iso) return cd.retrieval_iso.slice(0, 10);
   if (b.departureDate) return b.departureDate.slice(0, 10);
   return null;
 }
 
-/** Récupère la date d'arrivée (hôtel), admission (clinique), début location (loueur), ou check-in (école). */
+/** Récupère la date d'arrivée/dépôt selon le métier. */
 function getArrivalISO(b: Baggage, cd: CustomData | null): string | null {
   if (cd?.arrival_date) return cd.arrival_date;
   if (cd?.admission_date) return cd.admission_date;
   if (cd?.start_date) return cd.start_date;
+  // luggage_locker: depositTime est HH:mm, on prend le jour du checked_in_at
+  if (cd?.deposit_iso) return cd.deposit_iso.slice(0, 10);
   if (cd?.checked_in_at) return cd.checked_in_at;
   return b.createdAt || null;
 }
@@ -370,7 +398,25 @@ function buildLabels(agencyType: string | null): DashboardLabels {
       headerTag: 'Loueur auto',
     };
   }
-  // Hôtel (par défaut — couvre aussi luggage_locker, generic)
+  if (agencyType === 'luggage_locker') {
+    return {
+      itemsActive: 'Bagages en consigne',
+      itemsActiveDesc: 'Bagages actuellement déposés',
+      clientsTitle: 'Bagages en consigne',
+      clientsSubtitle: 'Dépôts en cours (QR actifs).',
+      checkOutToday: 'Retraits prévus aujourd\'hui',
+      checkOutTodaySubtitle: 'Bagages dont le retrait est prévu le',
+      checkOutTodayEmpty: 'Aucun retrait prévu aujourd\'hui.',
+      emptyClients: 'Aucun bagage en consigne. Faites un check-in pour commencer.',
+      checkOutButton: 'Retrait (check-out)',
+      colClient: 'Voyageur',
+      colSub: 'Casier',
+      colArrival: 'Dépôt',
+      colDeparture: 'Retrait prévu',
+      headerTag: 'Consigne',
+    };
+  }
+  // Hôtel (par défaut — couvre aussi generic)
   return {
     itemsActive: 'QR actifs',
     itemsActiveDesc: 'Clients actuellement à l\'hôtel',
