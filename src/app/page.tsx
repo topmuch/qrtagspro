@@ -152,7 +152,8 @@ export default function HomePage() {
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
-            <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
+            <Link href="/tarifs" className="hover:text-[#134288] transition">Tarifs</Link>
+            <Link href="/contact" className="hover:text-[#134288] transition">Contact</Link>
             <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <div className="flex items-center gap-2">
@@ -597,6 +598,44 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ═══ PARTENAIRES ═══ */}
+      <section className="py-16 bg-white border-t border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 text-center">
+          <h2 className="text-2xl font-black text-slate-900 mb-2">Ils nous font confiance</h2>
+          <p className="text-sm text-slate-500 mb-8">Intégrations et partenaires technologiques</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+            {/* Cloudbeds */}
+            <div className="flex flex-col items-center gap-2 opacity-70 hover:opacity-100 transition">
+              <div className="w-16 h-16 rounded-xl bg-[#134288] flex items-center justify-center text-white font-black text-xl">
+                CB
+              </div>
+              <span className="text-xs font-semibold text-slate-600">Cloudbeds</span>
+            </div>
+            {/* Mews */}
+            <div className="flex flex-col items-center gap-2 opacity-70 hover:opacity-100 transition">
+              <div className="w-16 h-16 rounded-xl bg-slate-800 flex items-center justify-center text-white font-black text-xl">
+                M
+              </div>
+              <span className="text-xs font-semibold text-slate-600">Mews</span>
+            </div>
+            {/* Sirvoy */}
+            <div className="flex flex-col items-center gap-2 opacity-70 hover:opacity-100 transition">
+              <div className="w-16 h-16 rounded-xl bg-[#32ba5d] flex items-center justify-center text-white font-black text-xl">
+                S
+              </div>
+              <span className="text-xs font-semibold text-slate-600">Sirvoy</span>
+            </div>
+            {/* Deliverback */}
+            <div className="flex flex-col items-center gap-2 opacity-70 hover:opacity-100 transition">
+              <div className="w-16 h-16 rounded-xl bg-orange-500 flex items-center justify-center text-white font-black text-xl">
+                DB
+              </div>
+              <span className="text-xs font-semibold text-slate-600">Deliverback</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ FOOTER ═══ */}
       <footer className="bg-[#0d3266] text-white py-12">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
@@ -613,6 +652,9 @@ export default function HomePage() {
               <ul className="space-y-2 text-sm text-blue-200">
                 <li><Link href="/agence/connexion" className="hover:text-[#32ba5d]">Espace agence</Link></li>
                 <li><Link href="/login" className="hover:text-[#32ba5d]">Espace superadmin</Link></li>
+                <li><Link href="/tarifs" className="hover:text-[#32ba5d]">Tarifs</Link></li>
+                <li><Link href="/contact" className="hover:text-[#32ba5d]">Contact</Link></li>
+                <li><Link href="/demo" className="hover:text-[#32ba5d]">Démo interactive</Link></li>
               </ul>
             </div>
             <div>

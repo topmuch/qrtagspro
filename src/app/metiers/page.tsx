@@ -133,7 +133,8 @@ export default function MetiersPage() {
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
             <Link href="/comment-ca-marche" className="hover:text-[#134288] transition">Comment ça marche</Link>
             <Link href="/metiers" className="text-[#134288]">Métiers</Link>
-            <Link href="/avantages" className="hover:text-[#134288] transition">Avantages</Link>
+            <Link href="/tarifs" className="hover:text-[#134288] transition">Tarifs</Link>
+            <Link href="/contact" className="hover:text-[#134288] transition">Contact</Link>
             <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
           </nav>
           <Link
