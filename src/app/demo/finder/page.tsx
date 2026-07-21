@@ -15,7 +15,7 @@
  * Design: couleurs QRTagsPro (bleu #134288 + vert #32ba5d)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, ArrowRight, Loader2, CheckCircle2, AlertCircle,
@@ -31,7 +31,7 @@ type Step = 'form' | 'success';
 const INPUT_CLASS =
   'w-full px-4 py-3 border-2 border-[#134288] rounded-lg bg-gray-50 text-black placeholder-gray-400 focus:outline-none focus:border-[#32ba5d] focus:ring-2 focus:ring-[#32ba5d] transition';
 
-export default function DemoFinderPage() {
+function DemoFinderContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get('t') || 'DEMO-TEST';
 
@@ -358,5 +358,19 @@ export default function DemoFinderPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DemoFinderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#32ba5d] flex items-center justify-center">
+          <Loader2 className="w-12 h-12 animate-spin text-[#134288]" />
+        </div>
+      }
+    >
+      <DemoFinderContent />
+    </Suspense>
   );
 }
