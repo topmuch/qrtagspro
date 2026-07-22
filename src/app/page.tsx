@@ -17,7 +17,7 @@
  *   9. Footer
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   QrCode, ArrowRight, Building2, Users, Shield, Clock,
@@ -188,6 +188,119 @@ const STATS = [
   { value: '< 5min', label: 'Setup complet' },
   { value: '100%', label: 'Sans installation' },
 ];
+
+// ═══ BLOG SECTION ═══
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  coverImage: string | null;
+  category: string;
+  publishedAt: string;
+}
+
+const BLOG_CATEGORY_LABELS: Record<string, string> = {
+  actualites: '📰 Actualités',
+  conseils: '💡 Conseils',
+  hajj: '🧳 Voyage',
+  mises_a_jour: '🔄 Mises à jour',
+};
+
+function BlogSection() {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/blog/public?limit=3')
+      .then(res => res.json())
+      .then(data => {
+        setPosts(data.posts || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-slate-50">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
+          <h2 className="text-3xl font-black text-slate-900 mb-2 text-center">Blog & Actualités</h2>
+          <p className="text-slate-500 text-center mb-8">Chargement...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (posts.length === 0) {
+    return null; // Ne pas afficher la section s'il n'y a pas d'articles
+  }
+
+  return (
+    <section className="py-16 bg-slate-50">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">Blog & Actualités</h2>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Conseils, actualités et bonnes pratiques pour gérer les objets perdus
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {posts.map((post) => (
+            <Link
+              key={post.id}
+              href={`/blog/${post.slug}`}
+              className="group bg-white rounded-2xl overflow-hidden border-2 border-slate-200 hover:border-[#32ba5d] hover:shadow-xl transition-all"
+            >
+              {/* Cover image — grand carré */}
+              <div className="relative aspect-square overflow-hidden bg-slate-100">
+                {post.coverImage ? (
+                  <img
+                    src={post.coverImage}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#134288] to-[#0d3266]">
+                    <Sparkles className="w-16 h-16 text-[#32ba5d]/40" />
+                  </div>
+                )}
+                {/* Badge catégorie */}
+                <div className="absolute top-3 left-3">
+                  <span className="px-3 py-1 bg-[#134288] text-white text-xs font-bold rounded-full shadow-lg">
+                    {BLOG_CATEGORY_LABELS[post.category] || post.category}
+                  </span>
+                </div>
+              </div>
+
+              {/* Contenu */}
+              <div className="p-5">
+                <p className="text-xs text-slate-400 mb-2">
+                  {new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+                    day: 'numeric', month: 'long', year: 'numeric',
+                  })}
+                </p>
+                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-[#134288] transition-colors line-clamp-2">
+                  {post.title}
+                </h3>
+                {post.excerpt && (
+                  <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                    {post.excerpt}
+                  </p>
+                )}
+                <p className="text-sm font-bold text-[#32ba5d] mt-3 inline-flex items-center gap-1">
+                  Lire l'article <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   const [demoForm, setDemoForm] = useState({
@@ -817,6 +930,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══ BLOG ═══ */}
+      <BlogSection />
 
       {/* ═══ FOOTER ═══ */}
       <footer className="bg-[#0d3266] text-white py-12">

@@ -3,22 +3,15 @@ import { db } from '@/lib/db';
 import { getSession } from '@/lib/session';
 import { headers } from 'next/headers';
 
-// GET - Get single blog post by slug
+// GET - Get single blog post by slug (PUBLIC — no auth required for published posts)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const user = await getSession();
-    
-    // Only authenticated users can access
-    if (!user) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
-
     const { slug } = await params;
 
-    // Find post
+    // Find post — published posts are accessible publicly
     const post = await db.blogPost.findUnique({
       where: { 
         slug,
@@ -39,8 +32,13 @@ export async function GET(
       );
     }
 
-    // Track view (async, don't wait)
-    trackView(post.id, user.id, user.agencyId).catch(console.error);
+    // Track view (async, don't wait) — optional, user may not be logged in
+    try {
+      const user = await getSession();
+      trackView(post.id, user?.id, user?.agencyId).catch(() => {});
+    } catch {
+      // Non-bloquant si pas de session
+    }
 
     // Increment view count
     await db.blogPost.update({
