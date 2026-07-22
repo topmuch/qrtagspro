@@ -32,46 +32,46 @@ const CTA_DEMO_SUBJECT = 'Demande de démo QRTagsPro';
 
 const METIERS = [
   {
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=500&fit=crop',
     title: 'Hôtels',
     description: 'Étiquetez les bagages de vos clients dès le check-in. Contact direct avec votre réception en cas de perte.',
     badge: 'Disponible',
-    color: '#134288',
+    href: '/metiers#hotel',
   },
   {
-    image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800&h=500&fit=crop',
     title: 'Écoles',
     description: 'Identifiez cartables et uniformes des élèves. Contact automatique des parents en cas de perte.',
     badge: 'Disponible',
-    color: '#32ba5d',
+    href: '/metiers#ecole',
   },
   {
-    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800&h=500&fit=crop',
     title: 'Cliniques',
     description: 'Étiquetez les effets personnels des patients. Contact d\'urgence prévenu automatiquement.',
     badge: 'Disponible',
-    color: '#134288',
+    href: '/metiers#clinique',
   },
   {
-    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=500&fit=crop',
     title: 'Loueurs auto',
     description: 'Traçabilité des clés, documents et équipements. Contact direct du locataire.',
     badge: 'Disponible',
-    color: '#32ba5d',
+    href: '/metiers#loueur',
   },
   {
-    image: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=800&h=500&fit=crop',
     title: 'Consignes',
     description: 'Étiquetage des bagages en consigne. Suivi par casier avec retrait programmé.',
     badge: 'Disponible',
-    color: '#134288',
+    href: '/metiers#consigne',
   },
   {
-    image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&h=500&fit=crop',
     title: 'Autres métiers',
     description: 'Spa, gym, entreprise, événements... Créez votre métier sur-mesure sans coder.',
     badge: 'Sur devis',
-    color: '#32ba5d',
+    href: '/metiers#autre',
   },
 ];
 
@@ -520,37 +520,41 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {METIERS.map((m, i) => (
-              <div
+              <Link
                 key={i}
-                className="bg-white rounded-2xl overflow-hidden border-2 border-slate-200 hover:border-[#32ba5d] hover:shadow-lg transition-all group"
+                href={m.href}
+                className="group block bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-[#32ba5d] hover:shadow-2xl transition-all duration-300"
               >
-                {/* Image réelle */}
-                <div className="relative h-44 overflow-hidden">
+                {/* Image — format paysage large */}
+                <div className="relative h-56 overflow-hidden">
                   <img
                     src={m.image}
                     alt={m.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-white drop-shadow-lg">{m.title}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#134288]/90 via-[#134288]/30 to-transparent" />
+                  <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between">
+                    <h3 className="text-2xl font-black text-white drop-shadow-lg">{m.title}</h3>
+                    <span className={`text-xs px-3 py-1 rounded-full font-bold ${
                       m.badge === 'Disponible'
                         ? 'bg-[#32ba5d] text-white'
-                        : 'bg-slate-200 text-slate-600'
+                        : 'bg-white/90 text-slate-700'
                     }`}>
                       {m.badge}
                     </span>
                   </div>
                 </div>
-                {/* Description */}
-                <div className="p-5">
-                  <p className="text-sm text-slate-600 leading-relaxed">{m.description}</p>
+                {/* Description + CTA */}
+                <div className="p-6">
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">{m.description}</p>
+                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#134288] group-hover:text-[#32ba5d] transition-colors">
+                    En savoir plus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

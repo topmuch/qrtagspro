@@ -164,8 +164,10 @@ export default function MetiersPage() {
       {/* Cards métiers détaillées */}
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 space-y-8">
-          {METIERS.map((m, i) => (
-            <div key={i} className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden hover:shadow-xl transition-shadow">
+          {METIERS.map((m, i) => {
+            const anchorId = ['hotel', 'ecole', 'clinique', 'loueur', 'consigne', 'autre'][i] || `metier-${i}`;
+            return (
+            <div key={i} id={anchorId} className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden hover:shadow-xl transition-shadow scroll-mt-20">
               <div className="grid md:grid-cols-3 gap-0">
                 {/* Left: titre + description */}
                 <div
@@ -212,7 +214,8 @@ export default function MetiersPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
