@@ -99,11 +99,12 @@ export default function HowItWorksPage() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <QRTagsLogo size="sm" href="/" withHover />
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
-            <Link href="/comment-ca-marche" className="text-[#134288]">Comment ça marche</Link>
+            <Link href="/" className="hover:text-[#134288] transition">Accueil</Link>
             <Link href="/metiers" className="hover:text-[#134288] transition">Métiers</Link>
             <Link href="/tarifs" className="hover:text-[#134288] transition">Tarifs</Link>
-            <Link href="/contact" className="hover:text-[#134288] transition">Contact</Link>
+            <Link href="/blog" className="hover:text-[#134288] transition">Blog</Link>
             <Link href="/demo" className="hover:text-[#134288] transition">Démo</Link>
+            <Link href="/contact" className="hover:text-[#134288] transition">Contact</Link>
           </nav>
           <Link
             href="/agence/connexion"

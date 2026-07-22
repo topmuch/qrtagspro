@@ -350,8 +350,16 @@ export default function AgencyRootLayout({
     if (!isAgency) {
       // User is authenticated but not agency - redirect to admin area
       router.replace('/admin/tableau-de-bord');
+      return;
     }
-  }, [user, loading, isAgency, router, pathname]);
+
+    // V4 — Kick out users whose agency has been deactivated
+    if (user.agency && user.agency.active === false) {
+      logout();
+      router.replace('/agence/connexion?error=agency_disabled');
+      return;
+    }
+  }, [user, loading, isAgency, router, pathname, logout]);
 
   // Fetch unread messages count
   useEffect(() => {

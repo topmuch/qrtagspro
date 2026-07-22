@@ -81,6 +81,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // V4 — Vérifier que l'agence est active (si l'utilisateur est lié à une agence)
+    if (user.role === 'agency' && user.agencyId) {
+      if (!user.agency || !user.agency.active) {
+        await logLoginAttempt({
+          userId: user.id,
+          email,
+          success: false,
+          failureReason: 'Agence désactivée',
+        });
+
+        return NextResponse.json(
+          { error: 'Votre établissement a été désactivé. Contactez le support.' },
+          { status: 403 }
+        );
+      }
+    }
+
     if (role === 'agency' && user.role !== 'agency' && user.role !== 'superadmin') {
       await logLoginAttempt({
         userId: user.id,

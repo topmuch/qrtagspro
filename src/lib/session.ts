@@ -25,6 +25,7 @@ export interface SessionUser {
     address: string | null;
     agencyType: string | null;
     contactPhone: string | null;
+    active: boolean;
     customTypeId: string | null;
     customType?: {
       id: string;
@@ -169,6 +170,7 @@ export async function getSession(): Promise<SessionUser | null> {
                 address: true,
                 agencyType: true,
                 contactPhone: true,
+                active: true,
                 customTypeId: true,
                 customType: {
                   select: {

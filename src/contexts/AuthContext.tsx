@@ -20,6 +20,7 @@ export interface User {
     address?: string | null;
     agencyType?: string | null;
     contactPhone?: string | null;
+    active?: boolean;
     customTypeId?: string | null;
     customType?: {
       id: string;

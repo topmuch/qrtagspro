@@ -7,7 +7,7 @@
  * Couleurs: bleu corporate + vert #32ba5d pour les accents.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -25,6 +25,16 @@ export default function AgenceLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // V4 — Check for agency_disabled error param
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('error') === 'agency_disabled') {
+        setError('Votre établissement a été désactivé. Contactez le support à contact@qrtagspro.com.');
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
