@@ -26,47 +26,48 @@ import {
   Zap, BarChart3, Bell, Lock,
 } from 'lucide-react';
 import QRTagsLogo from '@/components/qrtags/QRTagsLogo';
+import RgpdBanner from '@/components/RgpdBanner';
 
 const CTA_DEMO_SUBJECT = 'Demande de démo QRTagsPro';
 
 const METIERS = [
   {
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop',
     title: 'Hôtels',
     description: 'Étiquetez les bagages de vos clients dès le check-in. Contact direct avec votre réception en cas de perte.',
     badge: 'Disponible',
     color: '#134288',
   },
   {
-    image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=400&fit=crop',
     title: 'Écoles',
     description: 'Identifiez cartables et uniformes des élèves. Contact automatique des parents en cas de perte.',
     badge: 'Disponible',
     color: '#32ba5d',
   },
   {
-    image: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=400&fit=crop',
     title: 'Cliniques',
     description: 'Étiquetez les effets personnels des patients. Contact d\'urgence prévenu automatiquement.',
     badge: 'Disponible',
     color: '#134288',
   },
   {
-    image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop',
     title: 'Loueurs auto',
     description: 'Traçabilité des clés, documents et équipements. Contact direct du locataire.',
     badge: 'Disponible',
     color: '#32ba5d',
   },
   {
-    image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=600&h=400&fit=crop',
     title: 'Consignes',
     description: 'Étiquetage des bagages en consigne. Suivi par casier avec retrait programmé.',
     badge: 'Disponible',
     color: '#134288',
   },
   {
-    image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=400&fit=crop',
     title: 'Autres métiers',
     description: 'Spa, gym, entreprise, événements... Créez votre métier sur-mesure sans coder.',
     badge: 'Sur devis',
@@ -757,17 +758,17 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3 text-xs">
-                  <a href="/confidentialite" className="text-[#134288] font-semibold hover:underline">
+                  <Link href="/confidentialite" className="text-[#134288] font-semibold hover:underline">
                     Politique de confidentialité
-                  </a>
+                  </Link>
                   <span className="text-slate-300">|</span>
-                  <a href="/cgu" className="text-[#134288] font-semibold hover:underline">
+                  <Link href="/cgu" className="text-[#134288] font-semibold hover:underline">
                     Conditions d'utilisation
-                  </a>
+                  </Link>
                   <span className="text-slate-300">|</span>
-                  <a href="/mentions-legales" className="text-[#134288] font-semibold hover:underline">
+                  <Link href="/mentions-legales" className="text-[#134288] font-semibold hover:underline">
                     Mentions légales
-                  </a>
+                  </Link>
                   <span className="text-slate-300">|</span>
                   <a href="mailto:rgpd@qrtagspro.com" className="text-[#134288] font-semibold hover:underline">
                     Contact DPO : rgpd@qrtagspro.com
@@ -851,6 +852,9 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Bannière RGPD */}
+      <RgpdBanner />
     </div>
   );
 }
