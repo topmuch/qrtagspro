@@ -5,16 +5,17 @@
  *
  * Charte: Bleu corporate #134288 + Vert #32ba5d
  *
- * Sections:
+ * Ordre des sections :
  *   1. Header sticky (logo + nav + CTA)
  *   2. Hero (titre fort + sous-titre + 2 CTA + visuel)
- *   3. Stats clés (3 chiffres)
+ *   3. Une solution par métier (6 cards)
  *   4. Comment ça marche (4 étapes)
- *   5. Métiers couverts (6 cards)
- *   6. Avantages clés (3 colonnes)
- *   7. Témoignages / social proof
- *   8. CTA final (demande de démo)
- *   9. Footer
+ *   5. Démarrez en 3 étapes (onboarding)
+ *   6. Pourquoi QRTagsPro ? (avantages clés)
+ *   7. Blog & Actualités
+ *   8. 🔒 Protection des données — RGPD
+ *   9. Ils nous font confiance (partenaires)
+ *  10. Footer
  */
 
 import { useState, useEffect } from 'react';
@@ -474,40 +475,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ COMMENT ÇA MARCHE ═══ */}
-      <section id="how" className="py-20 bg-white">
-        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">
-              Comment ça marche ?
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              De la génération des QR à la restitution, un workflow simple en 4 étapes.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-6">
-            {STEPS.map((step, i) => (
-              <div key={i} className="relative">
-                <div className="bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-[#32ba5d] transition-colors h-full">
-                  <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                    {step.visual}
-                  </div>
-                  <div className="text-xs font-bold text-[#32ba5d] mb-2">ÉTAPE {step.num}</div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
-                  <p className="text-sm text-slate-600">{step.description}</p>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-slate-300 z-10">
-                    <ArrowRight className="w-6 h-6" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ═══ MÉTIERS ═══ */}
       <section id="metiers" className="py-20 bg-slate-50">
         <div className="max-w-[1600px] mx-auto px-4 md:px-6">
@@ -560,49 +527,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ AVANTAGES ═══ */}
-      <section id="avantages" className="py-20 bg-white">
+      {/* ═══ COMMENT ÇA MARCHE ═══ */}
+      <section id="how" className="py-20 bg-white">
         <div className="max-w-[1600px] mx-auto px-4 md:px-6">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">
-              Pourquoi QRTagsPro ?
+              Comment ça marche ?
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Pensé pour les entreprises, simple pour vos équipes.
+              De la génération des QR à la restitution, un workflow simple en 4 étapes.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {AVANTAGES.map((a, i) => (
-              <div key={i} className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#134288] to-[#0d3266] text-white mb-4">
-                  {a.icon}
+          <div className="grid md:grid-cols-4 gap-6">
+            {STEPS.map((step, i) => (
+              <div key={i} className="relative">
+                <div className="bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-[#32ba5d] transition-colors h-full">
+                  <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                    {step.visual}
+                  </div>
+                  <div className="text-xs font-bold text-[#32ba5d] mb-2">ÉTAPE {step.num}</div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
+                  <p className="text-sm text-slate-600">{step.description}</p>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{a.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{a.description}</p>
+                {i < STEPS.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-slate-300 z-10">
+                    <ArrowRight className="w-6 h-6" />
+                  </div>
+                )}
               </div>
             ))}
-          </div>
-
-          {/* Bandeau trust */}
-          <div className="mt-16 p-8 bg-gradient-to-r from-[#134288] to-[#0d3266] rounded-2xl text-white">
-            <div className="grid md:grid-cols-3 gap-6 text-center">
-              <div className="flex flex-col items-center">
-                <Lock className="w-8 h-8 text-[#32ba5d] mb-2" />
-                <p className="text-sm font-semibold">Confidentialité</p>
-                <p className="text-xs text-blue-200 mt-1">Le trouveur ne voit jamais les coordonnées client</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <Clock className="w-8 h-8 text-[#32ba5d] mb-2" />
-                <p className="text-sm font-semibold">Auto-expiration</p>
-                <p className="text-xs text-blue-200 mt-1">Check-out automatique à la date de départ</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <Bell className="w-8 h-8 text-[#32ba5d] mb-2" />
-                <p className="text-sm font-semibold">WhatsApp WAME</p>
-                <p className="text-xs text-blue-200 mt-1">Click-to-chat, aucune installation</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -701,6 +655,56 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══ AVANTAGES ═══ */}
+      <section id="avantages" className="py-20 bg-white">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">
+              Pourquoi QRTagsPro ?
+            </h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Pensé pour les entreprises, simple pour vos équipes.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {AVANTAGES.map((a, i) => (
+              <div key={i} className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#134288] to-[#0d3266] text-white mb-4">
+                  {a.icon}
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">{a.title}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{a.description}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bandeau trust */}
+          <div className="mt-16 p-8 bg-gradient-to-r from-[#134288] to-[#0d3266] rounded-2xl text-white">
+            <div className="grid md:grid-cols-3 gap-6 text-center">
+              <div className="flex flex-col items-center">
+                <Lock className="w-8 h-8 text-[#32ba5d] mb-2" />
+                <p className="text-sm font-semibold">Confidentialité</p>
+                <p className="text-xs text-blue-200 mt-1">Le trouveur ne voit jamais les coordonnées client</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <Clock className="w-8 h-8 text-[#32ba5d] mb-2" />
+                <p className="text-sm font-semibold">Auto-expiration</p>
+                <p className="text-xs text-blue-200 mt-1">Check-out automatique à la date de départ</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <Bell className="w-8 h-8 text-[#32ba5d] mb-2" />
+                <p className="text-sm font-semibold">WhatsApp WAME</p>
+                <p className="text-xs text-blue-200 mt-1">Click-to-chat, aucune installation</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ BLOG ═══ */}
+      <BlogSection />
 
       {/* ═══ RGPD / CONFIDENTIALITÉ ═══ */}
       <section className="py-12 bg-slate-100 border-t border-slate-200">
@@ -808,9 +812,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ═══ BLOG ═══ */}
-      <BlogSection />
 
       {/* ═══ FOOTER ═══ */}
       <footer className="bg-[#0d3266] text-white py-12">
