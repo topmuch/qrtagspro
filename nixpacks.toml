@@ -4,9 +4,11 @@
 # ⚠️ Coolify utilise nixpacks (PAS le Dockerfile) pour builder.
 #
 # Setup:
-#   1. npm install (pas bun — problèmes avec lightningcss)
+#   1. npm install (pas bun — problèmes avec pdf-lib, lightningcss, prisma)
 #   2. npx prisma generate + npm run build
 #   3. Start: prisma db push + migration script + node server.js
+#
+# ⚠️ NPM forcé — nixpacks ne doit PAS détecter/installer bun.
 # ════════════════════════════════════════════════════════════════════
 
 [phases.setup]
@@ -17,6 +19,8 @@ aptPkgs = ['sqlite3', 'ca-certificates']
 cmds = [
   'npm install --legacy-peer-deps --no-audit --no-fund'
 ]
+# Force npm, empêche nixpacks d'utiliser bun
+onlyIncludeFiles = ['package.json', 'package-lock.json']
 
 [phases.build]
 cmds = [
@@ -39,3 +43,5 @@ NEXT_TELEMETRY_DISABLED = '1'
 PORT = '3000'
 HOSTNAME = '0.0.0.0'
 DATABASE_URL = 'file:/app/data/qrtags.db'
+# Force npm pour tout le pipeline nixpacks
+NIXPACKS_USE_NPM = '1'

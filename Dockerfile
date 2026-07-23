@@ -7,12 +7,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# S'assurer qu'aucun runtime bun n'est utilisé
+RUN rm -f /usr/local/bin/bun 2>/dev/null; true
+
 WORKDIR /app
 
 # Copier le code source
 COPY . .
 
-# Installer les dépendances (npm, pas bun)
+# Installer les dépendances (npm, PAS bun — problèmes pdf-lib/lightningcss/prisma)
 RUN npm install --legacy-peer-deps --no-audit --no-fund
 RUN npx prisma generate
 
