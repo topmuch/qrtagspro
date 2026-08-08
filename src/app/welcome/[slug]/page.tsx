@@ -36,6 +36,8 @@ export default async function WelcomePage({ params, searchParams }: Props) {
       logoUrl: true,
       agencyType: true,
       braceletProfile: true,
+      latitude: true,
+      longitude: true,
     },
   });
 
@@ -59,11 +61,14 @@ export default async function WelcomePage({ params, searchParams }: Props) {
     const agencyData = {
       id: agency.id,
       name: agency.name,
+      slug: agency.slug,
       phone: agency.phone,
       contactPhone: agency.contactPhone,
       logoUrl: agency.logoUrl,
       address: agency.address,
       braceletProfile: agency.braceletProfile,
+      latitude: agency.latitude,
+      longitude: agency.longitude,
     };
     return <WristbandView agency={agencyData} lang={lang} />;
   }

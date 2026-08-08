@@ -114,6 +114,10 @@ model Agency {
   // Valeurs: "BUSINESS" | "TRANSIT" | "RESORT" | "BOUTIQUE" | "STANDARD"
   // (STANDARD = contenu générique par défaut si non configuré)
   braceletProfile    String?   @default("STANDARD")
+  // Volet Touristique Géolocalisé — coordonnées GPS de l'hôtel pour le calcul
+  // de distance avec les partenaires recommandés (Haversine).
+  latitude           Float?    // ex: 14.7167
+  longitude          Float?    // ex: -17.4677
   // QRTagsPro V4 — PMS Integration (Property Management System)
   pmsProvider        String?   // "CLOUDBEDS" | "MEWS" | "SIRVOY" | null
   pmsApiKeys         String?   // JSON string: { apiKey, propertyId, baseUrl }
@@ -124,6 +128,8 @@ model Agency {
   users              User[]
   invoices           Invoice[]
   braceletPackOrders BraceletPackOrder[]
+  hotelPartners      HotelPartner[]
+  partnerClicks      PartnerClick[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -712,4 +718,83 @@ model DamageReport {
 
   @@index([baggageId])
   @@index([type])
+}
+
+// ════════════════════════════════════════════════════════════════
+// VOLET TOURISTIQUE GÉOLOCALISÉ
+// Partenaires recommandés par l'hôtel (restaurants, attractions, plages,
+// shopping, santé, transport, excursions). Affichés sur la page welcome
+// du bracelet, triés par distance géographique (Haversine) avec l'hôtel.
+//
+// Business model :
+//   - L'hôtel recommande ses partenaires (commission % par lieu)
+//   - Le client voit les recommandations + code promo sur son bracelet
+//   - L'hôtel touche une commission sur les conversions
+//
+// Catégories : RESTAURANT, ATTRACTION, BEACH, SHOPPING, HEALTH,
+//              TRANSPORT, EXCURSION
+// ════════════════════════════════════════════════════════════════
+
+model HotelPartner {
+  id          String   @id @default(cuid())
+  // L'hôtel qui recommande ce lieu (propriétaire de la recommandation)
+  agencyId    String
+
+  // ─── Identité du lieu ───
+  name        String   // ex: "Restaurant Le Ngor"
+  // RESTAURANT | ATTRACTION | BEACH | SHOPPING | HEALTH | TRANSPORT | EXCURSION
+  category    String
+  description String?  // ex: "Meilleur poisson braisé du quartier"
+
+  // ─── Géolocalisation ───
+  // Coordonnées GPS du lieu pour le calcul de distance avec l'hôtel (Haversine)
+  latitude    Float    // ex: 14.7450
+  longitude   Float    // ex: -17.5150
+
+  // ─── Qualité & business model ───
+  rating      Float    @default(4.5) // Note sur 5
+  promoCode   String?  // ex: "QRTAGS10" pour -10% (affiché au client)
+  commission  Int      @default(0)   // % de commission pour l'hôtel (0-100)
+
+  // ─── Modération ───
+  isVerified  Boolean  @default(true)  // Vérifié par l'hôtel (pas par QRTags)
+  isActive    Boolean  @default(true)  // Affiché ou masqué sur le bracelet
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agency      Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  clicks      PartnerClick[]
+
+  @@index([agencyId])
+  @@index([category])
+  @@index([isActive])
+}
+
+// ════════════════════════════════════════════════════════════════
+// TRACKING DES CLICS — Volet Touristique
+// Enregistre chaque clic sur un partenaire depuis le bracelet client.
+// Sert à :
+//   1. Justifier les commissions (preuve de conversion)
+//   2. Mesurer la performance de chaque partenaire (ROI hôtel)
+//   3. Identifier les lieux les plus populaires pour optimiser le guide
+//
+// Privacy : aucune donnée personnelle stockée (pas d'IP, pas d'user agent
+// détaillé). Juste le deviceType agrégé (MOBILE/TABLET/DESKTOP) et la source
+// du scan (WRISTBAND, ROOM_QR, LOBBY).
+// ════════════════════════════════════════════════════════════════
+
+model PartnerClick {
+  id         String   @id @default(cuid())
+  partnerId  String
+  agencyId   String   // Pour les stats agrégées par hôtel
+  clickedAt  DateTime @default(now())
+  deviceType String?  // MOBILE, TABLET, DESKTOP
+  source     String?  // WRISTBAND, ROOM_QR, LOBBY
+
+  partner    HotelPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  agency     Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+  @@index([agencyId, clickedAt])
 }

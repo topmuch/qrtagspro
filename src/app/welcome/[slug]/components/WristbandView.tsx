@@ -7,17 +7,21 @@ import QuickActions from './QuickActions';
 import BusinessServices from './BusinessServices';
 import TransitInfo from './TransitInfo';
 import LocalRecommendations from './LocalRecommendations';
+import NearbyAttractions from './NearbyAttractions';
 import { getProfileMeta, type BraceletProfile } from '@/lib/bracelet-profiles';
 
 // ─── Type de l'agence sérialisée (passée du server component) ───────────────
 export interface WelcomeAgency {
   id: string;
   name: string;
+  slug: string; // requis pour NearbyAttractions (API /api/pois filtre par slug)
   phone: string | null;
   contactPhone: string | null;
   logoUrl: string | null;
   address: string | null;
   braceletProfile: string | null; // BUSINESS | TRANSIT | RESORT | BOUTIQUE | STANDARD
+  latitude: number | null; // Coordonnées GPS pour le volet touristique
+  longitude: number | null;
 }
 
 interface WristbandViewProps {
@@ -193,6 +197,16 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
 
         {/* Contenu spécifique au profil */}
         {renderProfileContent()}
+
+        {/* Volet Touristique Géolocalisé — affiché si l'hôtel a des coordonnées GPS */}
+        {agency.latitude !== null && agency.longitude !== null && (
+          <NearbyAttractions
+            hotelLat={agency.latitude}
+            hotelLng={agency.longitude}
+            agencySlug={agency.slug}
+            agencyId={agency.id}
+          />
+        )}
 
         {/* Besoin d'aide (commun à tous les profils) */}
         <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
