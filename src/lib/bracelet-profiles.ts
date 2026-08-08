@@ -16,7 +16,7 @@
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type BraceletProfile = 'BUSINESS' | 'TRANSIT' | 'RESORT' | 'BOUTIQUE' | 'STANDARD';
+export type BraceletProfile = 'BUSINESS' | 'TRANSIT' | 'RESORT' | 'BOUTIQUE' | 'HOST' | 'STANDARD';
 
 export interface ProfileMeta {
   value: BraceletProfile;
@@ -171,6 +171,37 @@ export const BRACELET_PROFILES: readonly ProfileMeta[] = [
       'Local history and culture',
       'Authentic restaurants',
       'Exclusive insider tips',
+    ],
+  },
+  {
+    value: 'HOST',
+    label: 'Hôte Airbnb',
+    labelEn: 'Airbnb Host',
+    emoji: '🏠',
+    tagline: 'Guide de la maison pour locations courte durée',
+    taglineEn: 'Home guide for short-term rentals',
+    description:
+      "Locations Airbnb et maisons d'hôtes. Conciergerie digitale : WiFi (copiable en 1 clic), instructions check-in/out, règles, tutoriels, recommandations de l'hôte, contact WhatsApp direct.",
+    descriptionEn:
+      'Airbnb rentals and guesthouses. Digital concierge: WiFi (1-click copy), check-in/out, house rules, tutorials, host recommendations, WhatsApp.',
+    marketShare: '—',
+    examples: ['Appartement Almadies', 'Studio Sacré-Cœur', 'Villa Saly'],
+    accentColor: '#B45309',
+    services: [
+      'WiFi (copiable en 1 clic)',
+      'Instructions check-in / check-out',
+      'Règles de la maison',
+      'Tutoriels maison (clim, café, parking)',
+      'Recommandations de l\'hôte',
+      'Contact WhatsApp direct',
+    ],
+    servicesEn: [
+      'WiFi (1-click copy)',
+      'Check-in / check-out instructions',
+      'House rules',
+      'Home tutorials',
+      'Host recommendations',
+      'Direct WhatsApp contact',
     ],
   },
   {

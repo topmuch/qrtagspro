@@ -106,13 +106,14 @@ model Agency {
   // QRTagsPro V4 — Logo de l'agence (base64 data URL ou URL externe)
   // Affiché sur la page trouveur /scan/[reference]
   logoUrl            String?
-  agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
+  agencyType         String    @default("generic") // "hotel" | "airbnb" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
   customTypeId       String?   // Si agencyType = "custom", référence vers CustomAgencyType
   customType         CustomAgencyType? @relation(fields: [customTypeId], references: [id], onDelete: SetNull)
   // Module Bracelets Universel — profil de l'hôtel qui détermine le contenu
   // affiché sur /welcome/[slug]?context=WRISTBAND. Un seul produit, 4 expériences.
-  // Valeurs: "BUSINESS" | "TRANSIT" | "RESORT" | "BOUTIQUE" | "STANDARD"
+  // Valeurs: "BUSINESS" | "TRANSIT" | "RESORT" | "BOUTIQUE" | "HOST" | "STANDARD"
   // (STANDARD = contenu générique par défaut si non configuré)
+  // HOST = profil spécial pour locations Airbnb / maisons d'hôtes (QRTags Host)
   braceletProfile    String?   @default("STANDARD")
   // Volet Touristique Géolocalisé — coordonnées GPS de l'hôtel pour le calcul
   // de distance avec les partenaires recommandés (Haversine).
@@ -130,6 +131,9 @@ model Agency {
   braceletPackOrders BraceletPackOrder[]
   hotelPartners      HotelPartner[]
   partnerClicks      PartnerClick[]
+  houseGuide         HouseGuide?
+  hostReservations   HostReservation[]
+  hostKitOrders      HostKitOrder[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -797,4 +801,107 @@ model PartnerClick {
 
   @@index([partnerId])
   @@index([agencyId, clickedAt])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE QRTAGS HOST — Conciergerie digitale Airbnb
+// Guide de la maison pour locations courte durée.
+// ════════════════════════════════════════════════════════════════
+
+model HouseGuide {
+  id              String   @id @default(cuid())
+  agencyId        String   @unique
+
+  wifiNetwork     String?
+  wifiPassword    String?
+  checkInInstructions  String?
+  checkOutInstructions String?
+  checkInTime     String?
+  checkOutTime    String?
+  houseRules      String?
+  homeTutorials  String?
+  hostRecommendations String?
+  hostName        String?
+  hostPhone       String?
+  hostWelcomeMessage String?
+  photos          String?
+
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+}
+
+model HostReservation {
+  id              String   @id @default(cuid())
+  agencyId        String
+
+  guestName       String
+  guestPhone      String
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  notes           String?
+
+  reminderSentAt  DateTime?
+  checkoutSentAt  DateTime?
+  status          String   @default("ACTIVE")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@index([agencyId])
+  @@index([status])
+  @@index([checkInDate])
+  @@index([checkOutDate])
+}
+
+// ════════════════════════════════════════════════════════════════
+// PHASE 5 — Kit Hôte QRTags (supports physiques)
+// Commande du kit physique : chevalet bois/acrylique + aimant frigo
+// + sticker NFC+QR. Vendu 25 000 FCFA (one-shot).
+// ════════════════════════════════════════════════════════════════
+
+model HostKitOrder {
+  id              String   @id @default(cuid())
+  agencyId        String?  // Null si achat sans compte
+
+  // ─── Offre ───
+  // STARTER (25 000 FCFA one-shot) | SUBSCRIPTION (2 500/mois) | MULTI (20 000/mois)
+  offer           String   @default("STARTER")
+  totalPrice      Int      // FCFA
+
+  // ─── Client ───
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  deliveryCity    String?
+  deliveryAddress String?
+
+  // ─── Paiement ───
+  paymentMethod   String?  // wave | orange_money | cash_on_delivery
+  paymentStatus   String   @default("PENDING")
+
+  // ─── Statut ───
+  // PENDING → PRODUCING → SHIPPED → DELIVERED | CANCELLED
+  status          String   @default("PENDING")
+  trackingNumber  String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+
+  // ─── Personnalisation ───
+  propertyName    String?  // Nom du logement (pour le chevalet)
+  propertyAddress String?  // Adresse (pour configurer le QR code)
+
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  agency          Agency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+
+  @@index([agencyId])
+  @@index([status])
+  @@index([createdAt])
 }

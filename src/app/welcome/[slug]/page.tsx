@@ -38,6 +38,15 @@ export default async function WelcomePage({ params, searchParams }: Props) {
       braceletProfile: true,
       latitude: true,
       longitude: true,
+      houseGuide: {
+        select: {
+          id: true, wifiNetwork: true, wifiPassword: true,
+          checkInInstructions: true, checkOutInstructions: true,
+          checkInTime: true, checkOutTime: true,
+          houseRules: true, homeTutorials: true, hostRecommendations: true,
+          hostName: true, hostPhone: true, hostWelcomeMessage: true, photos: true,
+        },
+      },
     },
   });
 
@@ -48,10 +57,9 @@ export default async function WelcomePage({ params, searchParams }: Props) {
   // ─── Sécurité : cette page n'est pertinente que pour les hôtels ───
   // Si l'agence n'est pas un hôtel, on logue un avertissement (mais on affiche
   // quand même la vue wristband si explicitement demandée).
-  if (agency.agencyType !== 'hotel') {
+  if (agency.agencyType !== 'hotel' && agency.agencyType !== 'airbnb') {
     console.warn(
-      `[welcome] Agence ${agency.slug} (type=${agency.agencyType}) a accédé à la vue wristband. ` +
-      `Ce module est conçu pour les hôtels.`
+      `[welcome] Agence ${agency.slug} (type=${agency.agencyType}) a accédé à la vue wristband.`
     );
   }
 
@@ -69,6 +77,7 @@ export default async function WelcomePage({ params, searchParams }: Props) {
       braceletProfile: agency.braceletProfile,
       latitude: agency.latitude,
       longitude: agency.longitude,
+      houseGuide: agency.houseGuide,
     };
     return <WristbandView agency={agencyData} lang={lang} />;
   }

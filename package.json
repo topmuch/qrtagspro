@@ -14,7 +14,8 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:seed:bracelets": "tsx prisma/seed-bracelets.ts",
-    "db:seed:tourism": "tsx prisma/seed-tourism.ts"
+    "db:seed:tourism": "tsx prisma/seed-tourism.ts",
+    "db:seed:host": "tsx prisma/seed-host.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

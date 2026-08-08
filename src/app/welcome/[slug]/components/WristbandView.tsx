@@ -8,6 +8,7 @@ import BusinessServices from './BusinessServices';
 import TransitInfo from './TransitInfo';
 import LocalRecommendations from './LocalRecommendations';
 import NearbyAttractions from './NearbyAttractions';
+import HostView, { type HouseGuideData } from './HostView';
 import { getProfileMeta, type BraceletProfile } from '@/lib/bracelet-profiles';
 
 // ─── Type de l'agence sérialisée (passée du server component) ───────────────
@@ -19,9 +20,10 @@ export interface WelcomeAgency {
   contactPhone: string | null;
   logoUrl: string | null;
   address: string | null;
-  braceletProfile: string | null; // BUSINESS | TRANSIT | RESORT | BOUTIQUE | STANDARD
-  latitude: number | null; // Coordonnées GPS pour le volet touristique
+  braceletProfile: string | null; // BUSINESS | TRANSIT | RESORT | BOUTIQUE | HOST | STANDARD
+  latitude: number | null;
   longitude: number | null;
+  houseGuide: HouseGuideData | null; // Guide maison (profil HOST uniquement)
 }
 
 interface WristbandViewProps {
@@ -117,6 +119,17 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
       case 'BOUTIQUE':
         return <LocalRecommendations agencyName={agency.name} lang={lang} />;
 
+      case 'HOST':
+        if (agency.houseGuide) {
+          return <HostView guide={agency.houseGuide} agencyName={agency.name} agencyAddress={agency.address} lang={lang} />;
+        }
+        return (
+          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
+            <h2 className="text-xl font-bold text-[#E3B23C] mb-3">🏠 {lang === 'en' ? 'Home Guide' : 'Guide de la maison'}</h2>
+            <p className="text-sm text-gray-400">{lang === 'en' ? 'Your host has not yet configured the home guide.' : 'Votre hôte n\'a pas encore configuré le guide de la maison.'}</p>
+          </section>
+        );
+
       case 'STANDARD':
       default:
         // Contenu générique : services essentiels + attractions à proximité
@@ -199,7 +212,7 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
         {renderProfileContent()}
 
         {/* Volet Touristique Géolocalisé — affiché si l'hôtel a des coordonnées GPS */}
-        {agency.latitude !== null && agency.longitude !== null && (
+        {agency.latitude !== null && agency.longitude !== null && profile !== 'HOST' && (
           <NearbyAttractions
             hotelLat={agency.latitude}
             hotelLng={agency.longitude}
