@@ -118,6 +118,7 @@ model Agency {
   baggages           Baggage[]
   users              User[]
   invoices           Invoice[]
+  braceletPackOrders BraceletPackOrder[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -160,9 +161,100 @@ model Baggage {
   //   city, country, reward, message_to_finder, email, photo, ... }
   customData        String?
 
+  // ─── Module Bracelets All-Inclusive ───
+  // Contexte d'usage du QR tag (détermine le rendu de /welcome/[slug] et /scan/[reference])
+  // ROOM | RESTAURANT | POOL | LOBBY | LUGGAGE | WRISTBAND
+  context              String?  @default("ROOM")
+  // Lien vers une commande de bracelets (BraceletPackOrder.id) si ce tag est un bracelet physique
+  braceletPackOrderId  String?
+  braceletPackOrder    BraceletPackOrder? @relation(fields: [braceletPackOrderId], references: [id], onDelete: SetNull)
+
   agency            Agency?   @relation(fields: [agencyId], references: [id], onDelete: SetNull)
   scanLogs          ScanLog[]
   damageReports     DamageReport[]
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE BRACELETS ALL-INCLUSIVE
+// Bracelets physiques portés au poignet par les clients d'hôtels resorts.
+// Chaque bracelet contient un QR code unique (un Baggage de context=WRISTBAND)
+// qui donne accès au guide touristique, aux services de l'hôtel, aux animations
+// du jour, et aux boutons d'action (WhatsApp, appel, réservation).
+//
+// Workflow production:
+//   1. Commande reçue            → status=PENDING, paymentStatus=PENDING
+//   2. Validation maquette       → maquetteStatus=VALIDATED (brandés uniquement)
+//   3. Génération des QR codes   → activatedAt=now, N Baggage créés (context=WRISTBAND)
+//   4. Production physique       → status=PRODUCING
+//   5. Expédition                → status=SHIPPED, trackingNumber set, shippedAt=now
+//   6. Livraison                 → status=DELIVERED, deliveredAt=now
+//   7. Email automatique envoyé au client avec lien d'activation à chaque étape
+// ════════════════════════════════════════════════════════════════
+
+model BraceletPackOrder {
+  id                String    @id @default(cuid())
+  // Null si achat sans compte agence (walk-in client sur /shop/bracelets)
+  agencyId          String?
+  agency            Agency?   @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+
+  // ─── Détail de la commande ───
+  quantity          Int       // 50, 100, ou 500
+  isBranded         Boolean   @default(false) // false=Standard, true=Brandé (logo hôtel)
+  unitPrice         Int       // Prix unitaire en FCFA (snapshot au moment de la commande)
+  totalPrice        Int       // quantity * unitPrice en FCFA
+
+  // ─── Statut de production ───
+  // PENDING → PRODUCING → SHIPPED → DELIVERED  |  CANCELLED
+  status            String    @default("PENDING")
+  // Maquette pour bracelets brandés (auto-validée pour Standard)
+  // PENDING → VALIDATED → REJECTED
+  maquetteStatus    String    @default("PENDING")
+  maquetteUrl       String?   // URL de la maquette générée (PDF/PNG)
+  maquetteValidatedAt DateTime?
+
+  // ─── Logo & personnalisation (brandés uniquement) ───
+  logoUrl           String?   // URL du logo uploadé par le client
+  brandText         String?   // Texte personnalisé (ex: nom de l'hôtel)
+  brandColors       String?   // JSON: { primary, secondary } hex codes
+
+  // ─── Informations client & livraison ───
+  customerName      String
+  customerPhone     String
+  customerEmail     String?
+  deliveryCity      String?
+  deliveryQuartier  String?
+  deliveryAddress   String?
+
+  // ─── Paiement ───
+  // "wave" | "orange_money" | "cash_on_delivery"
+  paymentMethod     String?
+  // PENDING → PAID → CANCELLED  |  REFUNDED
+  paymentStatus     String    @default("PENDING")
+  paymentReference  String?   // Référence transaction Wave/Orange Money
+
+  // ─── Suivi expédition ───
+  trackingNumber    String?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+
+  // ─── Activation des QR codes ───
+  // Date à laquelle les N Baggage (context=WRISTBAND) ont été générés en base
+  activatedAt       DateTime?
+  activatedCount    Int       @default(0) // Nombre de QR codes générés (0 tant que non activé)
+
+  // ─── Notes & métadonnées ───
+  notes             String?   // Notes internes (production, livraison)
+  adminNotes        String?   // Notes privées superadmin
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // ─── QR codes (Baggage) générés pour cette commande ───
+  baggages          Baggage[]
+
+  @@index([agencyId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
 }
 
 // ScanLog model - tracks all scans for audit

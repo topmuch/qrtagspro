@@ -1,0 +1,96 @@
+import { db } from '@/lib/db';
+import { notFound } from 'next/navigation';
+import WristbandView from './components/WristbandView';
+
+interface Props {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ context?: string; lang?: string }>;
+}
+
+/**
+ * Page d'accueil client — /welcome/[slug]
+ *
+ * Accessible quand un client scanne son bracelet QR (ou suit un lien direct).
+ * Le paramètre `context` détermine l'expérience affichée :
+ *   - WRISTBAND → WristbandView (compagnon de séjour All-Inclusive)
+ *   - tout autre valeur → vue standard (à venir : guide touristique)
+ *
+ * La langue est détectée via `?lang=` (FR par défaut). En production, on
+ * pourra aussi détecter la langue du navigateur (Accept-Language header).
+ */
+export default async function WelcomePage({ params, searchParams }: Props) {
+  const { slug } = await params;
+  const { context = 'STANDARD', lang = 'fr' } = await searchParams;
+
+  // ─── Récupère l'agence (hôtel) par son slug ───
+  const agency = await db.agency.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      email: true,
+      phone: true,
+      contactPhone: true,
+      address: true,
+      logoUrl: true,
+      agencyType: true,
+    },
+  });
+
+  if (!agency) {
+    notFound();
+  }
+
+  // ─── Sécurité : cette page n'est pertinente que pour les hôtels ───
+  // Si l'agence n'est pas un hôtel, on redirige vers la page trouveur standard.
+  if (agency.agencyType !== 'hotel') {
+    // Pour le MVP, on affiche quand même la vue wristband si explicitement demandée,
+    // mais on logue un avertissement.
+    console.warn(
+      `[welcome] Agence ${agency.slug} (type=${agency.agencyType}) a accédé à la vue wristband. ` +
+      `Ce module est conçu pour les hôtels resorts.`
+    );
+  }
+
+  // ─── Contexte WRISTBAND → vue All-Inclusive ───
+  if (context === 'WRISTBAND') {
+    // Sérialise l'agence en objet plain pour le client component
+    const agencyData = {
+      id: agency.id,
+      name: agency.name,
+      phone: agency.phone,
+      contactPhone: agency.contactPhone,
+      logoUrl: agency.logoUrl,
+      address: agency.address,
+    };
+    return <WristbandView agency={agencyData} lang={lang} />;
+  }
+
+  // ─── Contexte standard → vue guide touristique (à venir) ───
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="max-w-md text-center">
+        <h1 className="text-2xl font-bold text-slate-900 mb-3">
+          Bienvenue chez {agency.name}
+        </h1>
+        <p className="text-slate-600">
+          Le guide touristique interactif arrive bientôt. Pour accéder aux
+          services All-Inclusive, veuillez scanner votre bracelet.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Génération statique des pages welcome par slug d'agence ────────────────
+// Permet à Next.js de pré-rendre les pages des hôtels connus.
+export async function generateStaticParams() {
+  const agencies = await db.agency.findMany({
+    where: { agencyType: 'hotel', active: true },
+    select: { slug: true },
+  });
+  return agencies.map((a) => ({ slug: a.slug }));
+}
+
+export const dynamicParams = true; // Autorise les slugs non pré-rendus (rendu à la demande)

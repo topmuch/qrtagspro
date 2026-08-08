@@ -24,6 +24,7 @@ import {
   HelpCircle,
   ChevronRight,
   Sparkles,
+  Watch,
 } from "lucide-react";
 
 // Modern color palette - Orange & Black theme
@@ -81,6 +82,7 @@ export default function AdminLayout({ children, title, subtitle, unreadMessages 
     { label: "PRODUITS", icon: null, isCategory: true },
     { label: "Génération QRTags", icon: <QrCode className="w-5 h-5" />, href: "/admin/generer" },
     { label: "Étiquettes", icon: <Layers className="w-5 h-5" />, href: "/admin/etiquettes" },
+    { label: "Bracelets All-Inclusive", icon: <Watch className="w-5 h-5" />, href: "/admin/bracelets" },
     { label: "VOYAGEURS", icon: null, isCategory: true },
     { label: "Objets trouvés", icon: <Package className="w-5 h-5" />, href: "/admin/voyageurs" },
     { label: "MESSAGES", icon: null, isCategory: true },
