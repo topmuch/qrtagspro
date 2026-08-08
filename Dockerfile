@@ -54,7 +54,7 @@ RUN mkdir -p /app/data
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-ENV DATABASE_URL=file:/app/data/qrtags.db
+ENV DATABASE_URL=file:/app/data/qrtags-entreprise.db
 
 WORKDIR /app/.next/standalone
 CMD ["sh", "/app/init-db.sh"]

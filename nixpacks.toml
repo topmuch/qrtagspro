@@ -42,6 +42,6 @@ NODE_ENV = 'production'
 NEXT_TELEMETRY_DISABLED = '1'
 PORT = '3000'
 HOSTNAME = '0.0.0.0'
-DATABASE_URL = 'file:/app/data/qrtags.db'
+DATABASE_URL = 'file:/app/data/qrtags-entreprise.db'
 # Force npm pour tout le pipeline nixpacks
 NIXPACKS_USE_NPM = '1'
