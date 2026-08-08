@@ -39,7 +39,7 @@ const INITIAL_FORM: OrderFormData = {
 
 /**
  * Formulaire de commande express — permet à un client (hôtel ou walk-in)
- * de commander un pack de bracelets QR All-Inclusive.
+ * de commander un pack de bracelets de séjour universel.
  *
  * Flux :
  *   1. Sélection quantité (50/100/500) + type (Standard/Brandé)

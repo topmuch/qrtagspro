@@ -12,7 +12,7 @@ interface Props {
  *
  * Accessible quand un client scanne son bracelet QR (ou suit un lien direct).
  * Le paramètre `context` détermine l'expérience affichée :
- *   - WRISTBAND → WristbandView (compagnon de séjour All-Inclusive)
+ *   - WRISTBAND → WristbandView (compagnon de séjour universel, s'adapte au braceletProfile)
  *   - tout autre valeur → vue standard (à venir : guide touristique)
  *
  * La langue est détectée via `?lang=` (FR par défaut). En production, on
@@ -35,6 +35,7 @@ export default async function WelcomePage({ params, searchParams }: Props) {
       address: true,
       logoUrl: true,
       agencyType: true,
+      braceletProfile: true,
     },
   });
 
@@ -43,17 +44,16 @@ export default async function WelcomePage({ params, searchParams }: Props) {
   }
 
   // ─── Sécurité : cette page n'est pertinente que pour les hôtels ───
-  // Si l'agence n'est pas un hôtel, on redirige vers la page trouveur standard.
+  // Si l'agence n'est pas un hôtel, on logue un avertissement (mais on affiche
+  // quand même la vue wristband si explicitement demandée).
   if (agency.agencyType !== 'hotel') {
-    // Pour le MVP, on affiche quand même la vue wristband si explicitement demandée,
-    // mais on logue un avertissement.
     console.warn(
       `[welcome] Agence ${agency.slug} (type=${agency.agencyType}) a accédé à la vue wristband. ` +
-      `Ce module est conçu pour les hôtels resorts.`
+      `Ce module est conçu pour les hôtels.`
     );
   }
 
-  // ─── Contexte WRISTBAND → vue All-Inclusive ───
+  // ─── Contexte WRISTBAND → vue compagnon de séjour (s'adapte au braceletProfile) ───
   if (context === 'WRISTBAND') {
     // Sérialise l'agence en objet plain pour le client component
     const agencyData = {
@@ -63,6 +63,7 @@ export default async function WelcomePage({ params, searchParams }: Props) {
       contactPhone: agency.contactPhone,
       logoUrl: agency.logoUrl,
       address: agency.address,
+      braceletProfile: agency.braceletProfile,
     };
     return <WristbandView agency={agencyData} lang={lang} />;
   }
@@ -75,8 +76,8 @@ export default async function WelcomePage({ params, searchParams }: Props) {
           Bienvenue chez {agency.name}
         </h1>
         <p className="text-slate-600">
-          Le guide touristique interactif arrive bientôt. Pour accéder aux
-          services All-Inclusive, veuillez scanner votre bracelet.
+          Le guide touristique interactif arrive bientôt. Pour accéder à votre
+          compagnon de séjour, veuillez scanner votre bracelet.
         </p>
       </div>
     </div>

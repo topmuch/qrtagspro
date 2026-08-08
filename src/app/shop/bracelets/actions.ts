@@ -45,7 +45,7 @@ interface CreateOrderResult {
 // ─── Server Action ──────────────────────────────────────────────────────────
 
 /**
- * Crée une commande de pack de bracelets All-Inclusive.
+ * Crée une commande de pack de bracelets de séjour universel.
  *
  * Sécurité :
  *   - Le prix est RECALCULÉ côté serveur depuis la grille BRACELET_PACKS.

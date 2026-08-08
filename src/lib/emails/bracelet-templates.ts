@@ -1,5 +1,5 @@
 /**
- * Templates d'emails transactionnels — Module Bracelets All-Inclusive
+ * Templates d'emails transactionnels — Module Bracelets de Séjour Universel
  * ====================================================================
  *
  * 4 templates pour le workflow de production :
@@ -75,7 +75,7 @@ function emailFooter(): string {
     <div style="background-color: ${COLORS.bg}; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
       <p style="color: ${COLORS.gold}; margin: 0 0 8px 0; font-weight: bold; font-size: 16px;">QRTags Pro</p>
       <p style="color: ${COLORS.gray}; margin: 0; font-size: 12px;">
-        Bracelets QR All-Inclusive — Votre compagnon de séjour digital
+        Bracelets QR — Votre compagnon de séjour digital
       </p>
       <p style="color: ${COLORS.grayDark}; margin: 8px 0 0 0; font-size: 11px;">
         © ${new Date().getFullYear()} QRTags Pro. Tous droits réservés.
@@ -96,7 +96,7 @@ export function getOrderConfirmationEmail(data: BraceletOrderEmailData): EmailTe
       <div style="background-color: ${COLORS.card}; padding: 24px; border-left: 1px solid #333; border-right: 1px solid #333;">
         <p style="color: ${COLORS.white}; font-size: 16px;">Bonjour <strong>${data.customerName}</strong>,</p>
         <p style="color: ${COLORS.gray}; font-size: 14px; line-height: 1.6;">
-          Nous avons bien reçu votre commande de bracelets QR All-Inclusive.
+          Nous avons bien reçu votre commande de bracelets QR de séjour.
           Notre équipe va traiter votre demande dans les plus brefs délais.
         </p>
 
@@ -153,7 +153,7 @@ export function getOrderConfirmationEmail(data: BraceletOrderEmailData): EmailTe
 
 Bonjour ${data.customerName},
 
-Nous avons bien reçu votre commande de bracelets QR All-Inclusive.
+Nous avons bien reçu votre commande de bracelets QR de séjour.
 
 Récapitulatif :
 - N° de commande : #${data.orderId.slice(-8).toUpperCase()}
@@ -299,7 +299,7 @@ export function getDeliveredEmail(data: BraceletOrderEmailData): EmailTemplate {
           </p>
           <p style="color: ${COLORS.white}; margin: 0 0 16px 0; font-size: 14px; line-height: 1.6;">
             Activez vos QR codes pour les rendre scannables par vos clients.
-            Chaque bracelet donnera accès au compagnon de séjour All-Inclusive.
+            Chaque bracelet donnera accès au compagnon de séjour adapté à votre hôtel.
           </p>
           <a href="${activationUrl}" style="background-color: ${COLORS.gold}; color: ${COLORS.black}; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;">
             🔧 Activer mes bracelets
@@ -322,7 +322,7 @@ Bonjour ${data.customerName},
 Votre pack de ${data.quantity} bracelets QR (Commande #${data.orderId.slice(-8).toUpperCase()}) a été livré. 🎉
 
 Prochaine étape : activez vos QR codes pour les rendre scannables.
-Chaque bracelet donnera accès au compagnon de séjour All-Inclusive.
+Chaque bracelet donnera accès au compagnon de séjour adapté à votre hôtel.
 
 Activez vos bracelets : ${activationUrl}
 

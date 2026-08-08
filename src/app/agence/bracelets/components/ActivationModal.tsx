@@ -12,7 +12,7 @@ interface ActivationModalProps {
 }
 
 const CONTEXT_OPTIONS = [
-  { value: 'WRISTBAND', label: 'Bracelet All-Inclusive', description: 'Contenu resort complet (carte, services, animations)' },
+  { value: 'WRISTBAND', label: 'Bracelet de Séjour', description: 'Contenu adaptatif (carte, services, animations, recommandations)' },
   { value: 'ROOM', label: 'Chambre', description: 'Infos chambre + services hôtel' },
   { value: 'POOL', label: 'Piscine / Plage', description: 'Services piscine + bar' },
   { value: 'RESTAURANT', label: 'Restaurant', description: 'Menu + réservations' },

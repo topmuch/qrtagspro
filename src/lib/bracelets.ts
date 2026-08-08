@@ -1,5 +1,5 @@
 /**
- * Module Bracelets All-Inclusive — Constantes & helpers partagés
+ * Module Bracelets de Séjour Universel — Constantes & helpers partagés
  * ================================================================
  * Source de vérité unique pour la grille tarifaire, utilisée par :
  *   - La page boutique (/shop/bracelets)

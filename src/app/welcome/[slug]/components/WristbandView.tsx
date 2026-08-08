@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import ResortZones from './ResortZones';
 import DailySchedule from './DailySchedule';
 import QuickActions from './QuickActions';
+import BusinessServices from './BusinessServices';
+import TransitInfo from './TransitInfo';
+import LocalRecommendations from './LocalRecommendations';
+import { getProfileMeta, type BraceletProfile } from '@/lib/bracelet-profiles';
 
 // ─── Type de l'agence sérialisée (passée du server component) ───────────────
 export interface WelcomeAgency {
@@ -13,6 +17,7 @@ export interface WelcomeAgency {
   contactPhone: string | null;
   logoUrl: string | null;
   address: string | null;
+  braceletProfile: string | null; // BUSINESS | TRANSIT | RESORT | BOUTIQUE | STANDARD
 }
 
 interface WristbandViewProps {
@@ -20,13 +25,13 @@ interface WristbandViewProps {
   lang: string;
 }
 
-// ─── Traductions FR/EN (MVP — extensible à ES/AR) ──────────────────────────
+// ─── Traductions FR/EN ──────────────────────────────────────────────────────
 const T = {
   fr: {
     morning: 'Bonjour',
     afternoon: 'Bon après-midi',
     evening: 'Bonsoir',
-    subtitle: 'Votre Séjour All-Inclusive',
+    subtitle: 'Votre compagnon de séjour',
     resort: 'Le Resort',
     animations: 'Animations du Jour',
     help: 'Besoin d\'aide ?',
@@ -38,7 +43,7 @@ const T = {
     morning: 'Good Morning',
     afternoon: 'Good Afternoon',
     evening: 'Good Evening',
-    subtitle: 'Your All-Inclusive Stay',
+    subtitle: 'Your stay companion',
     resort: 'The Resort',
     animations: 'Today\'s Activities',
     help: 'Need help?',
@@ -53,9 +58,11 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const [currentHour, setCurrentHour] = useState<number | null>(null);
 
   const t = lang === 'en' ? T.en : T.fr;
+  const profile = (agency.braceletProfile || 'STANDARD') as BraceletProfile;
+  const profileMeta = getProfileMeta(profile);
 
   // Détection de l'heure pour le message d'accueil (côté client uniquement
-  // pour éviter l'hydration mismatch — on part d'un état neutre puis on met à jour)
+  // pour éviter l'hydration mismatch)
   useEffect(() => {
     const updateGreeting = () => {
       const hour = new Date().getHours();
@@ -65,21 +72,93 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
       else setGreeting(t.evening);
     };
     updateGreeting();
-    const timer = setInterval(updateGreeting, 60_000); // refresh every minute
+    const timer = setInterval(updateGreeting, 60_000);
     return () => clearInterval(timer);
   }, [t.morning, t.afternoon, t.evening]);
 
-  // Téléphone principal : contactPhone (réception) ou fallback phone
   const receptionPhone = agency.contactPhone || agency.phone;
-
-  // Nettoie le numéro pour les liens tel: (supprime espaces, tirets, etc.)
   const cleanPhone = (p: string | null) => (p ? p.replace(/[\s\-().]/g, '') : null);
   const receptionTel = cleanPhone(receptionPhone);
+
+  // ─── Rendu conditionnel selon le braceletProfile ───
+  // Un seul produit, 4 expériences personnalisées selon le type d'hôtel.
+  const renderProfileContent = () => {
+    switch (profile) {
+      case 'BUSINESS':
+        return <BusinessServices agencyPhone={receptionPhone} lang={lang} />;
+
+      case 'TRANSIT':
+        return <TransitInfo agencyPhone={receptionPhone} lang={lang} />;
+
+      case 'RESORT':
+        return (
+          <>
+            {/* Carte des zones du resort */}
+            <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
+              <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">
+                🗺️ {t.resort}
+              </h2>
+              <ResortZones currentHour={currentHour} />
+            </section>
+            {/* Animations du jour */}
+            <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
+              <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">
+                🎉 {t.animations}
+              </h2>
+              <DailySchedule lang={lang} />
+            </section>
+          </>
+        );
+
+      case 'BOUTIQUE':
+        return <LocalRecommendations agencyName={agency.name} lang={lang} />;
+
+      case 'STANDARD':
+      default:
+        // Contenu générique : services essentiels + attractions à proximité
+        return (
+          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
+            <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">
+              🏨 {lang === 'en' ? 'Hotel Services' : 'Services de l\'hôtel'}
+            </h2>
+            <p className="text-sm text-gray-400 mb-4">
+              {lang === 'en'
+                ? 'Your hotel has not yet configured a specialized profile. Essential services are shown below. Ask reception to activate a personalized experience.'
+                : 'Votre hôtel n\'a pas encore configuré de profil spécialisé. Les services essentiels sont affichés ci-dessous. Demandez à la réception d\'activer une expérience personnalisée.'}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-4 bg-black rounded-xl border border-gray-700">
+                <span className="text-2xl mb-1 block">🛎️</span>
+                <span className="text-xs font-bold">{t.reception}</span>
+              </div>
+              <div className="p-4 bg-black rounded-xl border border-gray-700">
+                <span className="text-2xl mb-1 block">🚑</span>
+                <span className="text-xs font-bold">{t.emergency}</span>
+              </div>
+              <div className="p-4 bg-black rounded-xl border border-gray-700">
+                <span className="text-2xl mb-1 block">🗺️</span>
+                <span className="text-xs font-bold">{lang === 'en' ? 'Nearby' : 'À proximité'}</span>
+              </div>
+              <div className="p-4 bg-black rounded-xl border border-gray-700">
+                <span className="text-2xl mb-1 block">📞</span>
+                <span className="text-xs font-bold">{lang === 'en' ? 'Contact' : 'Contact'}</span>
+              </div>
+            </div>
+          </section>
+        );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#111111] text-white pb-28">
       {/* ─── HEADER IMMERSIF ─── */}
-      <header className="bg-gradient-to-b from-[#E3B23C] via-[#E3B23C] to-[#111111] pt-8 pb-14 px-6 text-center relative overflow-hidden">
+      {/* Le gradient utilise la couleur d'accent du profil pour personnaliser l'expérience */}
+      <header
+        className="pt-8 pb-14 px-6 text-center relative overflow-hidden"
+        style={{
+          background: `linear-gradient(to bottom, ${profileMeta.accentColor}, #111111)`,
+        }}
+      >
         <div className="relative z-10">
           {agency.logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -89,13 +168,18 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
               className="h-14 w-14 object-contain mx-auto mb-4 bg-white p-2 rounded-xl shadow-lg"
             />
           )}
-          <p className="text-black font-bold text-lg uppercase tracking-wider mb-1">
+          {/* Badge profil (montre le type d'expérience) */}
+          <div className="inline-flex items-center gap-1.5 bg-black/30 text-white px-3 py-1 rounded-full text-xs font-bold mb-3">
+            <span>{profileMeta.emoji}</span>
+            <span>{lang === 'en' ? profileMeta.labelEn : profileMeta.label}</span>
+          </div>
+          <p className="text-white font-bold text-lg uppercase tracking-wider mb-1">
             {greeting}
           </p>
-          <h1 className="text-3xl font-black text-black mb-2 leading-tight">
+          <h1 className="text-3xl font-black text-white mb-2 leading-tight">
             {agency.name}
           </h1>
-          <p className="text-black/80 text-sm font-medium">{t.subtitle}</p>
+          <p className="text-white/80 text-sm font-medium">{t.subtitle}</p>
         </div>
         {/* Décor : cercles flous en arrière-plan */}
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10 blur-3xl" />
@@ -104,26 +188,13 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
 
       {/* ─── CONTENU PRINCIPAL ─── */}
       <main className="px-4 -mt-8 relative z-20 space-y-6">
-        {/* Boutons d'action rapide */}
+        {/* Boutons d'action rapide (communs à tous les profils) */}
         <QuickActions agencyPhone={receptionPhone} lang={lang} />
 
-        {/* Carte des zones du resort */}
-        <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-          <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">
-            🗺️ {t.resort}
-          </h2>
-          <ResortZones currentHour={currentHour} />
-        </section>
+        {/* Contenu spécifique au profil */}
+        {renderProfileContent()}
 
-        {/* Animations du jour */}
-        <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-          <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">
-            🎉 {t.animations}
-          </h2>
-          <DailySchedule lang={lang} />
-        </section>
-
-        {/* Besoin d'aide */}
+        {/* Besoin d'aide (commun à tous les profils) */}
         <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
           <h2 className="text-lg font-bold text-white mb-3">{t.help}</h2>
           <div className="grid grid-cols-2 gap-3">
@@ -136,7 +207,6 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
                 <span className="text-xs font-bold text-center">{t.reception}</span>
               </a>
             )}
-            {/* Urgence : numéro d'urgence local (configurable via env à terme) */}
             <a
               href="tel:1515"
               className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-red-500 transition-colors"

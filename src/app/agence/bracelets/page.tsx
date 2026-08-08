@@ -10,6 +10,7 @@ import {
 } from './actions';
 import OrdersList from './components/OrdersList';
 import Analytics from './components/Analytics';
+import BraceletProfileSelector from './components/BraceletProfileSelector';
 import Link from 'next/link';
 import { Package, Plus, ShoppingBag, Loader2 } from 'lucide-react';
 
@@ -105,7 +106,7 @@ export default function AgencyBraceletsPage() {
             Aucune commande de bracelets
           </h3>
           <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-            Vous n&apos;avez pas encore commandé de bracelets All-Inclusive.
+            Vous n&apos;avez pas encore commandé de bracelets de séjour.
             Passez votre première commande pour commencer à distribuer des QR codes
             à vos clients.
           </p>
@@ -150,6 +151,9 @@ export default function AgencyBraceletsPage() {
           />
         </div>
       )}
+
+      {/* ─── Configuration du profil hôtel (adapte le contenu du bracelet) ─── */}
+      <BraceletProfileSelector />
 
       {/* ─── Analytics ─── */}
       {analytics && <Analytics data={analytics} />}

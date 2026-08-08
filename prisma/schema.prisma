@@ -109,6 +109,11 @@ model Agency {
   agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
   customTypeId       String?   // Si agencyType = "custom", référence vers CustomAgencyType
   customType         CustomAgencyType? @relation(fields: [customTypeId], references: [id], onDelete: SetNull)
+  // Module Bracelets Universel — profil de l'hôtel qui détermine le contenu
+  // affiché sur /welcome/[slug]?context=WRISTBAND. Un seul produit, 4 expériences.
+  // Valeurs: "BUSINESS" | "TRANSIT" | "RESORT" | "BOUTIQUE" | "STANDARD"
+  // (STANDARD = contenu générique par défaut si non configuré)
+  braceletProfile    String?   @default("STANDARD")
   // QRTagsPro V4 — PMS Integration (Property Management System)
   pmsProvider        String?   // "CLOUDBEDS" | "MEWS" | "SIRVOY" | null
   pmsApiKeys         String?   // JSON string: { apiKey, propertyId, baseUrl }

@@ -1,5 +1,5 @@
 /**
- * Seed script — Module Bracelets All-Inclusive
+ * Seed script — Module Bracelets de Séjour Universel
  * =============================================
  * Crée des données de test réalistes pour le module Bracelets :
  *   - 1 hôtel resort de démo (Agency avec agencyType="hotel")
@@ -73,7 +73,7 @@ function daysAgo(days: number): Date {
 }
 
 async function main() {
-  console.log('🌱 Seeding Bracelets All-Inclusive module...\n');
+  console.log('🌱 Seeding Bracelets Universel module (4 hotel profiles)...\n');
 
   // ─── 0. Cleanup (idempotent) ─────────────────────────────────────────────
   console.log('0. Cleaning previous bracelet seed data...');
@@ -105,8 +105,10 @@ async function main() {
     console.log(`   Deleted ${demoOrders.length} previous bracelet orders`);
   }
 
-  // ─── 1. Create demo resort hotel (Agency) ───────────────────────────────
-  console.log('\n1. Creating demo resort hotel agency...');
+  // ─── 1. Create demo hotels (4 types: RESORT, BUSINESS, TRANSIT, BOUTIQUE) ──
+  console.log('\n1. Creating demo hotels (4 bracelet profiles)...');
+
+  // 1a. RESORT — Baobab Beach Resort (Saly) — existe déjà, on update le braceletProfile
   const resort = await prisma.agency.upsert({
     where: { slug: 'baobab_beach_resort' },
     update: {
@@ -114,8 +116,9 @@ async function main() {
       email: 'contact@baobabbeach.example',
       phone: '+221 33 800 00 00',
       contactPhone: '+221 77 800 00 00',
-      address: 'Pointe des Almadies, Dakar, Sénégal',
+      address: 'Saly Portudal, Mbour, Sénégal',
       agencyType: 'hotel',
+      braceletProfile: 'RESORT',
       logoUrl: 'https://placehold.co/200x200/0F766E/FFFFFF/png?text=BAOBAB',
     },
     create: {
@@ -125,12 +128,97 @@ async function main() {
       email: 'contact@baobabbeach.example',
       phone: '+221 33 800 00 00',
       contactPhone: '+221 77 800 00 00',
-      address: 'Pointe des Almadies, Dakar, Sénégal',
+      address: 'Saly Portudal, Mbour, Sénégal',
       agencyType: 'hotel',
+      braceletProfile: 'RESORT',
       logoUrl: 'https://placehold.co/200x200/0F766E/FFFFFF/png?text=BAOBAB',
     },
   });
-  console.log(`   ✓ Agency: ${resort.name} (${resort.id})`);
+  console.log(`   ✓ RESORT: ${resort.name} (slug: ${resort.slug})`);
+
+  // 1b. BUSINESS — Hôtel Le Plateau (Dakar) — hôtel d'affaires
+  const business = await prisma.agency.upsert({
+    where: { slug: 'le_plateau_business' },
+    update: {
+      name: 'Hôtel Le Plateau',
+      email: 'contact@leplateau.example',
+      phone: '+221 33 821 00 00',
+      contactPhone: '+221 77 821 00 00',
+      address: 'Avenue Léopold S. Senghor, Dakar Plateau',
+      agencyType: 'hotel',
+      braceletProfile: 'BUSINESS',
+      logoUrl: 'https://placehold.co/200x200/1E40AF/FFFFFF/png?text=PLATEAU',
+    },
+    create: {
+      id: 'demo-business-plateau',
+      name: 'Hôtel Le Plateau',
+      slug: 'le_plateau_business',
+      email: 'contact@leplateau.example',
+      phone: '+221 33 821 00 00',
+      contactPhone: '+221 77 821 00 00',
+      address: 'Avenue Léopold S. Senghor, Dakar Plateau',
+      agencyType: 'hotel',
+      braceletProfile: 'BUSINESS',
+      logoUrl: 'https://placehold.co/200x200/1E40AF/FFFFFF/png?text=PLATEAU',
+    },
+  });
+  console.log(`   ✓ BUSINESS: ${business.name} (slug: ${business.slug})`);
+
+  // 1c. TRANSIT — Airport Inn Dakar (Aéroport Blaise Diagne)
+  const transit = await prisma.agency.upsert({
+    where: { slug: 'airport_inn_dakar' },
+    update: {
+      name: 'Airport Inn Dakar',
+      email: 'contact@airportinn.example',
+      phone: '+221 33 836 00 00',
+      contactPhone: '+221 77 836 00 00',
+      address: 'Aéroport International Blaise Diagne, Diass',
+      agencyType: 'hotel',
+      braceletProfile: 'TRANSIT',
+      logoUrl: 'https://placehold.co/200x200/7C3AED/FFFFFF/png?text=AIRPORT',
+    },
+    create: {
+      id: 'demo-transit-airport',
+      name: 'Airport Inn Dakar',
+      slug: 'airport_inn_dakar',
+      email: 'contact@airportinn.example',
+      phone: '+221 33 836 00 00',
+      contactPhone: '+221 77 836 00 00',
+      address: 'Aéroport International Blaise Diagne, Diass',
+      agencyType: 'hotel',
+      braceletProfile: 'TRANSIT',
+      logoUrl: 'https://placehold.co/200x200/7C3AED/FFFFFF/png?text=AIRPORT',
+    },
+  });
+  console.log(`   ✓ TRANSIT: ${transit.name} (slug: ${transit.slug})`);
+
+  // 1d. BOUTIQUE — Maison Almadies (maison d'hôtes)
+  const boutique = await prisma.agency.upsert({
+    where: { slug: 'maison_almadies' },
+    update: {
+      name: 'Maison Almadies',
+      email: 'contact@maisonalmadies.example',
+      phone: '+221 33 820 50 50',
+      contactPhone: '+221 77 820 50 50',
+      address: 'Route des Almadies, Dakar',
+      agencyType: 'hotel',
+      braceletProfile: 'BOUTIQUE',
+      logoUrl: 'https://placehold.co/200x200/B45309/FFFFFF/png?text=MAISON',
+    },
+    create: {
+      id: 'demo-boutique-almadies',
+      name: 'Maison Almadies',
+      slug: 'maison_almadies',
+      email: 'contact@maisonalmadies.example',
+      phone: '+221 33 820 50 50',
+      contactPhone: '+221 77 820 50 50',
+      address: 'Route des Almadies, Dakar',
+      agencyType: 'hotel',
+      braceletProfile: 'BOUTIQUE',
+      logoUrl: 'https://placehold.co/200x200/B45309/FFFFFF/png?text=MAISON',
+    },
+  });
+  console.log(`   ✓ BOUTIQUE: ${boutique.name} (slug: ${boutique.slug})`);
 
   // ─── 2. Order #1 — Standard pack of 50, DELIVERED with 50 QR codes activated ─
   console.log('\n2. Creating Order #1 — Standard 50 (delivered, fully activated)...');
@@ -221,7 +309,7 @@ async function main() {
       maquetteUrl: 'https://placehold.co/600x400/0F766E/FFFFFF/png?text=Maquette+Baobab',
       maquetteValidatedAt: daysAgo(3),
       logoUrl: 'https://placehold.co/200x200/0F766E/FFFFFF/png?text=BAOBAB',
-      brandText: 'Baobab Beach Resort — All-Inclusive',
+      brandText: 'Baobab Beach Resort — Séjour Resort',
       brandColors: JSON.stringify({ primary: '#0F766E', secondary: '#F59E0B' }),
       customerName: 'Aïssatou Diop',
       customerPhone: '+221 77 123 45 67',
@@ -274,7 +362,11 @@ async function main() {
   console.log('\n─────────────────────────────────────────────────────');
   console.log('🎉 Bracelet seed completed!');
   console.log('─────────────────────────────────────────────────────');
-  console.log(`   Resort hotel :  ${resort.name} (slug: ${resort.slug})`);
+  console.log('   Demo hotels (4 bracelet profiles):');
+  console.log(`     • RESORT   : ${resort.name}        → /welcome/${resort.slug}?context=WRISTBAND`);
+  console.log(`     • BUSINESS : ${business.name}    → /welcome/${business.slug}?context=WRISTBAND`);
+  console.log(`     • TRANSIT  : ${transit.name}        → /welcome/${transit.slug}?context=WRISTBAND`);
+  console.log(`     • BOUTIQUE : ${boutique.name}        → /welcome/${boutique.slug}?context=WRISTBAND`);
   console.log(`   Orders       :  ${totalOrders}`);
   console.log(`     #1 Standard 50  → DELIVERED, ${pack1.quantity} QR codes activated`);
   console.log(`     #2 Brandé 100   → PRODUCING (maquette validated)`);
@@ -282,11 +374,6 @@ async function main() {
   console.log(`   Wristbands   :  ${totalWristbands} Baggage records (context=WRISTBAND)`);
   console.log(`   Scan logs    :  ${totalScans} simulated scans`);
   console.log('─────────────────────────────────────────────────────');
-  console.log('\n📋 Next steps:');
-  console.log('   • Phase 2: build /shop/bracelets page (pricing + order form)');
-  console.log('   • Phase 3: agency dashboard section "Bracelets"');
-  console.log('   • Phase 4: adapt /welcome/[slug]?context=WRISTBAND');
-  console.log('   • Phase 5: production workflow + email automation');
 }
 
 main()

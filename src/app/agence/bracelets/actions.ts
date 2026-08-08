@@ -11,6 +11,7 @@ import {
   getCustomerEmail,
   type BraceletOrderEmailData,
 } from '@/lib/emails/bracelet-templates';
+import { isValidProfile, type BraceletProfile } from '@/lib/bracelet-profiles';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -568,5 +569,94 @@ export async function getBraceletAnalytics(): Promise<{
     }
     console.error('[getBraceletAnalytics] Error:', error);
     return { success: false, error: 'Erreur lors du chargement des analytics.' };
+  }
+}
+
+// ─── Action : récupère le braceletProfile de l'agence connectée ─────────────
+
+/**
+ * Récupère le braceletProfile actuel de l'agence + les métadonnées du profil
+ * (pour afficher la preview des services dans le dashboard).
+ */
+export async function getAgencyBraceletProfile(): Promise<{
+  success: boolean;
+  profile?: string;
+  error?: string;
+}> {
+  try {
+    const agencyId = await getAgencyIdOrFail();
+
+    const agency = await db.agency.findUnique({
+      where: { id: agencyId },
+      select: { braceletProfile: true },
+    });
+
+    if (!agency) {
+      return { success: false, error: 'Agence introuvable.' };
+    }
+
+    return {
+      success: true,
+      profile: agency.braceletProfile || 'STANDARD',
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
+      throw error;
+    }
+    console.error('[getAgencyBraceletProfile] Error:', error);
+    return { success: false, error: 'Erreur lors du chargement du profil.' };
+  }
+}
+
+// ─── Action : met à jour le braceletProfile de l'agence ─────────────────────
+
+/**
+ * Met à jour le braceletProfile de l'agence connectée.
+ *
+ * Le braceletProfile détermine le contenu affiché sur /welcome/[slug]?context=WRISTBAND
+ * quand un client scanne son bracelet :
+ *   - BUSINESS  → BusinessServices (WiFi, business center, pressing, transport)
+ *   - TRANSIT   → TransitInfo (navettes, restos 24h, change, pharmacie)
+ *   - RESORT    → ResortZones + DailySchedule (carte, animations)
+ *   - BOUTIQUE  → LocalRecommendations (recommandations hôte, artisans, culture)
+ *   - STANDARD  → services essentiels (fallback)
+ *
+ * Le changement est immédiat : la prochaine fois qu'un client scanne son
+ * bracelet, il verra le nouveau contenu.
+ */
+export async function updateBraceletProfile(
+  newProfile: string
+): Promise<{ success: boolean; profile?: string; error?: string }> {
+  try {
+    const agencyId = await getAgencyIdOrFail();
+
+    // ─── Validation ───
+    if (!isValidProfile(newProfile)) {
+      return {
+        success: false,
+        error: `Profil invalide: ${newProfile}. Valeurs acceptées: BUSINESS, TRANSIT, RESORT, BOUTIQUE, STANDARD.`,
+      };
+    }
+
+    // ─── Mise à jour ───
+    await db.agency.update({
+      where: { id: agencyId },
+      data: { braceletProfile: newProfile as BraceletProfile },
+    });
+
+    try {
+      revalidatePath('/agence/bracelets');
+      revalidatePath(`/welcome/[slug]`);
+    } catch {
+      // No-op hors contexte Next.js
+    }
+
+    return { success: true, profile: newProfile };
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
+      throw error;
+    }
+    console.error('[updateBraceletProfile] Error:', error);
+    return { success: false, error: 'Erreur lors de la mise à jour du profil.' };
   }
 }
