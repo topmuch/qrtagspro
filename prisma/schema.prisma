@@ -126,6 +126,8 @@ model Agency {
   users              User[]
   invoices           Invoice[]
   braceletPackOrders BraceletPackOrder[]
+  hotelPartners      HotelPartner[]
+  partnerClicks      PartnerClick[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -673,4 +675,44 @@ model BraceletPackOrder {
   @@index([status])
   @@index([paymentStatus])
   @@index([createdAt])
+}
+
+// ════════════════════════════════════════════════════════════════
+// VOLET TOURISTIQUE GÉOLOCALISÉ
+// Partenaires recommandés par l'hôtel + tracking des clics
+// ════════════════════════════════════════════════════════════════
+
+model HotelPartner {
+  id          String   @id @default(cuid())
+  agencyId    String
+  name        String
+  category    String
+  description String?
+  latitude    Float
+  longitude   Float
+  rating      Float    @default(4.5)
+  promoCode   String?
+  commission  Int      @default(0)
+  isVerified  Boolean  @default(true)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  agency      Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  clicks      PartnerClick[]
+  @@index([agencyId])
+  @@index([category])
+  @@index([isActive])
+}
+
+model PartnerClick {
+  id         String   @id @default(cuid())
+  partnerId  String
+  agencyId   String
+  clickedAt  DateTime @default(now())
+  deviceType String?
+  source     String?
+  partner    HotelPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  agency     Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  @@index([partnerId])
+  @@index([agencyId, clickedAt])
 }
