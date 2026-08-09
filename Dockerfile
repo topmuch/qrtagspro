@@ -12,7 +12,8 @@ COPY . .
 
 # Clean npm cache to avoid "idealTree already exists" bug
 RUN npm cache clean --force
-RUN npm install --legacy-peer-deps --no-audit --no-fund --include=dev
+# --include=dev inutile car tout est en dependencies (NODE_ENV=production n'exclut rien)
+RUN npm install --legacy-peer-deps --no-audit --no-fund
 RUN npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED=1
