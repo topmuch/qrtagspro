@@ -10,8 +10,8 @@ WORKDIR /app
 # Clone the repository
 RUN git clone https://github.com/topmuch/qrtagspro.git .
 
-# Install dependencies
-RUN npm install --legacy-peer-deps --no-audit --no-fund
+# Install dependencies (force devDependencies for build despite NODE_ENV=production)
+RUN npm install --legacy-peer-deps --no-audit --no-fund --include=dev
 
 # Generate Prisma Client
 RUN npx prisma generate
