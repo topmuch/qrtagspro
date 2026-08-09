@@ -10,6 +10,8 @@ WORKDIR /app
 
 COPY . .
 
+# Clean npm cache to avoid "idealTree already exists" bug
+RUN npm cache clean --force
 RUN npm install --legacy-peer-deps --no-audit --no-fund --include=dev
 RUN npx prisma generate
 
