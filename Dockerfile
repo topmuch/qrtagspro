@@ -27,7 +27,8 @@ RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-RUN npx next build --webpack || (echo "=== BUILD FAILED ===" && cat /tmp/build-error.log 2>/dev/null && exit 1)
+# Capture la sortie complète pour le debug si le build échoue
+RUN npx next build --webpack 2>&1 || (echo "=== BUILD FAILED - Full log above ===" && exit 1)
 
 # Copier les fichiers statiques + prisma + scripts dans le standalone
 RUN cp -r .next/static .next/standalone/.next/ 2>/dev/null || true && \
