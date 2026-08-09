@@ -128,6 +128,9 @@ model Agency {
   braceletPackOrders BraceletPackOrder[]
   hotelPartners      HotelPartner[]
   partnerClicks      PartnerClick[]
+  houseGuide         HouseGuide?
+  hostReservations   HostReservation[]
+  hostKitOrders      HostKitOrder[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -715,4 +718,77 @@ model PartnerClick {
   agency     Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   @@index([partnerId])
   @@index([agencyId, clickedAt])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE QRTAGS HOST — Conciergerie digitale Airbnb
+// ════════════════════════════════════════════════════════════════
+
+model HouseGuide {
+  id              String   @id @default(cuid())
+  agencyId        String   @unique
+  wifiNetwork     String?
+  wifiPassword    String?
+  checkInInstructions  String?
+  checkOutInstructions String?
+  checkInTime     String?
+  checkOutTime    String?
+  houseRules      String?
+  homeTutorials  String?
+  hostRecommendations String?
+  hostName        String?
+  hostPhone       String?
+  hostWelcomeMessage String?
+  photos          String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+}
+
+model HostReservation {
+  id              String   @id @default(cuid())
+  agencyId        String
+  guestName       String
+  guestPhone      String
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  notes           String?
+  reminderSentAt  DateTime?
+  checkoutSentAt  DateTime?
+  status          String   @default("ACTIVE")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  @@index([agencyId])
+  @@index([status])
+  @@index([checkInDate])
+  @@index([checkOutDate])
+}
+
+model HostKitOrder {
+  id              String   @id @default(cuid())
+  agencyId        String?
+  offer           String   @default("STARTER")
+  totalPrice      Int
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  deliveryCity    String?
+  deliveryAddress String?
+  paymentMethod   String?
+  paymentStatus   String   @default("PENDING")
+  status          String   @default("PENDING")
+  trackingNumber  String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  propertyName    String?
+  propertyAddress String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  agency          Agency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  @@index([agencyId])
+  @@index([status])
+  @@index([createdAt])
 }

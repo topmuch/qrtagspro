@@ -22,6 +22,7 @@ import {
   Settings,
   Watch,
   MapPin,
+  BookOpen,
 } from "lucide-react";
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -109,6 +110,7 @@ function Sidebar({
     { label: "QR actifs",       icon: <QrCode className="w-5 h-5" />,         href: "/agence/baggages" },
     { label: "Bracelets",       icon: <Watch className="w-5 h-5" />,          href: "/agence/bracelets" },
     { label: "Partenaires POI", icon: <MapPin className="w-5 h-5" />,         href: "/agence/partenaires" },
+    { label: "Guide Maison",   icon: <BookOpen className="w-5 h-5" />,        href: "/agence/host" },
     { label: "Objets perdus",   icon: <AlertTriangle className="w-5 h-5" />,  href: "/agence/perdus" },
     { label: "Trouvailles",     icon: <CheckCircle className="w-5 h-5" />,    href: "/agence/trouvailles" },
     { label: "Assistance",      icon: <MessageCircle className="w-5 h-5" />,  href: "/agence/assistance", badge: unreadMessages },
