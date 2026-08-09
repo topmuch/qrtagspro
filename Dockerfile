@@ -8,23 +8,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY . .
+# Cloner le repo (indépendant du cache Coolify)
+RUN git clone https://github.com/topmuch/qrtagspro.git .
 
-# Clean npm cache to avoid "idealTree already exists" bug
+# Nettoyer complètement node_modules et lock file pour éviter le bug "idealTree"
+RUN rm -rf node_modules package-lock.json
 RUN npm cache clean --force
-# --include=dev inutile car tout est en dependencies (NODE_ENV=production n'exclut rien)
+
+# Installer les dépendances (tout est en dependencies, pas besoin de --include=dev)
 RUN npm install --legacy-peer-deps --no-audit --no-fund
+
+# Générer le client Prisma
 RUN npx prisma generate
 
+# Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NEXT_TYPESCRIPT_CHECK=false
 RUN npm run build
 
-# Copier les fichiers dans le standalone (le mode standalone inclut déjà
-# les node_modules nécessaires, pas besoin de npm prune)
-
+# Copier les fichiers dans le standalone
 RUN cp -r .next/static .next/standalone/.next/ && \
     cp -r public .next/standalone/public && \
     cp -r node_modules .next/standalone/node_modules && \
