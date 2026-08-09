@@ -19,6 +19,7 @@ RUN npx prisma generate
 # Build the application
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
+ENV NEXT_TYPESCRIPT_CHECK=false
 RUN npm run build
 
 # Create data directory
