@@ -27,9 +27,10 @@ RUN npm install --legacy-peer-deps --no-audit --no-fund
 # Générer le client Prisma
 RUN npx prisma generate
 
-# Build Next.js
+# Build Next.js — allouer plus de mémoire (évite OOM kill)
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # Supprimer les devDependencies
