@@ -6,7 +6,7 @@
   "packageManager": "npm@10.8.2",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build --webpack && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/ && cp -r prisma .next/standalone/prisma && cp -r scripts .next/standalone/scripts && cp package.json .next/standalone/package.json",
+    "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/ && cp -r prisma .next/standalone/prisma && cp -r scripts .next/standalone/scripts && cp package.json .next/standalone/package.json",
     "start": "NODE_ENV=production node .next/standalone/server.js",
     "lint": "eslint .",
     "db:push": "prisma db push",
