@@ -19,7 +19,8 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NEXT_TYPESCRIPT_CHECK=false
 RUN npm run build
 
-RUN npm prune --production
+# Copier les fichiers dans le standalone (le mode standalone inclut déjà
+# les node_modules nécessaires, pas besoin de npm prune)
 
 RUN cp -r .next/static .next/standalone/.next/ && \
     cp -r public .next/standalone/public && \
