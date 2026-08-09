@@ -1,14 +1,19 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 # ────────────────────────────────────────────────────────────────────
-# QRTagsPro — Dockerfile (Alpine + NPM, PAS bun)
-# ⚠️ NPM obligatoire — bun crashe avec pdf-lib, lightningcss, prisma
+# QRTagsPro — Dockerfile (Debian-slim + NPM, PAS bun, PAS alpine)
+# ⚠️ Alpine crashe avec lightningcss/TailwindCSS v4. Utiliser slim.
 # ────────────────────────────────────────────────────────────────────
 
-# Installer les paquets requis (apk = gestionnaire Alpine)
-RUN apk add --no-cache git libc6-compat sqlite ca-certificates
+# Installer les paquets requis (apt = gestionnaire Debian)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    sqlite3 \
+    ca-certificates \
+    libc6 \
+    && rm -rf /var/lib/apt/lists/*
 
-# 🔒 Supprimer bun s'il existe (sécurité)
+# 🔒 Supprimer bun s'il existe
 RUN rm -f /usr/local/bin/bun 2>/dev/null; true
 
 WORKDIR /app
@@ -16,18 +21,18 @@ WORKDIR /app
 # Cloner le repository
 RUN git clone https://github.com/topmuch/qrtagspro.git .
 
-# Installer les dépendances avec npm (PAS bun — problèmes pdf-lib/lightningcss/prisma)
+# Installer les dépendances avec npm
 RUN npm install --legacy-peer-deps --no-audit --no-fund
 
 # Générer le client Prisma
 RUN npx prisma generate
 
-# Build Next.js avec npm (PAS bun)
+# Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
 RUN npm run build
 
-# Supprimer les devDependencies pour réduire la taille
+# Supprimer les devDependencies
 RUN npm prune --production
 
 # Copier les fichiers critiques dans le standalone
@@ -49,5 +54,5 @@ ENV DATABASE_URL=file:/app/data/qrtags-entreprise.db
 
 WORKDIR /app/.next/standalone
 
-# Start command - create DB schema + start server
+# Start command
 CMD sh -c "mkdir -p /app/data && npx prisma db push --skip-generate --accept-data-loss 2>/dev/null || true && exec node server.js"
