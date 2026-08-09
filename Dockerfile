@@ -1,49 +1,27 @@
+# QRTagsPro - Dockerfile for Coolify
 FROM node:20-slim
 
-# Installer les paquets requis
+# Install required packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    sqlite3 \
-    ca-certificates \
-    libc6 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Supprimer bun
-RUN rm -f /usr/local/bin/bun 2>/dev/null; true
+    git sqlite3 ca-certificates libc6 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Cloner le repository
+# Clone the repository
 RUN git clone https://github.com/topmuch/qrtagspro.git .
 
-# Installer les dépendances avec npm (y compris devDependencies pour le build)
+# Install dependencies
 RUN npm install --legacy-peer-deps --no-audit --no-fund
 
-# Générer le client Prisma
+# Generate Prisma Client
 RUN npx prisma generate
 
-# Build Next.js avec webpack (Turbopack crashe dans Docker)
-# NODE_OPTIONS augmente la mémoire (évite OOM)
+# Build the application
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/tmp/build.db
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-# Capture la sortie complète pour le debug si le build échoue
-RUN npx next build --webpack 2>&1 || (echo "=== BUILD FAILED - Full log above ===" && exit 1)
+RUN npm run build
 
-# Copier les fichiers statiques + prisma + scripts dans le standalone
-RUN cp -r .next/static .next/standalone/.next/ 2>/dev/null || true && \
-    cp -r public .next/standalone/public && \
-    cp -r prisma .next/standalone/prisma && \
-    cp -r scripts .next/standalone/scripts && \
-    cp package.json .next/standalone/package.json
-
-# Supprimer les devDependencies pour réduire la taille de l'image
-RUN npm prune --production
-
-# Recopier node_modules après prune (le standalone a besoin des deps prod)
-RUN cp -r node_modules .next/standalone/node_modules
-
-# Créer le répertoire data
+# Create data directory
 RUN mkdir -p /app/data
 
 EXPOSE 3000
@@ -52,6 +30,5 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV DATABASE_URL=file:/app/data/qrtags-entreprise.db
 
-WORKDIR /app/.next/standalone
-
-CMD sh -c "mkdir -p /app/data && npx prisma db push --skip-generate --accept-data-loss 2>/dev/null || true && exec node server.js"
+# Start command
+CMD sh -c "mkdir -p /app/data && npx prisma db push --skip-generate --accept-data-loss 2>/dev/null || true && exec node .next/standalone/server.js"
