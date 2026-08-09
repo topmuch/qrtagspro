@@ -26,7 +26,8 @@ import {
   Megaphone,
   TrendingUp,
   Newspaper,
-  Activity
+  Activity,
+  Watch,
 } from "lucide-react";
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -85,6 +86,9 @@ function Sidebar({
 
     // Baggages
     { label: "Étiquettes", icon: <Layers className="w-5 h-5" />, href: "/admin/etiquettes", permission: PERMISSIONS.VIEW_BAGGAGES },
+
+    // Bracelets de Séjour Universel (superadmin + admin : gestion production)
+    { label: "Bracelets de Séjour", icon: <Watch className="w-5 h-5" />, href: "/admin/bracelets", roles: ['superadmin', 'admin'] },
 
     // Travelers Category
     { label: "VOYAGEURS", icon: null, isCategory: true },

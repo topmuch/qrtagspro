@@ -106,9 +106,16 @@ model Agency {
   // QRTagsPro V4 — Logo de l'agence (base64 data URL ou URL externe)
   // Affiché sur la page trouveur /scan/[reference]
   logoUrl            String?
-  agencyType         String    @default("generic") // "hotel" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
+  agencyType         String    @default("generic") // "hotel" | "airbnb" | "school" | "luggage_locker" | "car_rental" | "medical" | "custom" | "generic"
   customTypeId       String?   // Si agencyType = "custom", référence vers CustomAgencyType
   customType         CustomAgencyType? @relation(fields: [customTypeId], references: [id], onDelete: SetNull)
+  // Module Bracelets Universel — profil de l'hôtel qui détermine le contenu
+  // affiché sur /welcome/[slug]?context=WRISTBAND. Un seul produit, 4 expériences.
+  // Valeurs: "BUSINESS" | "TRANSIT" | "RESORT" | "BOUTIQUE" | "HOST" | "STANDARD"
+  braceletProfile    String?   @default("STANDARD")
+  // Volet Touristique Géolocalisé — coordonnées GPS pour le calcul de distance (Haversine)
+  latitude           Float?
+  longitude          Float?
   // QRTagsPro V4 — PMS Integration (Property Management System)
   pmsProvider        String?   // "CLOUDBEDS" | "MEWS" | "SIRVOY" | null
   pmsApiKeys         String?   // JSON string: { apiKey, propertyId, baseUrl }
@@ -118,6 +125,7 @@ model Agency {
   baggages           Baggage[]
   users              User[]
   invoices           Invoice[]
+  braceletPackOrders BraceletPackOrder[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -159,6 +167,11 @@ model Baggage {
   // { category, category_label, object_name, object_description, brand, model, color,
   //   city, country, reward, message_to_finder, email, photo, ... }
   customData        String?
+
+  // ─── Module Bracelets All-Inclusive ───
+  context              String?  @default("ROOM")
+  braceletPackOrderId  String?
+  braceletPackOrder    BraceletPackOrder? @relation(fields: [braceletPackOrderId], references: [id], onDelete: SetNull)
 
   agency            Agency?   @relation(fields: [agencyId], references: [id], onDelete: SetNull)
   scanLogs          ScanLog[]
@@ -615,4 +628,49 @@ model DamageReport {
 
   @@index([baggageId])
   @@index([type])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE BRACELETS ALL-INCLUSIVE
+// Bracelets physiques portés au poignet par les clients d'hôtels resorts.
+// ════════════════════════════════════════════════════════════════
+
+model BraceletPackOrder {
+  id                String    @id @default(cuid())
+  agencyId          String?
+  agency            Agency?   @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  quantity          Int
+  isBranded         Boolean   @default(false)
+  unitPrice         Int
+  totalPrice        Int
+  status            String    @default("PENDING")
+  maquetteStatus    String    @default("PENDING")
+  maquetteUrl       String?
+  maquetteValidatedAt DateTime?
+  logoUrl           String?
+  brandText         String?
+  brandColors       String?
+  customerName      String
+  customerPhone     String
+  customerEmail     String?
+  deliveryCity      String?
+  deliveryQuartier  String?
+  deliveryAddress   String?
+  paymentMethod     String?
+  paymentStatus     String    @default("PENDING")
+  paymentReference  String?
+  trackingNumber    String?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  activatedAt       DateTime?
+  activatedCount    Int       @default(0)
+  notes             String?
+  adminNotes        String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  baggages          Baggage[]
+  @@index([agencyId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
 }
