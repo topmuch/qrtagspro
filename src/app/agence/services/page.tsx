@@ -5,11 +5,8 @@ import Link from 'next/link';
 import { Loader2, AlertCircle, Plus, RefreshCw, Eye, EyeOff, Trash2, Pencil } from 'lucide-react';
 import {
   getHotelServices,
-  toggleServiceStatus,
-  deleteService,
-  type HotelServiceSummary,
-  type ServiceInput,
 } from './actions';
+import { type HotelServiceSummary } from './constants';
 import ServiceForm from './components/ServiceForm';
 import ServiceCard from './components/ServiceCard';
 

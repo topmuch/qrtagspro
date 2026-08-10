@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Loader2, Eye, EyeOff, Trash2, Pencil } from 'lucide-react';
-import { toggleServiceStatus, deleteService, type HotelServiceSummary, SERVICE_CATEGORIES, SERVICE_TYPES, TEAMS } from '../actions';
+import { toggleServiceStatus, deleteService } from '../actions';
+import { SERVICE_CATEGORIES, SERVICE_TYPES, TEAMS, type HotelServiceSummary } from '../constants';
 
 interface Props {
   service: HotelServiceSummary;

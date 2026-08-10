@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { Loader2, X, Save } from 'lucide-react';
 import {
   createOrUpdateService,
+} from '../actions';
+import {
   SERVICE_CATEGORIES,
   SERVICE_TYPES,
   TEAMS,
   DISPLAY_TABS,
   type HotelServiceSummary,
-} from '../actions';
+} from '../constants';
 
 interface ServiceFormProps {
   service?: HotelServiceSummary | null;

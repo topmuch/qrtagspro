@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Loader2, MapPin, X, Star, Tag, Percent } from 'lucide-react';
-import { createOrUpdatePartner, VALID_CATEGORIES, type PartnerSummary } from '../actions';
+import { createOrUpdatePartner } from '../actions';
+import { VALID_CATEGORIES, type PartnerSummary } from '../constants';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

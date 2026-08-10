@@ -2,42 +2,15 @@
 
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { type PartnerSummary, VALID_CATEGORIES } from './constants';
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-
-export interface PartnerSummary {
-  id: string;
-  name: string;
-  category: string;
-  description: string | null;
-  latitude: number;
-  longitude: number;
-  rating: number;
-  promoCode: string | null;
-  commission: number;
-  isVerified: boolean;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export { type PartnerSummary, VALID_CATEGORIES };
 
 interface ActionResult {
   success: boolean;
   error?: string;
   partnerId?: string;
 }
-
-// ─── Catégories valides (source de vérité partagée) ────────────────────────
-
-export const VALID_CATEGORIES = [
-  'RESTAURANT',
-  'ATTRACTION',
-  'BEACH',
-  'SHOPPING',
-  'HEALTH',
-  'TRANSPORT',
-  'EXCURSION',
-] as const;
 
 // ─── Helper : récupère l'agencyId depuis la session ─────────────────────────
 

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Loader2, Pencil, Eye, EyeOff, Trash2 } from 'lucide-react';
-import { togglePartnerStatus, deletePartner, type PartnerSummary } from '../actions';
+import { togglePartnerStatus, deletePartner } from '../actions';
+import { type PartnerSummary } from '../constants';
 import PartnerForm from './PartnerForm';
 
 // ─── Icônes par catégorie ───────────────────────────────────────────────────
