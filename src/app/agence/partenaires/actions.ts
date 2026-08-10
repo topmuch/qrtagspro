@@ -244,9 +244,6 @@ export async function createOrUpdatePartner(
     safeRevalidate('/agence/partenaires');
     return { success: true, partnerId };
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
-      throw error;
-    }
     console.error('[createOrUpdatePartner] Error:', error);
     return { success: false, error: 'Erreur lors de la sauvegarde.' };
   }
@@ -278,10 +275,8 @@ export async function togglePartnerStatus(partnerId: string): Promise<ActionResu
 
     safeRevalidate('/agence/partenaires');
     return { success: true };
+
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
-      throw error;
-    }
     console.error('[togglePartnerStatus] Error:', error);
     return { success: false, error: 'Erreur lors du changement de statut.' };
   }
@@ -310,10 +305,8 @@ export async function deletePartner(partnerId: string): Promise<ActionResult> {
 
     safeRevalidate('/agence/partenaires');
     return { success: true };
+
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
-      throw error;
-    }
     console.error('[deletePartner] Error:', error);
     return { success: false, error: 'Erreur lors de la suppression.' };
   }
@@ -451,10 +444,8 @@ export async function getPartnerStats(): Promise<PartnerStatsResult> {
         byDevice,
       },
     };
+
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
-      throw error;
-    }
     console.error('[getPartnerStats] Error:', error);
     return { success: false, error: 'Erreur lors du chargement des statistiques.' };
   }

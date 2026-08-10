@@ -62,6 +62,7 @@ export default function GenererQRPage() {
 
   const [selectedAgencyId, setSelectedAgencyId] = useState('');
   const [quantity, setQuantity] = useState(50);
+  const [qrType, setQrType] = useState<'luggage' | 'bracelet'>('luggage');
 
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -121,6 +122,7 @@ export default function GenererQRPage() {
         body: JSON.stringify({
           agencyId: selectedAgencyId,
           quantity,
+          qrType,
         }),
       });
 
@@ -291,6 +293,42 @@ export default function GenererQRPage() {
             )}
           </div>
         )}
+
+        {/* Type de QR code */}
+        <div>
+          <label className="block text-sm font-semibold text-black mb-1.5">
+            Type de QR code <span className="text-red-600">*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setQrType('luggage')}
+              className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition ${
+                qrType === 'luggage'
+                  ? 'bg-[#134288] text-white border-[#134288]'
+                  : 'bg-white text-black border-[#134288]/20 hover:bg-black/5'
+              }`}
+            >
+              🏷️ Étiquettes à bagages
+            </button>
+            <button
+              type="button"
+              onClick={() => setQrType('bracelet')}
+              className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition ${
+                qrType === 'bracelet'
+                  ? 'bg-[#134288] text-white border-[#134288]'
+                  : 'bg-white text-black border-[#134288]/20 hover:bg-black/5'
+              }`}
+            >
+              ⌚ Bracelets
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">
+            {qrType === 'bracelet'
+              ? 'Les QR codes bracelets apparaîtront dans le dashboard "Bracelets" de l\'agence.'
+              : 'Les QR codes étiquettes apparaîtront dans "QR actifs" de l\'agence.'}
+          </p>
+        </div>
 
         {/* Quantité */}
         <div>
