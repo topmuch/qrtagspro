@@ -4,8 +4,6 @@ import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { type PartnerSummary, VALID_CATEGORIES } from './constants';
 
-export { type PartnerSummary, VALID_CATEGORIES };
-
 interface ActionResult {
   success: boolean;
   error?: string;

@@ -10,9 +10,6 @@ import {
   type HotelServiceSummary,
 } from './constants';
 
-// Re-export pour compatibilité
-export { SERVICE_CATEGORIES, SERVICE_TYPES, TEAMS, DISPLAY_TABS, type HotelServiceSummary };
-
 interface ActionResult {
   success: boolean;
   error?: string;
