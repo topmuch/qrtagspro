@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAgency } from '../layout';
 import {
   getAgencyBraceletOrders,
+  getAgencyWristbandQRs,
   getBraceletAnalytics,
   type AgencyOrderSummary,
+  type WristbandQRSummary,
   type BraceletAnalyticsData,
 } from './actions';
 import OrdersList from './components/OrdersList';
@@ -24,6 +26,7 @@ interface DashboardStats {
 export default function AgencyBraceletsPage() {
   const { agencyId } = useAgency();
   const [orders, setOrders] = useState<AgencyOrderSummary[]>([]);
+  const [wristbandQRs, setWristbandQRs] = useState<WristbandQRSummary[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [analytics, setAnalytics] = useState<BraceletAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,8 +38,9 @@ export default function AgencyBraceletsPage() {
     setError(null);
 
     try {
-      const [ordersResult, analyticsResult] = await Promise.all([
+      const [ordersResult, wristbandsResult, analyticsResult] = await Promise.all([
         getAgencyBraceletOrders(),
+        getAgencyWristbandQRs(),
         getBraceletAnalytics(),
       ]);
 
@@ -47,6 +51,7 @@ export default function AgencyBraceletsPage() {
 
       setOrders(ordersResult.orders || []);
       setStats(ordersResult.stats || null);
+      setWristbandQRs(wristbandsResult.wristbands || []);
 
       if (analyticsResult.success && analyticsResult.data) {
         setAnalytics(analyticsResult.data);
@@ -93,8 +98,8 @@ export default function AgencyBraceletsPage() {
     );
   }
 
-  // ─── État vide : aucune commande ───
-  if (orders.length === 0) {
+  // ─── État vide : aucune commande ET aucun QR wristband ───
+  if (orders.length === 0 && wristbandQRs.length === 0) {
     return (
       <div className="max-w-2xl mx-auto">
         <PageHeader />
@@ -103,20 +108,27 @@ export default function AgencyBraceletsPage() {
             <Package className="w-8 h-8 text-[#134288] dark:text-[#32ba5d]" />
           </div>
           <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
-            Aucune commande de bracelets
+            Aucun bracelet actif
           </h3>
           <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-            Vous n&apos;avez pas encore commandé de bracelets de séjour.
-            Passez votre première commande pour commencer à distribuer des QR codes
-            à vos clients.
+            Vous pouvez générer des QR codes bracelets depuis la page &quot;QR actifs&quot;
+            ou commander des bracelets physiques personnalisés.
           </p>
-          <Link
-            href="/shop/bracelets"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#32ba5d] text-black font-bold rounded-xl hover:bg-[#2ba14f] transition"
-          >
-            <ShoppingBag className="w-5 h-5" />
-            Commander des bracelets
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/agence/baggages"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#134288] text-white font-bold rounded-xl hover:bg-[#0f3670] transition text-sm"
+            >
+              Générer des QR codes
+            </Link>
+            <Link
+              href="/shop/bracelets"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#32ba5d] text-black font-bold rounded-xl hover:bg-[#2ba14f] transition text-sm"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              Commander des bracelets
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -155,11 +167,39 @@ export default function AgencyBraceletsPage() {
       {/* ─── Configuration du profil hôtel (adapte le contenu du bracelet) ─── */}
       <BraceletProfileSelector />
 
+      {/* ─── QR codes bracelet générés directement (sans commande) ─── */}
+      {wristbandQRs.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+            ⌚ QR codes bracelets ({wristbandQRs.length})
+          </h2>
+          <div className="space-y-2">
+            {wristbandQRs.map((qr) => (
+              <div key={qr.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                <div>
+                  <p className="font-mono font-bold text-slate-900 dark:text-white text-sm">{qr.reference}</p>
+                  <p className="text-xs text-slate-500">
+                    Créé le {new Date(qr.createdAt).toLocaleDateString('fr-FR')}
+                    {qr.lastScanDate && ` · Dernier scan : ${new Date(qr.lastScanDate).toLocaleDateString('fr-FR')}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-[#134288] dark:text-[#32ba5d]">{qr.scanCount} scans</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                    {qr.status === 'active' ? 'ACTIF' : qr.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ─── Analytics ─── */}
       {analytics && <Analytics data={analytics} />}
 
       {/* ─── Liste des commandes ─── */}
-      <OrdersList orders={orders} onRefresh={loadData} />
+      {orders.length > 0 && <OrdersList orders={orders} onRefresh={loadData} />}
 
       {/* ─── CTA commande supplémentaire ─── */}
       <div className="text-center pt-4">

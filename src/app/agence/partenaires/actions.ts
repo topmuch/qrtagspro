@@ -120,9 +120,6 @@ export async function getAgencyPartners(): Promise<{
       },
     };
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
-      throw error;
-    }
     console.error('[getAgencyPartners] Error:', error);
     return { success: false, error: 'Erreur lors du chargement des partenaires.' };
   }

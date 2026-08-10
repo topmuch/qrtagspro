@@ -127,21 +127,71 @@ export async function getAgencyBraceletOrders(): Promise<{
       totalScans: order.baggages.reduce((sum, b) => sum + b._count.scanLogs, 0),
     }));
 
-    // Stats globales
+    // Stats globales — inclut les QR codes wristband générés directement (sans commande)
+    const directWristbands = await db.baggage.count({
+      where: { agencyId, context: 'WRISTBAND', braceletPackOrderId: null },
+    });
+    const directWristbandScans = await db.baggage.aggregate({
+      where: { agencyId, context: 'WRISTBAND', braceletPackOrderId: null },
+      _sum: { scanCount: true },
+    });
+
     const stats = {
       totalOrders: summary.length,
-      totalBracelets: summary.reduce((s, o) => s + o.quantity, 0),
-      activatedBracelets: summary.reduce((s, o) => s + o.activatedCount, 0),
-      totalScans: summary.reduce((s, o) => s + o.totalScans, 0),
+      totalBracelets: summary.reduce((s, o) => s + o.quantity, 0) + directWristbands,
+      activatedBracelets: summary.reduce((s, o) => s + o.activatedCount, 0) + directWristbands,
+      totalScans: summary.reduce((s, o) => s + o.totalScans, 0) + (directWristbandScans._sum.scanCount || 0),
     };
 
     return { success: true, orders: summary, stats };
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('REDIRECT:')) {
-      throw error; // Propage la redirection
-    }
     console.error('[getAgencyBraceletOrders] Error:', error);
     return { success: false, error: 'Erreur lors du chargement des commandes.' };
+  }
+}
+
+// ─── Action : liste des QR codes wristband générés directement (sans commande) ─
+
+export interface WristbandQRSummary {
+  id: string;
+  reference: string;
+  status: string;
+  scanCount: number;
+  createdAt: Date;
+  lastScanDate: Date | null;
+}
+
+export async function getAgencyWristbandQRs(): Promise<{
+  success: boolean;
+  wristbands?: WristbandQRSummary[];
+  count?: number;
+  error?: string;
+}> {
+  try {
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée. Reconnectez-vous." };
+
+    const wristbands = await db.baggage.findMany({
+      where: {
+        agencyId,
+        context: 'WRISTBAND',
+        braceletPackOrderId: null, // Uniquement ceux sans commande (générés directement)
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        reference: true,
+        status: true,
+        scanCount: true,
+        createdAt: true,
+        lastScanDate: true,
+      },
+    });
+
+    return { success: true, wristbands, count: wristbands.length };
+  } catch (error) {
+    console.error('[getAgencyWristbandQRs] Error:', error);
+    return { success: false, error: 'Erreur lors du chargement des QR codes.' };
   }
 }
 
