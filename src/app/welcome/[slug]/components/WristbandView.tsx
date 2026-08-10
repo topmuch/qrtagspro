@@ -10,7 +10,21 @@ import LocalRecommendations from './LocalRecommendations';
 import NearbyAttractions from './NearbyAttractions';
 import HostView, { type HouseGuideData } from './HostView';
 import { getProfileMeta, type BraceletProfile } from '@/lib/bracelet-profiles';
-import { getPublicHotelServices, type HotelServiceSummary } from '@/app/agence/services/actions';
+
+// ─── Type pour les services hôtel (récupérés via API) ──────────────────────
+interface HotelServiceItem {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  type: string;
+  category: string;
+  isFree: boolean;
+  price: number;
+  schedule: string | null;
+  assignedTeam: string;
+  displayTab: string;
+}
 
 // ─── Type de l'agence sérialisée (passée du server component) ───────────────
 export interface WelcomeAgency {
@@ -66,7 +80,7 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const [greeting, setGreeting] = useState(T.fr.morning);
   const [currentHour, setCurrentHour] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'hotel' | 'tourism' | 'help'>('hotel');
-  const [hotelServices, setHotelServices] = useState<HotelServiceSummary[]>([]);
+  const [hotelServices, setHotelServices] = useState<HotelServiceItem[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
 
   const t = lang === 'en' ? T.en : T.fr;
@@ -87,15 +101,18 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
     return () => clearInterval(timer);
   }, [t.morning, t.afternoon, t.evening]);
 
-  // Charger les services hôtel
+  // Charger les services hôtel via API (pas server action)
   useEffect(() => {
     if (isHost) { setServicesLoading(false); return; }
     let cancelled = false;
     (async () => {
       try {
-        const result = await getPublicHotelServices(agency.id);
-        if (!cancelled && result.success) {
-          setHotelServices(result.services || []);
+        const res = await fetch(`/api/hotel-services?agencyId=${agency.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled && data.success) {
+            setHotelServices(data.services || []);
+          }
         }
       } catch { /* silent */ }
       if (!cancelled) setServicesLoading(false);
