@@ -33,11 +33,16 @@ export async function GET(
           select: {
             id: true,
             name: true,
+            slug: true,
             agencyType: true,
+            braceletProfile: true,
             contactPhone: true,
-            phone: true, // fallback si contactPhone pas défini
+            phone: true,
             email: true,
             logoUrl: true,
+            address: true,
+            latitude: true,
+            longitude: true,
             customType: {
               select: {
                 id: true,
@@ -134,8 +139,11 @@ export async function GET(
     return NextResponse.json({
       status: isLost ? 'lost' : 'active',
       reference: baggage.reference,
+      context: baggage.context || 'ROOM',
       agency: baggage.agency ? {
+        id: baggage.agency.id,
         name: baggage.agency.name,
+        slug: baggage.agency.slug,
         agencyType: baggage.agency.agencyType,
         contactPhone,
         email: baggage.agency.email,

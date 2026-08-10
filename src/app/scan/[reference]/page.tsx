@@ -24,7 +24,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   AlertCircle, Clock, Shield, Loader2, CheckCircle2,
   MapPin, MessageCircle, User, Phone, Navigation, RefreshCw,
@@ -49,6 +49,7 @@ type GpsStatus = 'idle' | 'loading' | 'success' | 'error';
 
 interface AgencyInfo {
   name: string;
+  slug?: string;
   agencyType: string | null;
   contactPhone: string | null;
   email: string | null;
@@ -64,6 +65,7 @@ interface ScanData {
   status: string;
   message?: string;
   reference?: string;
+  context?: string;
   agency?: AgencyInfo | null;
   isLost?: boolean;
   declaredLostAt?: string | null;
@@ -78,6 +80,7 @@ interface ScanData {
 
 export default function FinderPage() {
   const params = useParams();
+  const router = useRouter();
   const reference = (params?.reference as string) || '';
   const { dialCode, country } = useCountryDetection();
 
@@ -104,6 +107,14 @@ export default function FinderPage() {
       try {
         const res = await fetch(`/api/scan/${reference}`, { cache: 'no-store' });
         const json: ScanData = await res.json();
+
+        // ─── Si c'est un bracelet (context=WRISTBAND), rediriger vers la page welcome ───
+        if (json.status === 'active' && json.context === 'WRISTBAND' && json.agency?.slug) {
+          const lang = navigator.language.startsWith('fr') ? 'fr' : navigator.language.startsWith('es') ? 'es' : 'en';
+          router.replace(`/welcome/${json.agency.slug}?context=WRISTBAND&lang=${lang}`);
+          return; // Ne pas setData, on redirige
+        }
+
         setData(json);
       } catch (err) {
         console.error('[finder] fetch error:', err);
