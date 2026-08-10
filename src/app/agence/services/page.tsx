@@ -49,20 +49,20 @@ export default function HotelServicesPage() {
       setServices(result.services || []);
       setStats(result.stats || null);
 
-      // Récupérer le catalogue de templates
+      // Récupérer le catalogue de templates + marquer les actifs
       const res = await fetch('/api/service-templates');
       if (res.ok) {
         const data = await res.json();
-        setTemplates(data.templates || []);
-      }
+        const allTemplates: ServiceTemplate[] = data.templates || [];
+        setTemplates(allTemplates);
 
-      // Marquer les templates déjà activés (par nom)
-      const activeNames = new Set((result.services || []).map((s) => s.name));
-      setActiveTemplateIds(new Set(
-        (await fetch('/api/service-templates').then(r => r.json())).templates
-          ?.filter((t: ServiceTemplate) => activeNames.has(t.name))
-          .map((t: ServiceTemplate) => t.id) || []
-      ));
+        // Marquer les templates déjà activés (par nom)
+        const activeNames = new Set((result.services || []).map((s) => s.name));
+        const activeIds = new Set(
+          allTemplates.filter((t) => activeNames.has(t.name)).map((t) => t.id)
+        );
+        setActiveTemplateIds(activeIds);
+      }
     } catch (err) {
       console.error('Erreur dashboard services:', err);
       setError(null);

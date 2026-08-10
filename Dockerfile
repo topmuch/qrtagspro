@@ -34,5 +34,5 @@ ENV DATABASE_URL=file:/app/data/qrtags.db
 
 WORKDIR /app/.next/standalone
 
-# prisma db push au démarrage (crée toutes les tables manquantes) + start server
-CMD sh -c "npx prisma db push --skip-generate --accept-data-loss 2>&1; node server.js"
+# prisma db push (crée tables) + seed services (catalogue 31 services) + start server
+CMD sh -c "npx prisma db push --skip-generate --accept-data-loss 2>&1; node scripts/seed-services.cjs 2>&1; node server.js"
