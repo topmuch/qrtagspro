@@ -2,13 +2,28 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Loader2, AlertCircle, Plus, RefreshCw, Eye, EyeOff, Trash2, Pencil } from 'lucide-react';
+import { Loader2, AlertCircle, Plus, RefreshCw, Sparkles, Check } from 'lucide-react';
 import {
   getHotelServices,
+  createOrUpdateService,
 } from './actions';
 import { type HotelServiceSummary } from './constants';
 import ServiceForm from './components/ServiceForm';
 import ServiceCard from './components/ServiceCard';
+
+interface ServiceTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  type: string;
+  category: string;
+  displayTab: string;
+  assignedTeam: string;
+  isFree: boolean;
+  defaultPrice: number;
+  pack: string | null;
+}
 
 export default function HotelServicesPage() {
   const [services, setServices] = useState<HotelServiceSummary[]>([]);
@@ -17,6 +32,10 @@ export default function HotelServicesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<HotelServiceSummary | null>(null);
+  const [templates, setTemplates] = useState<ServiceTemplate[]>([]);
+  const [showCatalog, setShowCatalog] = useState(false);
+  const [activatingId, setActivatingId] = useState<string | null>(null);
+  const [activeTemplateIds, setActiveTemplateIds] = useState<Set<string>>(new Set());
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -29,9 +48,23 @@ export default function HotelServicesPage() {
       }
       setServices(result.services || []);
       setStats(result.stats || null);
+
+      // Récupérer le catalogue de templates
+      const res = await fetch('/api/service-templates');
+      if (res.ok) {
+        const data = await res.json();
+        setTemplates(data.templates || []);
+      }
+
+      // Marquer les templates déjà activés (par nom)
+      const activeNames = new Set((result.services || []).map((s) => s.name));
+      setActiveTemplateIds(new Set(
+        (await fetch('/api/service-templates').then(r => r.json())).templates
+          ?.filter((t: ServiceTemplate) => activeNames.has(t.name))
+          .map((t: ServiceTemplate) => t.id) || []
+      ));
     } catch (err) {
       console.error('Erreur dashboard services:', err);
-      // Si la table n'existe pas encore (prisma db push pas exécuté), on affiche l'état vide
       setError(null);
       setServices([]);
       setStats({ total: 0, active: 0 });
@@ -41,6 +74,43 @@ export default function HotelServicesPage() {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Activer un service depuis le template
+  const activateTemplate = async (template: ServiceTemplate) => {
+    setActivatingId(template.id);
+    try {
+      const result = await createOrUpdateService({
+        name: template.name,
+        description: template.description || undefined,
+        icon: template.icon,
+        type: template.type,
+        category: template.category,
+        isFree: template.isFree,
+        price: template.defaultPrice,
+        schedule: undefined,
+        assignedTeam: template.assignedTeam,
+        displayTab: template.displayTab,
+      });
+      if (result.success) {
+        setActiveTemplateIds(prev => new Set(prev).add(template.id));
+        loadData();
+      }
+    } catch (err) {
+      console.error('Erreur activation template:', err);
+    }
+    setActivatingId(null);
+  };
+
+  // Activer un pack complet
+  const activatePack = async (pack: string) => {
+    const packTemplates = templates.filter((t) => t.pack === pack);
+    for (const t of packTemplates) {
+      if (!activeTemplateIds.has(t.id)) {
+        await activateTemplate(t);
+      }
+    }
+    loadData();
+  };
 
   if (loading) {
     return (
@@ -82,10 +152,16 @@ export default function HotelServicesPage() {
             <RefreshCw className="w-5 h-5" />
           </button>
           <button
+            onClick={() => setShowCatalog(!showCatalog)}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 font-bold rounded-xl transition text-sm ${showCatalog ? 'bg-[#134288] text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
+          >
+            <Sparkles className="w-4 h-4" /> Catalogue
+          </button>
+          <button
             onClick={() => { setEditingService(null); setShowForm(true); }}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#32ba5d] text-black font-bold rounded-xl hover:bg-[#2ba14f] transition text-sm"
           >
-            <Plus className="w-4 h-4" /> Ajouter un service
+            <Plus className="w-4 h-4" /> Service personnalisé
           </button>
         </div>
       </div>
@@ -96,6 +172,43 @@ export default function HotelServicesPage() {
           <StatBox label="Total" value={stats.total} color="text-slate-900 dark:text-white" />
           <StatBox label="Actifs" value={stats.active} color="text-green-600 dark:text-green-400" />
           <StatBox label="Inactifs" value={stats.total - stats.active} color="text-slate-400" />
+        </div>
+      )}
+
+      {/* Catalogue de services prédéfinis */}
+      {showCatalog && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Catalogue de services</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Cliquez sur un service pour l'activer en 1 clic (pré-rempli). Activez un pack complet ci-dessous.</p>
+
+          {/* Packs 1 clic */}
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => activatePack('urban')} className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold rounded-lg text-sm hover:bg-blue-200">🏙️ Pack Urbain ({templates.filter(t => t.pack === 'urban').length})</button>
+            <button onClick={() => activatePack('resort')} className="px-4 py-2 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-bold rounded-lg text-sm hover:bg-teal-200">🏖️ Pack Resort ({templates.filter(t => t.pack === 'resort').length})</button>
+          </div>
+
+          {/* Liste des templates */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-96 overflow-y-auto">
+            {templates.map((t) => {
+              const isActive = activeTemplateIds.has(t.id);
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => !isActive && activateTemplate(t)}
+                  disabled={isActive || activatingId === t.id}
+                  className={`text-left p-3 rounded-lg border-2 transition ${isActive ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-[#134288]'}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <span className="text-xl">{t.icon}</span>
+                    {isActive && <Check className="w-4 h-4 text-green-500" />}
+                  </div>
+                  <p className="font-bold text-xs text-slate-900 dark:text-white mt-1">{t.name}</p>
+                  {t.description && <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{t.description}</p>}
+                  {!t.isFree && <p className="text-[10px] text-amber-600 font-bold mt-0.5">{t.defaultPrice} FCFA</p>}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -133,6 +133,10 @@ model Agency {
   hostKitOrders      HostKitOrder[]
   hotelServices      HotelService[]
   serviceRequests    ServiceRequest[]
+  serviceTemplates   ServiceTemplate[]
+  teams              Team[]
+  stays              Stay[]
+  lostItems          LostItem[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -184,6 +188,7 @@ model Baggage {
   scanLogs          ScanLog[]
   damageReports     DamageReport[]
   serviceRequests   ServiceRequest[]
+  stays             Stay[]
 }
 
 // ScanLog model - tracks all scans for audit
@@ -884,4 +889,105 @@ model ServiceRequest {
   @@index([serviceId])
   @@index([status])
   @@index([createdAt])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE HÔTEL PRO — Équipes, Templates, Séjours, Objets trouvés
+// ════════════════════════════════════════════════════════════════
+
+// Équipes staff (1 par catégorie de service, avec email de notification)
+model Team {
+  id              String   @id @default(cuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  category        String   // "housekeeping" | "maintenance" | "food" | "spa" | "reception" | "bar" | "management"
+  email           String   // email de notification pour cette équipe
+  label           String?  // nom affiché (ex: "Équipe Ménage")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@unique([agencyId, category])
+  @@index([agencyId])
+}
+
+// Catalogue global de 30 services pré-remplis (templates)
+model ServiceTemplate {
+  id              String   @id @default(cuid())
+  agencyId        String?  // null = template global, sinon = agence qui a personnalisé
+  agency          Agency?  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  // Identité
+  name            String   // ex: "Serviettes supplémentaires"
+  nameEn          String?
+  nameEs          String?
+  description     String?
+  descriptionEn   String?
+  descriptionEs   String?
+  icon            String   @default("📋")
+  // Config par défaut
+  type            String   @default("request") // "request" | "order" | "booking" | "info"
+  category        String   @default("other")
+  displayTab      String   @default("hotel")
+  assignedTeam    String   @default("reception")
+  isFree          Boolean  @default(true)
+  defaultPrice    Int      @default(0)
+  // Horaires par défaut (JSON simple: {days: "mon-sun", open: "07:00", close: "21:00"} ou "24/7")
+  defaultSchedule String?
+  // Pack d'appartenance (pour packs 1 clic: "urban", "resort", "bnb")
+  pack            String?  // "urban" | "resort" | "bnb" | null
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  @@index([agencyId])
+  @@index([category])
+  @@index([pack])
+}
+
+// Séjour client (liaison bracelet ↔ chambre ↔ dates)
+model Stay {
+  id              String   @id @default(cuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  baggageId       String?  // bracelet lié
+  baggage         Baggage? @relation(fields: [baggageId], references: [id], onDelete: SetNull)
+  // Infos séjour
+  roomNumber      String?
+  guestName       String?
+  guestEmail      String?  // pour notifications
+  guestPhone      String?
+  language        String   @default("fr") // "fr" | "en" | "es"
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  nbPersons       Int      @default(1)
+  status          String   @default("active") // "active" | "checked_out" | "cancelled"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([agencyId])
+  @@index([baggageId])
+  @@index([status])
+}
+
+// Objets trouvés (inventaire hôtel)
+model LostItem {
+  id              String   @id @default(cuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  // Description
+  name            String   // ex: "iPhone 15 noir"
+  category        String   @default("other") // "electronics" | "clothing" | "documents" | "jewelry" | "other"
+  description     String?
+  photoUrl        String?
+  // Lieu et date
+  foundLocation   String?  // ex: "Chambre 204" | "Lobby" | "Piscine"
+  foundDate       DateTime @default(now())
+  foundBy         String?  // nom du staff
+  // Restitution
+  status          String   @default("found") // "found" → "claimed" → "returned" → "shipped" → "donated"
+  claimedBy       String?  // nom du réclamant
+  claimedDate     DateTime?
+  returnedDate    DateTime?
+  shippedTo       String?  // adresse d'expédition
+  trackingNumber  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([agencyId])
+  @@index([status])
+  @@index([category])
 }
