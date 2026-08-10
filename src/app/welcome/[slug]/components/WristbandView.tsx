@@ -1,14 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ResortZones from './ResortZones';
-import DailySchedule from './DailySchedule';
-import QuickActions from './QuickActions';
-import BusinessServices from './BusinessServices';
-import TransitInfo from './TransitInfo';
-import LocalRecommendations from './LocalRecommendations';
-import NearbyAttractions from './NearbyAttractions';
 import HostView, { type HouseGuideData } from './HostView';
+import NearbyAttractions from './NearbyAttractions';
 import { getProfileMeta, type BraceletProfile } from '@/lib/bracelet-profiles';
 
 // ─── Type pour les services hôtel (récupérés via API) ──────────────────────
@@ -17,16 +11,16 @@ interface HotelServiceItem {
   name: string;
   description: string | null;
   icon: string;
-  type: string;
+  type: string; // request | order | booking | info
   category: string;
   isFree: boolean;
   price: number;
   schedule: string | null;
   assignedTeam: string;
-  displayTab: string;
+  displayTab: string; // hotel | tourism | help
 }
 
-// ─── Type de l'agence sérialisée (passée du server component) ───────────────
+// ─── Type de l'agence sérialisée ───────────────────────────────────────────
 export interface WelcomeAgency {
   id: string;
   name: string;
@@ -46,7 +40,7 @@ interface WristbandViewProps {
   lang: string;
 }
 
-// ─── Traductions FR/EN ──────────────────────────────────────────────────────
+// ─── Traductions ────────────────────────────────────────────────────────────
 const T = {
   fr: {
     morning: 'Bonjour',
@@ -56,10 +50,13 @@ const T = {
     tabHotel: 'Mon Hôtel',
     tabTourism: 'Autour de moi',
     tabHelp: 'Aide',
-    reception: 'Réception',
-    emergency: 'Urgence / Médecin',
+    reception: 'Appeler la réception',
+    emergency: 'Urgences',
     review: '⭐ Laissez un avis sur votre séjour',
-    noServices: 'Aucun service configuré pour le moment.',
+    noServices: 'Aucun service configuré pour le moment. Demandez à la réception d\'activer le catalogue.',
+    noPartners: 'Aucun lieu recommandé pour le moment.',
+    backToHotel: 'Retour à l\'hôtel',
+    lost: 'Je suis perdu',
   },
   en: {
     morning: 'Good Morning',
@@ -69,10 +66,13 @@ const T = {
     tabHotel: 'My Hotel',
     tabTourism: 'Around Me',
     tabHelp: 'Help',
-    reception: 'Reception',
-    emergency: 'Emergency / Doctor',
+    reception: 'Call Reception',
+    emergency: 'Emergency',
     review: '⭐ Leave a review about your stay',
-    noServices: 'No services configured yet.',
+    noServices: 'No services configured yet. Ask reception to activate the catalog.',
+    noPartners: 'No recommended places yet.',
+    backToHotel: 'Back to hotel',
+    lost: 'I am lost',
   },
 };
 
@@ -81,7 +81,6 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const [currentHour, setCurrentHour] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'hotel' | 'tourism' | 'help'>('hotel');
   const [hotelServices, setHotelServices] = useState<HotelServiceItem[]>([]);
-  const [servicesLoading, setServicesLoading] = useState(true);
 
   const t = lang === 'en' ? T.en : T.fr;
   const profile = (agency.braceletProfile || 'STANDARD') as BraceletProfile;
@@ -101,9 +100,9 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
     return () => clearInterval(timer);
   }, [t.morning, t.afternoon, t.evening]);
 
-  // Charger les services hôtel via API (pas server action)
+  // Charger les services hôtel via API
   useEffect(() => {
-    if (isHost) { setServicesLoading(false); return; }
+    if (isHost) return;
     let cancelled = false;
     (async () => {
       try {
@@ -115,7 +114,6 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           }
         }
       } catch { /* silent */ }
-      if (!cancelled) setServicesLoading(false);
     })();
     return () => { cancelled = true; };
   }, [agency.id, isHost]);
@@ -129,7 +127,7 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const servicesTourism = hotelServices.filter((s) => s.displayTab === 'tourism');
   const servicesHelp = hotelServices.filter((s) => s.displayTab === 'help');
 
-  // ─── Rendu du contenu "Mon Hôtel" ───
+  // ─── Onglet MON HÔTEL ───
   const renderHotelTab = () => {
     if (isHost && agency.houseGuide) {
       return <HostView guide={agency.houseGuide} agencyName={agency.name} agencyAddress={agency.address} lang={lang} />;
@@ -174,11 +172,8 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           </section>
         )}
 
-        {/* Contenu spécifique au profil (RESORT zones/animations, BUSINESS services, etc.) */}
-        {!isHost && renderProfileContent()}
-
-        {/* État vide si ni services ni profil spécifique */}
-        {servicesHotel.length === 0 && !agency.houseGuide && (profile === 'STANDARD') && (
+        {/* État vide */}
+        {servicesHotel.length === 0 && !agency.houseGuide && (
           <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800 text-center">
             <p className="text-sm text-gray-400">{t.noServices}</p>
           </section>
@@ -187,10 +182,11 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
     );
   };
 
-  // ─── Rendu du contenu "Autour de moi" ───
+  // ─── Onglet AUTOUR DE MOI ───
   const renderTourismTab = () => {
     return (
       <div className="space-y-6">
+        {/* Services configurés avec displayTab=tourism */}
         {servicesTourism.length > 0 && (
           <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
             <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">📍 Recommandations</h2>
@@ -206,7 +202,7 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           </section>
         )}
 
-        {/* NearbyAttractions (API POI géolocalisés) */}
+        {/* NearbyAttractions — partenaires de l'hôtel uniquement (pas OSM aléatoire) */}
         {agency.latitude !== null && agency.longitude !== null && !isHost && (
           <NearbyAttractions
             hotelLat={agency.latitude}
@@ -216,16 +212,21 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           />
         )}
 
-        {/* Profil BOUTIQUE : recommandations hôte */}
-        {profile === 'BOUTIQUE' && <LocalRecommendations agencyName={agency.name} lang={lang} />}
+        {/* État vide */}
+        {servicesTourism.length === 0 && (agency.latitude === null || agency.longitude === null) && (
+          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800 text-center">
+            <p className="text-sm text-gray-400">{t.noPartners}</p>
+          </section>
+        )}
       </div>
     );
   };
 
-  // ─── Rendu du contenu "Aide" ───
+  // ─── Onglet AIDE ───
   const renderHelpTab = () => {
     return (
       <div className="space-y-6">
+        {/* Services d'aide configurés */}
         {servicesHelp.length > 0 && (
           <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
             <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">🛟 {t.tabHelp}</h2>
@@ -241,54 +242,52 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           </section>
         )}
 
-        {/* Boutons d'aide standards */}
+        {/* 4 gros boutons d'aide */}
         <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-          <h2 className="text-lg font-bold text-white mb-3">{t.reception}</h2>
           <div className="grid grid-cols-2 gap-3">
+            {/* Retour à l'hôtel → Google Maps */}
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${agency.latitude || ''},${agency.longitude || ''}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors"
+            >
+              <span className="text-2xl mb-1">📍</span>
+              <span className="text-xs font-bold text-center">{t.backToHotel}</span>
+            </a>
+            {/* Appeler la réception */}
             {receptionTel && (
               <a href={`tel:${receptionTel}`} className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors">
                 <span className="text-2xl mb-1">🛎️</span>
                 <span className="text-xs font-bold text-center">{t.reception}</span>
               </a>
             )}
+            {/* Urgences */}
             <a href="tel:1515" className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-red-500 transition-colors">
               <span className="text-2xl mb-1">🚑</span>
               <span className="text-xs font-bold text-center">{t.emergency}</span>
             </a>
+            {/* WhatsApp réception */}
+            {receptionTel && (
+              <a
+                href={`https://wa.me/${receptionTel}?text=${encodeURIComponent(lang === 'en' ? 'Hello, I need assistance.' : 'Bonjour, j\'ai besoin d\'aide.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-green-500 transition-colors"
+              >
+                <span className="text-2xl mb-1">💬</span>
+                <span className="text-xs font-bold text-center">WhatsApp</span>
+              </a>
+            )}
           </div>
         </section>
       </div>
     );
   };
 
-  // ─── Rendu conditionnel selon le braceletProfile (pour "Mon Hôtel") ───
-  const renderProfileContent = () => {
-    switch (profile) {
-      case 'BUSINESS':
-        return <BusinessServices agencyPhone={receptionPhone} lang={lang} />;
-      case 'TRANSIT':
-        return <TransitInfo agencyPhone={receptionPhone} lang={lang} />;
-      case 'RESORT':
-        return (
-          <>
-            <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-              <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">🗺️ {t.tabHotel}</h2>
-              <ResortZones currentHour={currentHour} />
-            </section>
-            <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-              <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">🎉 {lang === 'en' ? "Today's Activities" : 'Animations du Jour'}</h2>
-              <DailySchedule lang={lang} />
-            </section>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#111111] text-white pb-28">
-      {/* ─── HEADER IMMERSIF ─── */}
+      {/* ─── HEADER ─── */}
       <header
         className="pt-8 pb-14 px-6 text-center relative overflow-hidden"
         style={{ background: `linear-gradient(to bottom, ${profileMeta.accentColor}, #111111)` }}
@@ -334,18 +333,14 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
         </div>
       </div>
 
-      {/* ─── CONTENU PRINCIPAL ─── */}
+      {/* ─── CONTENU ─── */}
       <main className="px-4 py-6 max-w-2xl mx-auto space-y-6">
-        {/* Boutons d'action rapide (communs à tous les profils, sauf HOST) */}
-        {!isHost && <QuickActions agencyPhone={receptionPhone} lang={lang} />}
-
-        {/* Contenu selon l'onglet actif */}
         {activeTab === 'hotel' && renderHotelTab()}
         {activeTab === 'tourism' && renderTourismTab()}
         {activeTab === 'help' && renderHelpTab()}
       </main>
 
-      {/* ─── FOOTER STICKY (Avis) ─── */}
+      {/* ─── FOOTER (Avis) ─── */}
       <footer className="fixed bottom-0 left-0 w-full bg-[#1a1a1a] border-t border-gray-800 p-3 z-50">
         <a
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(agency.name + ' ' + (agency.address || ''))}`}
