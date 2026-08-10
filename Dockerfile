@@ -16,12 +16,14 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NEXT_TYPESCRIPT_CHECK=false
 RUN npm run build
 
+# Copier les fichiers dans le standalone
 RUN cp -r .next/static .next/standalone/.next/ && \
     cp -r public .next/standalone/public && \
     cp -r node_modules .next/standalone/node_modules && \
     cp -r prisma .next/standalone/prisma && \
     cp -r scripts .next/standalone/scripts && \
-    cp package.json .next/standalone/package.json
+    cp package.json .next/standalone/package.json && \
+    cp init-db.sh .next/standalone/init-db.sh
 
 RUN mkdir -p /app/data
 
@@ -32,4 +34,5 @@ ENV DATABASE_URL=file:/app/data/qrtags.db
 
 WORKDIR /app/.next/standalone
 
-CMD ["sh", "/app/init-db.sh"]
+# prisma db push au démarrage (crée toutes les tables manquantes) + start server
+CMD sh -c "npx prisma db push --skip-generate --accept-data-loss 2>&1; node server.js"

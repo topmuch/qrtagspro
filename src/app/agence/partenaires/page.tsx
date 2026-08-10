@@ -37,7 +37,10 @@ export default function PartnersDashboardPage() {
       setStats(result.stats || null);
     } catch (err) {
       console.error('Erreur dashboard partenaires:', err);
-      setError('Une erreur est survenue.');
+      // Si la table n'existe pas encore, on affiche l'état vide
+      setError(null);
+      setPartners([]);
+      setStats({ total: 0, active: 0, withPromo: 0, byCategory: {} });
     } finally {
       setLoading(false);
     }

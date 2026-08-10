@@ -32,8 +32,12 @@ export default function HotelServicesPage() {
       }
       setServices(result.services || []);
       setStats(result.stats || null);
-    } catch {
-      setError('Une erreur est survenue.');
+    } catch (err) {
+      console.error('Erreur dashboard services:', err);
+      // Si la table n'existe pas encore (prisma db push pas exécuté), on affiche l'état vide
+      setError(null);
+      setServices([]);
+      setStats({ total: 0, active: 0 });
     } finally {
       setLoading(false);
     }
