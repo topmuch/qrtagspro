@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import HostView, { type HouseGuideData } from './HostView';
 import NearbyAttractions from './NearbyAttractions';
+import ServiceRequestModal from './ServiceRequestModal';
 import { getProfileMeta, type BraceletProfile } from '@/lib/bracelet-profiles';
 
 // ─── Type pour les services hôtel (récupérés via API) ──────────────────────
@@ -98,6 +99,7 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const [hotelServices, setHotelServices] = useState<HotelServiceItem[]>([]);
   const [stay, setStay] = useState<StayData | null>(null);
   const [stayLoaded, setStayLoaded] = useState(false);
+  const [selectedService, setSelectedService] = useState<HotelServiceItem | null>(null);
 
   // Langue : priorité au stay, puis au param URL, puis fr
   const effectiveLang = stay?.language || lang;
@@ -174,18 +176,22 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
 
     return (
       <div className="space-y-6">
-        {/* Services configurés par l'hôtel */}
+        {/* Services configurés par l'hôtel — cliquables */}
         {servicesHotel.length > 0 && (
           <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
             <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">🏨 {t.tabHotel}</h2>
             <div className="grid grid-cols-2 gap-3">
               {servicesHotel.map((s) => (
-                <div key={s.id} className="p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors">
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedService(s)}
+                  className="text-left p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors"
+                >
                   <span className="text-3xl mb-2 block">{s.icon}</span>
                   <h3 className="font-bold text-white text-sm leading-tight">{s.name}</h3>
                   {s.description && <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{s.description}</p>}
                   {!s.isFree && <p className="text-[10px] text-[#E3B23C] font-bold mt-1">{s.price} FCFA</p>}
-                </div>
+                </button>
               ))}
             </div>
           </section>
@@ -231,11 +237,11 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
             <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">📍 Recommandations</h2>
             <div className="grid grid-cols-2 gap-3">
               {servicesTourism.map((s) => (
-                <div key={s.id} className="p-4 bg-black rounded-xl border border-gray-700">
+                <button key={s.id} onClick={() => setSelectedService(s)} className="text-left p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors">
                   <span className="text-3xl mb-2 block">{s.icon}</span>
                   <h3 className="font-bold text-white text-sm">{s.name}</h3>
                   {s.description && <p className="text-[10px] text-gray-400 mt-0.5">{s.description}</p>}
-                </div>
+                </button>
               ))}
             </div>
           </section>
@@ -271,11 +277,11 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
             <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">🛟 {t.tabHelp}</h2>
             <div className="grid grid-cols-2 gap-3">
               {servicesHelp.map((s) => (
-                <div key={s.id} className="p-4 bg-black rounded-xl border border-gray-700 hover:border-red-500 transition-colors">
+                <button key={s.id} onClick={() => setSelectedService(s)} className="text-left p-4 bg-black rounded-xl border border-gray-700 hover:border-red-500 transition-colors">
                   <span className="text-3xl mb-2 block">{s.icon}</span>
                   <h3 className="font-bold text-white text-sm">{s.name}</h3>
                   {s.description && <p className="text-[10px] text-gray-400 mt-0.5">{s.description}</p>}
-                </div>
+                </button>
               ))}
             </div>
           </section>
@@ -399,6 +405,18 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           {t.review}
         </a>
       </footer>
+
+      {/* ─── MODAL DE DEMANDE ─── */}
+      {selectedService && (
+        <ServiceRequestModal
+          service={selectedService}
+          agencyId={agency.id}
+          reference={agency.reference}
+          roomNumber={stay?.roomNumber}
+          guestName={stay?.guestName}
+          onClose={() => setSelectedService(null)}
+        />
+      )}
     </div>
   );
 }
