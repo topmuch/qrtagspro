@@ -88,6 +88,37 @@ export async function POST(request: NextRequest) {
     });
 
     // TODO: envoyer email à l'équipe (service.assignedTeam → Team.email)
+    // Pour l'instant: console.log
+    console.log(`[service-request] Nouvelle demande: ${service.name} → équipe ${service.assignedTeam}`);
+
+    // Envoyer un email si le système email est configuré
+    try {
+      const team = await db.team.findFirst({
+        where: { agencyId, category: service.assignedTeam },
+        select: { email: true },
+      });
+      if (team?.email) {
+        const { sendEmail } = await import('@/lib/email');
+        await sendEmail({
+          to: team.email,
+          subject: `Nouvelle demande: ${service.name}${roomNumber ? ` - Ch. ${roomNumber}` : ''}`,
+          html: `
+            <h2>Nouvelle demande client</h2>
+            <p><strong>Service:</strong> ${service.name}</p>
+            <p><strong>Client:</strong> ${guestName || 'Non identifié'}</p>
+            ${roomNumber ? `<p><strong>Chambre:</strong> ${roomNumber}</p>` : ''}
+            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
+            <p><strong>Montant:</strong> ${totalAmount > 0 ? totalAmount + ' FCFA' : 'Gratuit'}</p>
+            <p style="margin-top:20px"><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://entreprise.qrtags.pro'}/agence/staff" style="background:#32ba5d;color:#000;padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:bold">Voir la demande</a></p>
+          `,
+          text: `Nouvelle demande: ${service.name} - Ch. ${roomNumber || 'N/A'} - ${guestName || 'Non identifié'}`,
+          type: 'service_request',
+        });
+        console.log(`[service-request] Email envoyé à ${team.email}`);
+      }
+    } catch (emailErr) {
+      console.error('[service-request] Email failed:', emailErr);
+    }
 
     return NextResponse.json({ success: true, requestId: request_record.id });
   } catch (error) {

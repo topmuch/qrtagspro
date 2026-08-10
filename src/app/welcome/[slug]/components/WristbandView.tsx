@@ -116,6 +116,39 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const [hotelServices, setHotelServices] = useState<HotelServiceItem[]>([]);
   const [stay, setStay] = useState<StayData | null>(null);
   const [selectedService, setSelectedService] = useState<HotelServiceItem | null>(null);
+  const [isAtHotel, setIsAtHotel] = useState<boolean | null>(null); // null = inconnu
+
+  // Geofencing GPS — détecte si le client est dans l'hôtel
+  useEffect(() => {
+    if (!agency.latitude || !agency.longitude) return;
+    if (!('geolocation' in navigator)) return;
+    let cancelled = false;
+    const checkPosition = () => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (cancelled) return;
+          const R = 6371; // km
+          const dLat = (pos.coords.latitude - agency.latitude!) * Math.PI / 180;
+          const dLng = (pos.coords.longitude - agency.longitude!) * Math.PI / 180;
+          const a = Math.sin(dLat/2)**2 + Math.cos(agency.latitude!*Math.PI/180) * Math.cos(pos.coords.latitude*Math.PI/180) * Math.sin(dLng/2)**2;
+          const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          setIsAtHotel(dist < 0.2); // 200m = périmètre hôtel
+        },
+        () => { /* GPS refusé — on reste sur l'onglet manuel */ },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    };
+    checkPosition();
+    const interval = setInterval(checkPosition, 30000); // refresh 30s
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [agency.latitude, agency.longitude]);
+
+  // Auto-bascule d'onglet selon le geofencing
+  useEffect(() => {
+    if (isAtHotel === null) return;
+    if (isAtHotel) setActiveTab('hotel');
+    else setActiveTab('tourism');
+  }, [isAtHotel]);
 
   const effectiveLang = stay?.language || lang;
   const t = effectiveLang === 'en' ? T.en : T.fr;
