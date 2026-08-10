@@ -131,6 +131,8 @@ model Agency {
   houseGuide         HouseGuide?
   hostReservations   HostReservation[]
   hostKitOrders      HostKitOrder[]
+  hotelServices      HotelService[]
+  serviceRequests    ServiceRequest[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -181,6 +183,7 @@ model Baggage {
   agency            Agency?   @relation(fields: [agencyId], references: [id], onDelete: SetNull)
   scanLogs          ScanLog[]
   damageReports     DamageReport[]
+  serviceRequests   ServiceRequest[]
 }
 
 // ScanLog model - tracks all scans for audit
@@ -789,6 +792,96 @@ model HostKitOrder {
   updatedAt       DateTime @updatedAt
   agency          Agency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
   @@index([agencyId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE HÔTEL 3 COUCHES — Services & Demandes
+// Catalogue de services configurable par l'hôtel + file de demandes
+// ════════════════════════════════════════════════════════════════
+
+model HotelService {
+  id              String   @id @default(cuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  // ─── Identité ───
+  name            String   // ex: "Serviettes supplémentaires"
+  description     String?  // ex: "Demandez des serviettes supplémentaires"
+  icon            String   @default("📋") // emoji
+
+  // ─── Type & Catégorie ───
+  // type: "request" (demande) | "order" (commande) | "booking" (réservation) | "info" (information)
+  type            String   @default("request")
+  // category: "housekeeping" (ménage) | "maintenance" | "food" (restauration) | "spa" | "reception" | "transport" | "other"
+  category        String   @default("other")
+
+  // ─── Configuration ───
+  isActive        Boolean  @default(true)
+  isFree          Boolean  @default(true)
+  price           Int      @default(0) // FCFA si payant
+  // JSON: horaires d'activité [{ day: "mon", open: "07:00", close: "21:00" }, ...]
+  // Si null → 24/7
+  schedule        String?
+  // JSON: créneaux [{ time: "10:00", capacity: 8 }, ...] (pour réservations)
+  slots           String?
+  // JSON: menu items [{ name, price, photoUrl, available }, ...] (pour commandes)
+  menu            String?
+
+  // ─── Routage staff ───
+  // Équipe destinataire: "housekeeping" | "maintenance" | "kitchen" | "spa" | "reception"
+  assignedTeam    String   @default("reception")
+
+  // ─── Onglet d'affichage ───
+  // "hotel" (Mon Hôtel) | "tourism" (Autour de moi) | "help" (Aide)
+  displayTab      String   @default("hotel")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  requests        ServiceRequest[]
+
+  @@index([agencyId])
+  @@index([category])
+  @@index([isActive])
+  @@index([displayTab])
+}
+
+model ServiceRequest {
+  id              String   @id @default(cuid())
+  agencyId        String
+  serviceId       String
+  baggageId       String?  // bracelet du client (null si walk-in)
+
+  agency          Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  service         HotelService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  baggage         Baggage? @relation(fields: [baggageId], references: [id], onDelete: SetNull)
+
+  // ─── Infos client ───
+  guestName       String?
+  roomNumber      String?
+  guestPhone      String?
+
+  // ─── Détails de la demande ───
+  // Pour les commandes: JSON [{ itemId, quantity, price }, ...]
+  items           String?
+  notes           String?  // Notes du client
+
+  // ─── Statut ───
+  // "new" (nouvelle) → "in_progress" (en cours) → "done" (traitée) → "cancelled"
+  status          String   @default("new")
+  handledBy       String?  // Nom du staff qui a traité
+  handledAt       DateTime?
+
+  // ─── Montant (si commande payante) ───
+  totalAmount     Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([agencyId])
+  @@index([serviceId])
   @@index([status])
   @@index([createdAt])
 }
