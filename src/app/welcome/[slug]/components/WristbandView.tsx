@@ -210,17 +210,17 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const ServiceCard = ({ s }: { s: HotelServiceItem }) => (
     <button
       onClick={() => setSelectedService(s)}
-      className="text-left p-4 bg-white rounded-2xl border transition-all hover:shadow-lg"
+      className="text-left p-5 bg-white rounded-2xl border transition-all hover:shadow-lg w-full"
       style={{ borderColor: C.border, boxShadow: C.shadow }}
     >
-      <div className="flex items-start gap-3">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ backgroundColor: `${C.gold}15` }}>
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-3xl sm:text-2xl shrink-0" style={{ backgroundColor: `${C.gold}15` }}>
           {s.icon}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm leading-tight" style={{ color: C.ink }}>{s.name}</h3>
-          {s.description && <p className="text-xs mt-0.5 line-clamp-2" style={{ color: C.inkLight }}>{s.description}</p>}
-          {!s.isFree && <p className="text-xs font-bold mt-1" style={{ color: C.goldDark }}>{s.price.toLocaleString('fr-FR')} FCFA</p>}
+          <h3 className="font-semibold text-base sm:text-sm leading-tight" style={{ color: C.ink }}>{s.name}</h3>
+          {s.description && <p className="text-sm sm:text-xs mt-1 line-clamp-2" style={{ color: C.inkLight }}>{s.description}</p>}
+          {!s.isFree && <p className="text-sm font-bold mt-1" style={{ color: C.goldDark }}>{s.price.toLocaleString('fr-FR')} FCFA</p>}
         </div>
       </div>
     </button>
@@ -242,30 +242,30 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
 
         {/* WiFi & Infos */}
         {agency.houseGuide && (
-          <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: C.border, boxShadow: C.shadow }}>
-            <h2 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: C.ink }}>
-              <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${C.gold}15` }}>📶</span>
+          <div className="bg-white rounded-2xl p-6 sm:p-5 border" style={{ borderColor: C.border, boxShadow: C.shadow }}>
+            <h2 className="text-lg sm:text-base font-bold mb-4 flex items-center gap-3" style={{ color: C.ink }}>
+              <span className="w-12 h-12 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-2xl sm:text-xl" style={{ backgroundColor: `${C.gold}15` }}>📶</span>
               WiFi & Informations
             </h2>
             {agency.houseGuide.wifiNetwork && (
-              <div className="bg-gray-50 rounded-xl p-3 mb-2">
-                <p className="text-xs uppercase tracking-wide mb-0.5" style={{ color: C.inkLight }}>Réseau</p>
-                <p className="font-mono font-bold text-sm" style={{ color: C.ink }}>{agency.houseGuide.wifiNetwork}</p>
-                {agency.houseGuide.wifiPassword && <p className="font-mono text-sm mt-1" style={{ color: C.ink }}>🔑 {agency.houseGuide.wifiPassword}</p>}
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-3 mb-2">
+                <p className="text-xs uppercase tracking-wide mb-1" style={{ color: C.inkLight }}>Réseau</p>
+                <p className="font-mono font-bold text-lg sm:text-sm" style={{ color: C.ink }}>{agency.houseGuide.wifiNetwork}</p>
+                {agency.houseGuide.wifiPassword && <p className="font-mono text-lg sm:text-sm mt-2" style={{ color: C.ink }}>🔑 {agency.houseGuide.wifiPassword}</p>}
               </div>
             )}
             {agency.houseGuide.houseRules && (
-              <div className="bg-gray-50 rounded-xl p-3">
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-3">
                 <p className="text-xs uppercase tracking-wide mb-1" style={{ color: C.inkLight }}>Règlement</p>
-                <p className="text-xs whitespace-pre-line" style={{ color: C.ink }}>{agency.houseGuide.houseRules}</p>
+                <p className="text-sm sm:text-xs whitespace-pre-line" style={{ color: C.ink }}>{agency.houseGuide.houseRules}</p>
               </div>
             )}
           </div>
         )}
 
         {servicesHotel.length === 0 && !agency.houseGuide && (
-          <div className="bg-white rounded-2xl p-8 text-center border" style={{ borderColor: C.border }}>
-            <p className="text-sm" style={{ color: C.inkLight }}>{t.noServices}</p>
+          <div className="bg-white rounded-2xl p-10 text-center border" style={{ borderColor: C.border }}>
+            <p className="text-base" style={{ color: C.inkLight }}>{t.noServices}</p>
           </div>
         )}
       </div>
@@ -284,8 +284,8 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
         <NearbyAttractions hotelLat={agency.latitude} hotelLng={agency.longitude} agencySlug={agency.slug} agencyId={agency.id} />
       )}
       {servicesTourism.length === 0 && (agency.latitude === null || agency.longitude === null) && (
-        <div className="bg-white rounded-2xl p-8 text-center border" style={{ borderColor: C.border }}>
-          <p className="text-sm" style={{ color: C.inkLight }}>{t.noPartners}</p>
+        <div className="bg-white rounded-2xl p-10 text-center border" style={{ borderColor: C.border }}>
+          <p className="text-base" style={{ color: C.inkLight }}>{t.noPartners}</p>
         </div>
       )}
     </div>
@@ -299,28 +299,28 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           {servicesHelp.map((s) => <ServiceCard key={s.id} s={s} />)}
         </div>
       )}
-      <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: C.border, boxShadow: C.shadow }}>
-        <div className="grid grid-cols-2 gap-3">
+      <div className="bg-white rounded-2xl p-6 sm:p-5 border" style={{ borderColor: C.border, boxShadow: C.shadow }}>
+        <div className="grid grid-cols-2 gap-4 sm:gap-3">
           <a href={`https://www.google.com/maps/dir/?api=1&destination=${agency.latitude || ''},${agency.longitude || ''}`} target="_blank" rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
-            <span className="text-2xl mb-1">📍</span>
-            <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>{t.backToHotel}</span>
+            className="flex flex-col items-center justify-center p-5 sm:p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+            <span className="text-4xl sm:text-2xl mb-2">📍</span>
+            <span className="text-sm sm:text-xs font-semibold text-center" style={{ color: C.ink }}>{t.backToHotel}</span>
           </a>
           {receptionTel && (
-            <a href={`tel:${receptionTel}`} className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
-              <span className="text-2xl mb-1">🛎️</span>
-              <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>{t.reception}</span>
+            <a href={`tel:${receptionTel}`} className="flex flex-col items-center justify-center p-5 sm:p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+              <span className="text-4xl sm:text-2xl mb-2">🛎️</span>
+              <span className="text-sm sm:text-xs font-semibold text-center" style={{ color: C.ink }}>{t.reception}</span>
             </a>
           )}
-          <a href="tel:1515" className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
-            <span className="text-2xl mb-1">🚑</span>
-            <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>{t.emergency}</span>
+          <a href="tel:1515" className="flex flex-col items-center justify-center p-5 sm:p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+            <span className="text-4xl sm:text-2xl mb-2">🚑</span>
+            <span className="text-sm sm:text-xs font-semibold text-center" style={{ color: C.ink }}>{t.emergency}</span>
           </a>
           {receptionTel && (
             <a href={`https://wa.me/${receptionTel}?text=${encodeURIComponent(effectiveLang === 'en' ? 'Hello, I need assistance.' : 'Bonjour, j\'ai besoin d\'aide.')}`} target="_blank" rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
-              <span className="text-2xl mb-1">💬</span>
-              <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>WhatsApp</span>
+              className="flex flex-col items-center justify-center p-5 sm:p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+              <span className="text-4xl sm:text-2xl mb-2">💬</span>
+              <span className="text-sm sm:text-xs font-semibold text-center" style={{ color: C.ink }}>WhatsApp</span>
             </a>
           )}
         </div>
@@ -329,33 +329,33 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   );
 
   return (
-    <div className="min-h-screen pb-28" style={{ backgroundColor: C.bg }}>
+    <div className="min-h-screen pb-32 sm:pb-28" style={{ backgroundColor: C.bg }}>
       {/* ─── HEADER LUXE ─── */}
       <header className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${C.goldLight} 0%, #FFFFFF 60%, ${C.bg} 100%)` }}>
         {/* Ligne dorée en haut */}
         <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)` }} />
 
-        <div className="pt-10 pb-8 px-6 text-center relative z-10">
+        <div className="pt-12 pb-10 sm:pt-10 sm:pb-8 px-6 text-center relative z-10">
           {agency.logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={agency.logoUrl} alt={agency.name} className="h-16 w-16 object-contain mx-auto mb-4 rounded-2xl shadow-lg" style={{ boxShadow: C.shadowHover }} />
+            <img src={agency.logoUrl} alt={agency.name} className="h-28 w-28 sm:h-20 sm:w-20 object-contain mx-auto mb-5 rounded-3xl shadow-lg" style={{ boxShadow: C.shadowHover }} />
           )}
           {/* Badge profil */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ backgroundColor: `${C.gold}20`, color: C.goldDark }}>
-            <span>{profileMeta.emoji}</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm sm:text-xs font-semibold mb-5" style={{ backgroundColor: `${C.gold}20`, color: C.goldDark }}>
+            <span className="text-base">{profileMeta.emoji}</span>
             <span>{effectiveLang === 'en' ? profileMeta.labelEn : profileMeta.label}</span>
           </div>
-          <p className="text-lg font-light tracking-wide mb-1" style={{ color: C.inkLight }}>{greeting}</p>
-          <h1 className="text-3xl font-bold mb-2 leading-tight" style={{ color: C.ink }}>{agency.name}</h1>
+          <p className="text-xl sm:text-lg font-light tracking-wide mb-2" style={{ color: C.inkLight }}>{greeting}</p>
+          <h1 className="text-4xl sm:text-3xl font-bold mb-3 leading-tight" style={{ color: C.ink }}>{agency.name}</h1>
           {/* Stay info */}
           {stay && stay.guestName ? (
-            <div className="inline-block px-4 py-1.5 rounded-full mb-2" style={{ backgroundColor: `${C.gold}15` }}>
-              <p className="text-sm font-medium" style={{ color: C.goldDark }}>
+            <div className="inline-block px-5 py-2 rounded-full mb-3" style={{ backgroundColor: `${C.gold}15` }}>
+              <p className="text-base sm:text-sm font-medium" style={{ color: C.goldDark }}>
                 {stay.guestName}{stay.roomNumber && ` · ${t.room} ${stay.roomNumber}`}
               </p>
             </div>
           ) : null}
-          <p className="text-sm" style={{ color: C.inkLight }}>{t.subtitle}</p>
+          <p className="text-base sm:text-sm" style={{ color: C.inkLight }}>{t.subtitle}</p>
         </div>
 
         {/* Décor : lignes dorées */}
@@ -374,16 +374,16 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className="flex-1 py-3.5 px-2 text-sm font-semibold transition-all relative"
+              className="flex-1 py-5 sm:py-3.5 px-3 sm:px-2 text-base sm:text-sm font-semibold transition-all relative flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-0"
               style={{
                 color: activeTab === tab.key ? C.goldDark : C.inkLight,
               }}
             >
-              <span className="mr-1">{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="text-2xl sm:text-base sm:mr-1">{tab.icon}</span>
+              <span>{tab.label}</span>
               {/* Soulignement doré */}
               {activeTab === tab.key && (
-                <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: C.gold }} />
+                <div className="absolute bottom-0 left-1/4 right-1/4 h-1 sm:h-0.5 rounded-full" style={{ backgroundColor: C.gold }} />
               )}
             </button>
           ))}
@@ -391,7 +391,7 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
       </div>
 
       {/* ─── CONTENU ─── */}
-      <main className="px-4 py-6 max-w-2xl mx-auto">
+      <main className="px-4 py-8 sm:py-6 max-w-2xl mx-auto">
         {activeTab === 'hotel' && renderHotelTab()}
         {activeTab === 'tourism' && renderTourismTab()}
         {activeTab === 'help' && renderHelpTab()}
@@ -402,7 +402,7 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
         <a
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(agency.name + ' ' + (agency.address || ''))}`}
           target="_blank" rel="noopener noreferrer"
-          className="block w-full py-3 rounded-xl font-semibold text-center transition-all hover:shadow-lg"
+          className="block w-full py-4 sm:py-3 rounded-xl font-bold text-base sm:text-sm text-center transition-all hover:shadow-lg"
           style={{ backgroundColor: C.gold, color: '#FFFFFF' }}
         >
           ⭐ {t.review}
