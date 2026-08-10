@@ -23,7 +23,7 @@ interface Props {
  */
 export default async function WelcomePage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { context = 'STANDARD', lang = 'fr' } = await searchParams;
+  const { context = 'STANDARD', lang = 'fr', ref = '' } = await searchParams;
 
   // ─── Récupère l'agence (hôtel) par son slug ───
   const agency = await db.agency.findUnique({
@@ -81,6 +81,7 @@ export default async function WelcomePage({ params, searchParams }: Props) {
       latitude: agency.latitude,
       longitude: agency.longitude,
       houseGuide: agency.houseGuide,
+      reference: ref || null,
     };
     return <WristbandView agency={agencyData} lang={lang} />;
   }

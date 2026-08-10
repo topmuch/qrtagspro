@@ -33,6 +33,21 @@ export interface WelcomeAgency {
   latitude: number | null;
   longitude: number | null;
   houseGuide: HouseGuideData | null;
+  reference: string | null; // référence du QR scanné (pour récupérer le stay)
+}
+
+// ─── Type du séjour (Stay) ─────────────────────────────────────────────────
+interface StayData {
+  id: string;
+  roomNumber: string | null;
+  guestName: string | null;
+  guestEmail: string | null;
+  guestPhone: string | null;
+  language: string;
+  checkInDate: string;
+  checkOutDate: string;
+  nbPersons: number;
+  status: string;
 }
 
 interface WristbandViewProps {
@@ -81,8 +96,13 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const [currentHour, setCurrentHour] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'hotel' | 'tourism' | 'help'>('hotel');
   const [hotelServices, setHotelServices] = useState<HotelServiceItem[]>([]);
+  const [stay, setStay] = useState<StayData | null>(null);
+  const [stayLoaded, setStayLoaded] = useState(false);
 
-  const t = lang === 'en' ? T.en : T.fr;
+  // Langue : priorité au stay, puis au param URL, puis fr
+  const effectiveLang = stay?.language || lang;
+  const t = effectiveLang === 'en' ? T.en : T.fr;
+
   const profile = (agency.braceletProfile || 'STANDARD') as BraceletProfile;
   const profileMeta = getProfileMeta(profile);
   const isHost = profile === 'HOST';
@@ -99,6 +119,25 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
     const timer = setInterval(updateGreeting, 60_000);
     return () => clearInterval(timer);
   }, [t.morning, t.afternoon, t.evening]);
+
+  // Charger le séjour (Stay) lié au bracelet si on a la référence
+  useEffect(() => {
+    if (!agency.reference) { setStayLoaded(true); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/stay?reference=${agency.reference}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled && data.found && data.stay) {
+            setStay(data.stay);
+          }
+        }
+      } catch { /* silent */ }
+      if (!cancelled) setStayLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [agency.reference]);
 
   // Charger les services hôtel via API
   useEffect(() => {
@@ -303,6 +342,15 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
           </div>
           <p className="text-white font-bold text-lg uppercase tracking-wider mb-1">{greeting}</p>
           <h1 className="text-3xl font-black text-white mb-2 leading-tight">{agency.name}</h1>
+          {/* Afficher le séjour si check-in fait */}
+          {stay && stay.guestName ? (
+            <div className="bg-black/30 rounded-full inline-block px-4 py-1.5 mb-1">
+              <p className="text-white text-sm font-medium">
+                {stay.guestName}
+                {stay.roomNumber && ` · ${effectiveLang === 'en' ? 'Room' : 'Ch.'} ${stay.roomNumber}`}
+              </p>
+            </div>
+          ) : null}
           <p className="text-white/80 text-sm font-medium">{t.subtitle}</p>
         </div>
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10 blur-3xl" />

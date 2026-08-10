@@ -111,7 +111,7 @@ export default function FinderPage() {
         // ─── Si c'est un bracelet (context=WRISTBAND), rediriger vers la page welcome ───
         if (json.status === 'active' && json.context === 'WRISTBAND' && json.agency?.slug) {
           const lang = navigator.language.startsWith('fr') ? 'fr' : navigator.language.startsWith('es') ? 'es' : 'en';
-          router.replace(`/welcome/${json.agency.slug}?context=WRISTBAND&lang=${lang}`);
+          router.replace(`/welcome/${json.agency.slug}?context=WRISTBAND&lang=${lang}&ref=${reference}`);
           return; // Ne pas setData, on redirige
         }
 
