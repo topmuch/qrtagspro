@@ -141,12 +141,12 @@ export async function GET(request: NextRequest) {
     }
 
     // ==========================================
-    // 2. FALLBACK / COMPLÉMENT VIA OPENSTREETMAP (Overpass API)
+    // 2. COMPLÉMENT OPENSTREETMAP (Overpass API)
     // ==========================================
-    // On complète avec OSM si moins de 3 résultats en DB.
-    // (L'hôtel garde le contrôle : les partenaires DB restent prioritaires
-    // et toujours affichés en premier grâce au tri par distance.)
-    if (pois.length < 3) {
+    // On complète TOUOURS avec OSM (pas seulement si < 3 résultats).
+    // Les partenaires DB restent prioritaires (tri par distance les met en premier
+    // s'ils sont plus proches que les lieux OSM).
+    if (pois.length < 10) {
       const osmPois = await fetchFromOverpass(lat, lng, radius, category);
 
       // On ajoute seulement les lieux qui ne sont pas déjà dans la DB (anti-doublon)
