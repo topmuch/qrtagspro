@@ -108,9 +108,9 @@ export async function createOrUpdateService(
 
     if (!input.name?.trim()) return { success: false, error: 'Le nom est obligatoire.' };
 
-    const validCategories = SERVICE_CATEGORIES.map((c) => c.value);
-    if (!validCategories.includes(input.category as never)) {
-      return { success: false, error: 'Catégorie invalide.' };
+    const validCategories = ['housekeeping', 'maintenance', 'food', 'spa', 'reception', 'transport', 'other'];
+    if (!validCategories.includes(input.category)) {
+      return { success: false, error: 'Catégorie invalide: ' + input.category };
     }
 
     const data = {

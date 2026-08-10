@@ -45,10 +45,20 @@ export default function ServiceForm({ service, onClose, onSaved }: ServiceFormPr
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    const result = await createOrUpdateService(form, service?.id);
-    setSubmitting(false);
-    if (result.success) onSaved();
-    else setError(result.error || 'Erreur');
+
+    try {
+      const result = await createOrUpdateService(form, service?.id);
+      setSubmitting(false);
+      if (result.success) {
+        onSaved();
+      } else {
+        setError(result.error || 'Erreur lors de la sauvegarde.');
+      }
+    } catch (err) {
+      setSubmitting(false);
+      console.error('ServiceForm submit error:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inattendue.');
+    }
   };
 
   return (

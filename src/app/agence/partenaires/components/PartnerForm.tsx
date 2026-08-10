@@ -79,26 +79,32 @@ export default function PartnerForm({ partner, onClose, onSaved }: PartnerFormPr
     setIsSubmitting(true);
     setError(null);
 
-    const result = await createOrUpdatePartner(
-      {
-        name: form.name,
-        category: form.category,
-        description: form.description || undefined,
-        latitude: parseFloat(form.latitude),
-        longitude: parseFloat(form.longitude),
-        rating: parseFloat(form.rating),
-        promoCode: form.promoCode || undefined,
-        commission: parseInt(form.commission, 10),
-      },
-      partner?.id
-    );
+    try {
+      const result = await createOrUpdatePartner(
+        {
+          name: form.name,
+          category: form.category,
+          description: form.description || undefined,
+          latitude: parseFloat(form.latitude),
+          longitude: parseFloat(form.longitude),
+          rating: parseFloat(form.rating),
+          promoCode: form.promoCode || undefined,
+          commission: parseInt(form.commission, 10),
+        },
+        partner?.id
+      );
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
 
-    if (result.success) {
-      onSaved();
-    } else {
-      setError(result.error || 'Une erreur est survenue.');
+      if (result.success) {
+        onSaved();
+      } else {
+        setError(result.error || 'Une erreur est survenue.');
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      console.error('PartnerForm submit error:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inattendue.');
     }
   };
 
