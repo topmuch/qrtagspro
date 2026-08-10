@@ -76,15 +76,16 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Créer les baggages en lot
-    // qrType 'bracelet' → context 'WRISTBAND' (apparaît dans dashboard Bracelets)
-    // qrType 'luggage' (défaut) → context 'ROOM' (comportement existant)
+    // qrType 'bracelet' → context 'WRISTBAND' + status 'active' (actif dès génération)
+    // qrType 'luggage' (défaut) → context 'ROOM' + status 'in_stock' (check-in requis)
     const context = data.qrType === 'bracelet' ? 'WRISTBAND' : 'ROOM';
+    const status = data.qrType === 'bracelet' ? 'active' : 'in_stock';
     await db.baggage.createMany({
       data: references.map(ref => ({
         reference: ref,
         type: 'voyageur',
         agencyId: agency.id,
-        status: 'in_stock',
+        status,
         context,
       })),
     });

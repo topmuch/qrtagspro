@@ -294,7 +294,8 @@ export default function GenererQRPage() {
           </div>
         )}
 
-        {/* Type de QR code */}
+        {/* Type de QR code — Bracelet uniquement pour les hôtels */}
+        {selectedAgency?.agencyType === 'hotel' && (
         <div>
           <label className="block text-sm font-semibold text-black mb-1.5">
             Type de QR code <span className="text-red-600">*</span>
@@ -329,6 +330,7 @@ export default function GenererQRPage() {
               : 'Les QR codes étiquettes apparaîtront dans "QR actifs" de l\'agence.'}
           </p>
         </div>
+        )}
 
         {/* Quantité */}
         <div>
