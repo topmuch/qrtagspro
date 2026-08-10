@@ -41,16 +41,17 @@ export const VALID_CATEGORIES = [
 
 // ─── Helper : récupère l'agencyId depuis la session ─────────────────────────
 
-async function getAgencyIdOrFail(): Promise<string> {
-  const { getSession } = await import('@/lib/session');
-  const user = await getSession();
-  if (!user) {
-    throw new Error('REDIRECT:/agence/connexion');
+async function getAgencyIdOrNull(): Promise<string | null> {
+  try {
+    const { getSession } = await import('@/lib/session');
+    const user = await getSession();
+    if (!user || user.role !== 'agency' || !user.agencyId) {
+      return null;
+    }
+    return user.agencyId;
+  } catch {
+    return null;
   }
-  if (user.role !== 'agency' || !user.agencyId) {
-    throw new Error('REDIRECT:/admin/tableau-de-bord');
-  }
-  return user.agencyId;
 }
 
 // ─── Helper : revalidatePath safe (hors contexte Next.js) ───────────────────
@@ -77,7 +78,10 @@ export async function getAgencyPartners(): Promise<{
   error?: string;
 }> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) {
+      return { success: false, error: 'Session expirée. Reconnectez-vous.' };
+    }
 
     const partners = await db.hotelPartner.findMany({
       where: { agencyId },
@@ -155,7 +159,8 @@ export async function createOrUpdatePartner(
   partnerId?: string
 ): Promise<ActionResult> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée" };
 
     // ─── Validation ───
     const name = input.name?.trim();
@@ -254,7 +259,8 @@ export async function createOrUpdatePartner(
 
 export async function togglePartnerStatus(partnerId: string): Promise<ActionResult> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée" };
 
     const partner = await db.hotelPartner.findUnique({
       where: { id: partnerId },
@@ -288,7 +294,8 @@ export async function togglePartnerStatus(partnerId: string): Promise<ActionResu
 
 export async function deletePartner(partnerId: string): Promise<ActionResult> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée" };
 
     const partner = await db.hotelPartner.findUnique({
       where: { id: partnerId },
@@ -357,7 +364,8 @@ export interface PartnerStatsResult {
  */
 export async function getPartnerStats(): Promise<PartnerStatsResult> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée" };
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

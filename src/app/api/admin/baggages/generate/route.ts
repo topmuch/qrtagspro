@@ -24,6 +24,7 @@ import { revalidatePath } from 'next/cache';
 const generateSchema = z.object({
   agencyId: z.string().min(1, 'Agency ID requis'),
   quantity: z.number().min(1).max(5000, 'Maximum 5000 QR par lot'),
+  qrType: z.enum(['luggage', 'bracelet']).default('luggage'),
 });
 
 function generateRandomCode(length = 6): string {
@@ -74,14 +75,17 @@ export async function POST(request: NextRequest) {
       references.push(await generateUniqueReference());
     }
 
-    // 3. Créer les baggages en lot (uniquement les colonnes de base)
-    // Status: 'in_stock' = en attente de check-in par l'agence
+    // 3. Créer les baggages en lot
+    // qrType 'bracelet' → context 'WRISTBAND' (apparaît dans dashboard Bracelets)
+    // qrType 'luggage' (défaut) → context 'ROOM' (comportement existant)
+    const context = data.qrType === 'bracelet' ? 'WRISTBAND' : 'ROOM';
     await db.baggage.createMany({
       data: references.map(ref => ({
         reference: ref,
         type: 'voyageur',
         agencyId: agency.id,
         status: 'in_stock',
+        context,
       })),
     });
 

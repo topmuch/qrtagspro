@@ -93,6 +93,7 @@ function Sidebar({
   onLogout,
   userName,
   agencySlug,
+  agencyType,
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -100,23 +101,35 @@ function Sidebar({
   onLogout: () => void;
   userName: string;
   agencySlug: string;
+  agencyType: string | null;
 }) {
   const pathname = usePathname();
 
-  // QRTagsPro V1 — menu réduit (hôtel)
-  const menuItems: MenuItem[] = [
+  // Menu adaptatif selon le type d'agence (hôtel vs airbnb)
+  const isAirbnb = agencyType === 'airbnb';
+
+  const hotelMenuItems: MenuItem[] = [
     { label: "Tableau de bord", icon: <Home className="w-5 h-5" />,          href: "/agence/tableau-de-bord" },
     { label: "Check-in",        icon: <LogIn className="w-5 h-5" />,          href: "/agence/check-in" },
     { label: "QR actifs",       icon: <QrCode className="w-5 h-5" />,         href: "/agence/baggages" },
     { label: "Bracelets",       icon: <Watch className="w-5 h-5" />,          href: "/agence/bracelets" },
     { label: "Partenaires POI", icon: <MapPin className="w-5 h-5" />,         href: "/agence/partenaires" },
-    { label: "Guide Maison",   icon: <BookOpen className="w-5 h-5" />,        href: "/agence/host" },
     { label: "Objets perdus",   icon: <AlertTriangle className="w-5 h-5" />,  href: "/agence/perdus" },
     { label: "Trouvailles",     icon: <CheckCircle className="w-5 h-5" />,    href: "/agence/trouvailles" },
     { label: "Assistance",      icon: <MessageCircle className="w-5 h-5" />,  href: "/agence/assistance", badge: unreadMessages },
     { label: "Intégration PMS", icon: <Settings className="w-5 h-5" />,       href: "/agence/pms" },
     { label: "Profil",          icon: <User className="w-5 h-5" />,           href: "/agence/profil" },
   ];
+
+  const airbnbMenuItems: MenuItem[] = [
+    { label: "Tableau de bord", icon: <Home className="w-5 h-5" />,          href: "/agence/tableau-de-bord" },
+    { label: "Guide Maison",   icon: <BookOpen className="w-5 h-5" />,        href: "/agence/host" },
+    { label: "Partenaires POI", icon: <MapPin className="w-5 h-5" />,         href: "/agence/partenaires" },
+    { label: "Assistance",      icon: <MessageCircle className="w-5 h-5" />,  href: "/agence/assistance", badge: unreadMessages },
+    { label: "Profil",          icon: <User className="w-5 h-5" />,           href: "/agence/profil" },
+  ];
+
+  const menuItems = isAirbnb ? airbnbMenuItems : hotelMenuItems;
 
   return (
     <>
@@ -451,6 +464,7 @@ export default function AgencyRootLayout({
           onLogout={handleLogout}
           userName={user.name || 'Agence'}
           agencySlug={agencySlug}
+          agencyType={agencyType}
         />
 
         <div className="flex-1 flex flex-col min-w-0">

@@ -52,16 +52,17 @@ export interface BraceletAnalyticsData {
  * Récupère l'agencyId depuis la session courante (cookie-based).
  * Redirige (throw) si l'utilisateur n'est pas connecté ou n'est pas une agence.
  */
-async function getAgencyIdOrFail(): Promise<string> {
-  const { getSession } = await import('@/lib/session');
-  const user = await getSession();
-  if (!user) {
-    throw new Error('REDIRECT:/agence/connexion');
+async function getAgencyIdOrNull(): Promise<string | null> {
+  try {
+    const { getSession } = await import('@/lib/session');
+    const user = await getSession();
+    if (!user || user.role !== 'agency' || !user.agencyId) {
+      return null;
+    }
+    return user.agencyId;
+  } catch {
+    return null;
   }
-  if (user.role !== 'agency' || !user.agencyId) {
-    throw new Error('REDIRECT:/admin/tableau-de-bord');
-  }
-  return user.agencyId;
 }
 
 // ─── Action : liste des commandes bracelets de l'agence ─────────────────────
@@ -82,7 +83,8 @@ export async function getAgencyBraceletOrders(): Promise<{
   error?: string;
 }> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée. Reconnectez-vous." };
 
     const orders = await db.braceletPackOrder.findMany({
       where: { agencyId },
@@ -159,7 +161,8 @@ export async function updateOrderStatus(
   newStatus: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée. Reconnectez-vous." };
 
     const order = await db.braceletPackOrder.findUnique({
       where: { id: orderId },
@@ -359,7 +362,8 @@ export async function activateBracelets(
   context: string = 'WRISTBAND'
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée. Reconnectez-vous." };
 
     // ─── 1. Vérifications préalables ───
     const order = await db.braceletPackOrder.findUnique({
@@ -466,7 +470,8 @@ export async function getBraceletAnalytics(): Promise<{
   error?: string;
 }> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée. Reconnectez-vous." };
 
     // ─── 1. Récupérer tous les wristbands de l'agence ───
     const wristbands = await db.baggage.findMany({
@@ -584,7 +589,8 @@ export async function getAgencyBraceletProfile(): Promise<{
   error?: string;
 }> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée. Reconnectez-vous." };
 
     const agency = await db.agency.findUnique({
       where: { id: agencyId },
@@ -628,7 +634,8 @@ export async function updateBraceletProfile(
   newProfile: string
 ): Promise<{ success: boolean; profile?: string; error?: string }> {
   try {
-    const agencyId = await getAgencyIdOrFail();
+    const agencyId = await getAgencyIdOrNull();
+    if (!agencyId) return { success: false, error: "Session expirée. Reconnectez-vous." };
 
     // ─── Validation ───
     if (!isValidProfile(newProfile)) {
