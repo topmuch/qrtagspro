@@ -6,22 +6,21 @@ import NearbyAttractions from './NearbyAttractions';
 import ServiceRequestModal from './ServiceRequestModal';
 import { getProfileMeta, type BraceletProfile } from '@/lib/bracelet-profiles';
 
-// ─── Type pour les services hôtel (récupérés via API) ──────────────────────
+// ─── Types ──────────────────────────────────────────────────────────────────
 interface HotelServiceItem {
   id: string;
   name: string;
   description: string | null;
   icon: string;
-  type: string; // request | order | booking | info
+  type: string;
   category: string;
   isFree: boolean;
   price: number;
   schedule: string | null;
   assignedTeam: string;
-  displayTab: string; // hotel | tourism | help
+  displayTab: string;
 }
 
-// ─── Type de l'agence sérialisée ───────────────────────────────────────────
 export interface WelcomeAgency {
   id: string;
   name: string;
@@ -34,10 +33,9 @@ export interface WelcomeAgency {
   latitude: number | null;
   longitude: number | null;
   houseGuide: HouseGuideData | null;
-  reference: string | null; // référence du QR scanné (pour récupérer le stay)
+  reference: string | null;
 }
 
-// ─── Type du séjour (Stay) ─────────────────────────────────────────────────
 interface StayData {
   id: string;
   roomNumber: string | null;
@@ -56,6 +54,26 @@ interface WristbandViewProps {
   lang: string;
 }
 
+// ─── Palette Luxe ──────────────────────────────────────────────────────────
+// Fond : blanc cassé / crème (#FAF8F5)
+// Cartes : blanc pur avec ombre douce
+// Accent : or (#C9A961) — élégant, pas tape-à-l'œil
+// Texte : gris foncé (#2C2C2C) — pas noir pur
+// Headers : gradient or pâle → blanc
+
+const C = {
+  bg: '#FAF8F5',
+  card: '#FFFFFF',
+  ink: '#2C2C2C',
+  inkLight: '#6B6B6B',
+  gold: '#C9A961',
+  goldLight: '#E8D5A3',
+  goldDark: '#A8884A',
+  border: '#E8E4DD',
+  shadow: '0 2px 12px rgba(0,0,0,0.06)',
+  shadowHover: '0 4px 20px rgba(201,169,97,0.15)',
+};
+
 // ─── Traductions ────────────────────────────────────────────────────────────
 const T = {
   fr: {
@@ -68,11 +86,11 @@ const T = {
     tabHelp: 'Aide',
     reception: 'Appeler la réception',
     emergency: 'Urgences',
-    review: '⭐ Laissez un avis sur votre séjour',
-    noServices: 'Aucun service configuré pour le moment. Demandez à la réception d\'activer le catalogue.',
+    review: 'Laisser un avis',
+    noServices: 'Aucun service configuré pour le moment.',
     noPartners: 'Aucun lieu recommandé pour le moment.',
     backToHotel: 'Retour à l\'hôtel',
-    lost: 'Je suis perdu',
+    room: 'Ch.',
   },
   en: {
     morning: 'Good Morning',
@@ -84,27 +102,23 @@ const T = {
     tabHelp: 'Help',
     reception: 'Call Reception',
     emergency: 'Emergency',
-    review: '⭐ Leave a review about your stay',
-    noServices: 'No services configured yet. Ask reception to activate the catalog.',
+    review: 'Leave a review',
+    noServices: 'No services configured yet.',
     noPartners: 'No recommended places yet.',
     backToHotel: 'Back to hotel',
-    lost: 'I am lost',
+    room: 'Room',
   },
 };
 
 export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const [greeting, setGreeting] = useState(T.fr.morning);
-  const [currentHour, setCurrentHour] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'hotel' | 'tourism' | 'help'>('hotel');
   const [hotelServices, setHotelServices] = useState<HotelServiceItem[]>([]);
   const [stay, setStay] = useState<StayData | null>(null);
-  const [stayLoaded, setStayLoaded] = useState(false);
   const [selectedService, setSelectedService] = useState<HotelServiceItem | null>(null);
 
-  // Langue : priorité au stay, puis au param URL, puis fr
   const effectiveLang = stay?.language || lang;
   const t = effectiveLang === 'en' ? T.en : T.fr;
-
   const profile = (agency.braceletProfile || 'STANDARD') as BraceletProfile;
   const profileMeta = getProfileMeta(profile);
   const isHost = profile === 'HOST';
@@ -112,7 +126,6 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   useEffect(() => {
     const updateGreeting = () => {
       const hour = new Date().getHours();
-      setCurrentHour(hour);
       if (hour < 12) setGreeting(t.morning);
       else if (hour < 18) setGreeting(t.afternoon);
       else setGreeting(t.evening);
@@ -122,26 +135,21 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
     return () => clearInterval(timer);
   }, [t.morning, t.afternoon, t.evening]);
 
-  // Charger le séjour (Stay) lié au bracelet si on a la référence
   useEffect(() => {
-    if (!agency.reference) { setStayLoaded(true); return; }
+    if (!agency.reference) return;
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch(`/api/stay?reference=${agency.reference}`);
         if (res.ok) {
           const data = await res.json();
-          if (!cancelled && data.found && data.stay) {
-            setStay(data.stay);
-          }
+          if (!cancelled && data.found && data.stay) setStay(data.stay);
         }
-      } catch { /* silent */ }
-      if (!cancelled) setStayLoaded(true);
+      } catch {}
     })();
     return () => { cancelled = true; };
   }, [agency.reference]);
 
-  // Charger les services hôtel via API
   useEffect(() => {
     if (isHost) return;
     let cancelled = false;
@@ -150,11 +158,9 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
         const res = await fetch(`/api/hotel-services?agencyId=${agency.id}`);
         if (res.ok) {
           const data = await res.json();
-          if (!cancelled && data.success) {
-            setHotelServices(data.services || []);
-          }
+          if (!cancelled && data.success) setHotelServices(data.services || []);
         }
-      } catch { /* silent */ }
+      } catch {}
     })();
     return () => { cancelled = true; };
   }, [agency.id, isHost]);
@@ -163,208 +169,169 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
   const cleanPhone = (p: string | null) => (p ? p.replace(/[\s\-().]/g, '') : null);
   const receptionTel = cleanPhone(receptionPhone);
 
-  // Services groupés par onglet
   const servicesHotel = hotelServices.filter((s) => s.displayTab === 'hotel');
   const servicesTourism = hotelServices.filter((s) => s.displayTab === 'tourism');
   const servicesHelp = hotelServices.filter((s) => s.displayTab === 'help');
+
+  // ─── Carte de service (réutilisable) ───
+  const ServiceCard = ({ s }: { s: HotelServiceItem }) => (
+    <button
+      onClick={() => setSelectedService(s)}
+      className="text-left p-4 bg-white rounded-2xl border transition-all hover:shadow-lg"
+      style={{ borderColor: C.border, boxShadow: C.shadow }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ backgroundColor: `${C.gold}15` }}>
+          {s.icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm leading-tight" style={{ color: C.ink }}>{s.name}</h3>
+          {s.description && <p className="text-xs mt-0.5 line-clamp-2" style={{ color: C.inkLight }}>{s.description}</p>}
+          {!s.isFree && <p className="text-xs font-bold mt-1" style={{ color: C.goldDark }}>{s.price.toLocaleString('fr-FR')} FCFA</p>}
+        </div>
+      </div>
+    </button>
+  );
 
   // ─── Onglet MON HÔTEL ───
   const renderHotelTab = () => {
     if (isHost && agency.houseGuide) {
       return <HostView guide={agency.houseGuide} agencyName={agency.name} agencyAddress={agency.address} lang={lang} />;
     }
-
     return (
-      <div className="space-y-6">
-        {/* Services configurés par l'hôtel — cliquables */}
+      <div className="space-y-5">
+        {/* Services */}
         {servicesHotel.length > 0 && (
-          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-            <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">🏨 {t.tabHotel}</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {servicesHotel.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedService(s)}
-                  className="text-left p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors"
-                >
-                  <span className="text-3xl mb-2 block">{s.icon}</span>
-                  <h3 className="font-bold text-white text-sm leading-tight">{s.name}</h3>
-                  {s.description && <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{s.description}</p>}
-                  {!s.isFree && <p className="text-[10px] text-[#E3B23C] font-bold mt-1">{s.price} FCFA</p>}
-                </button>
-              ))}
-            </div>
-          </section>
+          <div className="space-y-3">
+            {servicesHotel.map((s) => <ServiceCard key={s.id} s={s} />)}
+          </div>
         )}
 
-        {/* HouseGuide : WiFi + infos hôtel */}
+        {/* WiFi & Infos */}
         {agency.houseGuide && (
-          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-            <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">📶 WiFi & Infos</h2>
+          <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: C.border, boxShadow: C.shadow }}>
+            <h2 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: C.ink }}>
+              <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${C.gold}15` }}>📶</span>
+              WiFi & Informations
+            </h2>
             {agency.houseGuide.wifiNetwork && (
-              <div className="bg-black rounded-xl p-3 border border-gray-700 mb-2">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">WiFi</p>
-                <p className="text-white font-mono font-bold text-sm">{agency.houseGuide.wifiNetwork}</p>
-                {agency.houseGuide.wifiPassword && <p className="text-white font-mono text-sm">🔑 {agency.houseGuide.wifiPassword}</p>}
+              <div className="bg-gray-50 rounded-xl p-3 mb-2">
+                <p className="text-xs uppercase tracking-wide mb-0.5" style={{ color: C.inkLight }}>Réseau</p>
+                <p className="font-mono font-bold text-sm" style={{ color: C.ink }}>{agency.houseGuide.wifiNetwork}</p>
+                {agency.houseGuide.wifiPassword && <p className="font-mono text-sm mt-1" style={{ color: C.ink }}>🔑 {agency.houseGuide.wifiPassword}</p>}
               </div>
             )}
             {agency.houseGuide.houseRules && (
-              <div className="bg-black/50 rounded-xl p-3 border border-gray-800">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Règlement</p>
-                <p className="text-xs text-gray-300 whitespace-pre-line">{agency.houseGuide.houseRules}</p>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs uppercase tracking-wide mb-1" style={{ color: C.inkLight }}>Règlement</p>
+                <p className="text-xs whitespace-pre-line" style={{ color: C.ink }}>{agency.houseGuide.houseRules}</p>
               </div>
             )}
-          </section>
+          </div>
         )}
 
-        {/* État vide */}
         {servicesHotel.length === 0 && !agency.houseGuide && (
-          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800 text-center">
-            <p className="text-sm text-gray-400">{t.noServices}</p>
-          </section>
+          <div className="bg-white rounded-2xl p-8 text-center border" style={{ borderColor: C.border }}>
+            <p className="text-sm" style={{ color: C.inkLight }}>{t.noServices}</p>
+          </div>
         )}
       </div>
     );
   };
 
   // ─── Onglet AUTOUR DE MOI ───
-  const renderTourismTab = () => {
-    return (
-      <div className="space-y-6">
-        {/* Services configurés avec displayTab=tourism */}
-        {servicesTourism.length > 0 && (
-          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-            <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">📍 Recommandations</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {servicesTourism.map((s) => (
-                <button key={s.id} onClick={() => setSelectedService(s)} className="text-left p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors">
-                  <span className="text-3xl mb-2 block">{s.icon}</span>
-                  <h3 className="font-bold text-white text-sm">{s.name}</h3>
-                  {s.description && <p className="text-[10px] text-gray-400 mt-0.5">{s.description}</p>}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* NearbyAttractions — partenaires de l'hôtel uniquement (pas OSM aléatoire) */}
-        {agency.latitude !== null && agency.longitude !== null && !isHost && (
-          <NearbyAttractions
-            hotelLat={agency.latitude}
-            hotelLng={agency.longitude}
-            agencySlug={agency.slug}
-            agencyId={agency.id}
-          />
-        )}
-
-        {/* État vide */}
-        {servicesTourism.length === 0 && (agency.latitude === null || agency.longitude === null) && (
-          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800 text-center">
-            <p className="text-sm text-gray-400">{t.noPartners}</p>
-          </section>
-        )}
-      </div>
-    );
-  };
+  const renderTourismTab = () => (
+    <div className="space-y-5">
+      {servicesTourism.length > 0 && (
+        <div className="space-y-3">
+          {servicesTourism.map((s) => <ServiceCard key={s.id} s={s} />)}
+        </div>
+      )}
+      {agency.latitude !== null && agency.longitude !== null && !isHost && (
+        <NearbyAttractions hotelLat={agency.latitude} hotelLng={agency.longitude} agencySlug={agency.slug} agencyId={agency.id} />
+      )}
+      {servicesTourism.length === 0 && (agency.latitude === null || agency.longitude === null) && (
+        <div className="bg-white rounded-2xl p-8 text-center border" style={{ borderColor: C.border }}>
+          <p className="text-sm" style={{ color: C.inkLight }}>{t.noPartners}</p>
+        </div>
+      )}
+    </div>
+  );
 
   // ─── Onglet AIDE ───
-  const renderHelpTab = () => {
-    return (
-      <div className="space-y-6">
-        {/* Services d'aide configurés */}
-        {servicesHelp.length > 0 && (
-          <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-            <h2 className="text-xl font-bold text-[#E3B23C] mb-4 flex items-center gap-2">🛟 {t.tabHelp}</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {servicesHelp.map((s) => (
-                <button key={s.id} onClick={() => setSelectedService(s)} className="text-left p-4 bg-black rounded-xl border border-gray-700 hover:border-red-500 transition-colors">
-                  <span className="text-3xl mb-2 block">{s.icon}</span>
-                  <h3 className="font-bold text-white text-sm">{s.name}</h3>
-                  {s.description && <p className="text-[10px] text-gray-400 mt-0.5">{s.description}</p>}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 4 gros boutons d'aide */}
-        <section className="bg-[#1a1a1a] rounded-2xl p-5 border border-gray-800">
-          <div className="grid grid-cols-2 gap-3">
-            {/* Retour à l'hôtel → Google Maps */}
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${agency.latitude || ''},${agency.longitude || ''}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors"
-            >
-              <span className="text-2xl mb-1">📍</span>
-              <span className="text-xs font-bold text-center">{t.backToHotel}</span>
+  const renderHelpTab = () => (
+    <div className="space-y-5">
+      {servicesHelp.length > 0 && (
+        <div className="space-y-3">
+          {servicesHelp.map((s) => <ServiceCard key={s.id} s={s} />)}
+        </div>
+      )}
+      <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: C.border, boxShadow: C.shadow }}>
+        <div className="grid grid-cols-2 gap-3">
+          <a href={`https://www.google.com/maps/dir/?api=1&destination=${agency.latitude || ''},${agency.longitude || ''}`} target="_blank" rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+            <span className="text-2xl mb-1">📍</span>
+            <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>{t.backToHotel}</span>
+          </a>
+          {receptionTel && (
+            <a href={`tel:${receptionTel}`} className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+              <span className="text-2xl mb-1">🛎️</span>
+              <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>{t.reception}</span>
             </a>
-            {/* Appeler la réception */}
-            {receptionTel && (
-              <a href={`tel:${receptionTel}`} className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-[#E3B23C] transition-colors">
-                <span className="text-2xl mb-1">🛎️</span>
-                <span className="text-xs font-bold text-center">{t.reception}</span>
-              </a>
-            )}
-            {/* Urgences */}
-            <a href="tel:1515" className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-red-500 transition-colors">
-              <span className="text-2xl mb-1">🚑</span>
-              <span className="text-xs font-bold text-center">{t.emergency}</span>
+          )}
+          <a href="tel:1515" className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+            <span className="text-2xl mb-1">🚑</span>
+            <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>{t.emergency}</span>
+          </a>
+          {receptionTel && (
+            <a href={`https://wa.me/${receptionTel}?text=${encodeURIComponent(effectiveLang === 'en' ? 'Hello, I need assistance.' : 'Bonjour, j\'ai besoin d\'aide.')}`} target="_blank" rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: C.border }}>
+              <span className="text-2xl mb-1">💬</span>
+              <span className="text-xs font-semibold text-center" style={{ color: C.ink }}>WhatsApp</span>
             </a>
-            {/* WhatsApp réception */}
-            {receptionTel && (
-              <a
-                href={`https://wa.me/${receptionTel}?text=${encodeURIComponent(lang === 'en' ? 'Hello, I need assistance.' : 'Bonjour, j\'ai besoin d\'aide.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-4 bg-black rounded-xl border border-gray-700 hover:border-green-500 transition-colors"
-              >
-                <span className="text-2xl mb-1">💬</span>
-                <span className="text-xs font-bold text-center">WhatsApp</span>
-              </a>
-            )}
-          </div>
-        </section>
+          )}
+        </div>
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white pb-28">
-      {/* ─── HEADER ─── */}
-      <header
-        className="pt-8 pb-14 px-6 text-center relative overflow-hidden"
-        style={{ background: `linear-gradient(to bottom, ${profileMeta.accentColor}, #111111)` }}
-      >
-        <div className="relative z-10">
+    <div className="min-h-screen pb-28" style={{ backgroundColor: C.bg }}>
+      {/* ─── HEADER LUXE ─── */}
+      <header className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${C.goldLight} 0%, #FFFFFF 60%, ${C.bg} 100%)` }}>
+        {/* Ligne dorée en haut */}
+        <div className="h-1" style={{ background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)` }} />
+
+        <div className="pt-10 pb-8 px-6 text-center relative z-10">
           {agency.logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={agency.logoUrl} alt={agency.name} className="h-14 w-14 object-contain mx-auto mb-4 bg-white p-2 rounded-xl shadow-lg" />
+            <img src={agency.logoUrl} alt={agency.name} className="h-16 w-16 object-contain mx-auto mb-4 rounded-2xl shadow-lg" style={{ boxShadow: C.shadowHover }} />
           )}
-          <div className="inline-flex items-center gap-1.5 bg-black/30 text-white px-3 py-1 rounded-full text-xs font-bold mb-3">
+          {/* Badge profil */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ backgroundColor: `${C.gold}20`, color: C.goldDark }}>
             <span>{profileMeta.emoji}</span>
-            <span>{lang === 'en' ? profileMeta.labelEn : profileMeta.label}</span>
+            <span>{effectiveLang === 'en' ? profileMeta.labelEn : profileMeta.label}</span>
           </div>
-          <p className="text-white font-bold text-lg uppercase tracking-wider mb-1">{greeting}</p>
-          <h1 className="text-3xl font-black text-white mb-2 leading-tight">{agency.name}</h1>
-          {/* Afficher le séjour si check-in fait */}
+          <p className="text-lg font-light tracking-wide mb-1" style={{ color: C.inkLight }}>{greeting}</p>
+          <h1 className="text-3xl font-bold mb-2 leading-tight" style={{ color: C.ink }}>{agency.name}</h1>
+          {/* Stay info */}
           {stay && stay.guestName ? (
-            <div className="bg-black/30 rounded-full inline-block px-4 py-1.5 mb-1">
-              <p className="text-white text-sm font-medium">
-                {stay.guestName}
-                {stay.roomNumber && ` · ${effectiveLang === 'en' ? 'Room' : 'Ch.'} ${stay.roomNumber}`}
+            <div className="inline-block px-4 py-1.5 rounded-full mb-2" style={{ backgroundColor: `${C.gold}15` }}>
+              <p className="text-sm font-medium" style={{ color: C.goldDark }}>
+                {stay.guestName}{stay.roomNumber && ` · ${t.room} ${stay.roomNumber}`}
               </p>
             </div>
           ) : null}
-          <p className="text-white/80 text-sm font-medium">{t.subtitle}</p>
+          <p className="text-sm" style={{ color: C.inkLight }}>{t.subtitle}</p>
         </div>
-        <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-black/10 blur-2xl" />
+
+        {/* Décor : lignes dorées */}
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${C.gold}, transparent)` }} />
+        <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10" style={{ background: `radial-gradient(circle, ${C.gold}, transparent)` }} />
       </header>
 
-      {/* ─── ONGLETS 3 COUCHES ─── */}
-      <div className="sticky top-0 z-30 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800">
+      {/* ─── ONGLETS ─── */}
+      <div className="sticky top-0 z-30 backdrop-blur-md border-b" style={{ backgroundColor: `${C.bg}F0`, borderColor: C.border }}>
         <div className="max-w-2xl mx-auto flex">
           {([
             { key: 'hotel', label: t.tabHotel, icon: '🏨' },
@@ -374,39 +341,42 @@ export default function WristbandView({ agency, lang }: WristbandViewProps) {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-3 px-2 text-sm font-bold transition-all border-b-2 ${
-                activeTab === tab.key
-                  ? 'border-[#E3B23C] text-[#E3B23C]'
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
-              }`}
+              className="flex-1 py-3.5 px-2 text-sm font-semibold transition-all relative"
+              style={{
+                color: activeTab === tab.key ? C.goldDark : C.inkLight,
+              }}
             >
               <span className="mr-1">{tab.icon}</span>
               <span className="hidden sm:inline">{tab.label}</span>
+              {/* Soulignement doré */}
+              {activeTab === tab.key && (
+                <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full" style={{ backgroundColor: C.gold }} />
+              )}
             </button>
           ))}
         </div>
       </div>
 
       {/* ─── CONTENU ─── */}
-      <main className="px-4 py-6 max-w-2xl mx-auto space-y-6">
+      <main className="px-4 py-6 max-w-2xl mx-auto">
         {activeTab === 'hotel' && renderHotelTab()}
         {activeTab === 'tourism' && renderTourismTab()}
         {activeTab === 'help' && renderHelpTab()}
       </main>
 
-      {/* ─── FOOTER (Avis) ─── */}
-      <footer className="fixed bottom-0 left-0 w-full bg-[#1a1a1a] border-t border-gray-800 p-3 z-50">
+      {/* ─── FOOTER ─── */}
+      <footer className="fixed bottom-0 left-0 w-full backdrop-blur-md border-t p-3 z-50" style={{ backgroundColor: `${C.bg}F0`, borderColor: C.border }}>
         <a
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(agency.name + ' ' + (agency.address || ''))}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full py-3 bg-[#E3B23C] text-black font-bold text-center rounded-xl hover:bg-yellow-500 transition-colors"
+          target="_blank" rel="noopener noreferrer"
+          className="block w-full py-3 rounded-xl font-semibold text-center transition-all hover:shadow-lg"
+          style={{ backgroundColor: C.gold, color: '#FFFFFF' }}
         >
-          {t.review}
+          ⭐ {t.review}
         </a>
       </footer>
 
-      {/* ─── MODAL DE DEMANDE ─── */}
+      {/* ─── MODAL ─── */}
       {selectedService && (
         <ServiceRequestModal
           service={selectedService}
