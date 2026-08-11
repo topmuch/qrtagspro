@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 async function getAgencyId(): Promise<string | null> {
   try {
@@ -15,11 +15,11 @@ export async function GET() {
   const agencyId = await getAgencyId();
   if (!agencyId) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const agency = await prisma.agency.findUnique({
+  const agency = await db.agency.findUnique({
     where: { id: agencyId },
     select: { email: true, agencyType: true, name: true },
   });
-  const teams = await prisma.team.findMany({
+  const teams = await db.team.findMany({
     where: { agencyId },
     orderBy: { category: 'asc' },
   });
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   if (!category || !email) return NextResponse.json({ error: 'Catégorie et email requis' }, { status: 400 });
 
   // Upsert: une équipe par catégorie par agence (@@unique([agencyId, category]))
-  const team = await prisma.team.upsert({
+  const team = await db.team.upsert({
     where: { agencyId_category: { agencyId, category } },
     create: { agencyId, category, email, label: label || null },
     update: { email, label: label || null },
@@ -71,7 +71,7 @@ export async function PATCH(req: NextRequest) {
 
   for (const t of teams) {
     if (!t.category || !t.email) continue;
-    await prisma.team.upsert({
+    await db.team.upsert({
       where: { agencyId_category: { agencyId, category: t.category } },
       create: { agencyId, category: t.category, email: t.email, label: t.label || null },
       update: { email: t.email, label: t.label || null },

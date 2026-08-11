@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 // GET /api/modeles-appareils?q=nespresso&category=coffee
 export async function GET(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     ];
   }
 
-  const modeles = await prisma.modeleAppareil.findMany({
+  const modeles = await db.modeleAppareil.findMany({
     where,
     take: 20,
     orderBy: { brand: 'asc' },

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 import { sendEmail } from '@/lib/email';
 
 // POST /api/teams/test-email — envoie un email de test à l'équipe
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const { category } = body;
     if (!category) return NextResponse.json({ error: 'Catégorie requise' }, { status: 400 });
 
-    const team = await prisma.team.findUnique({
+    const team = await db.team.findUnique({
       where: { agencyId_category: { agencyId: user.agencyId, category } },
       include: { agency: { select: { name: true } } },
     });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 // POST /api/agency/duplicate — Duplique la config complète d'un logement
 // Body: { sourceAgencyId, newName, newSlug, newAddress? }
@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Check slug unique
-    const existing = await prisma.agency.findUnique({ where: { slug: newSlug } });
+    const existing = await db.agency.findUnique({ where: { slug: newSlug } });
     if (existing) {
       return NextResponse.json({ error: 'Ce slug est déjà utilisé' }, { status: 400 });
     }
 
-    const source = await prisma.agency.findUnique({
+    const source = await db.agency.findUnique({
       where: { id: user.agencyId },
       include: {
         houseGuide: true,
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     if (!source) return NextResponse.json({ error: 'Agence source introuvable' }, { status: 404 });
 
     // 1. Create new agency
-    const newAgency = await prisma.agency.create({
+    const newAgency = await db.agency.create({
       data: {
         name: newName.trim(),
         slug: newSlug.trim(),
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 2. Lie l'utilisateur courant au nouveau logement (peut switcher entre les deux)
-    await prisma.user.update({
+    await db.user.update({
       where: { id: user.userId },
       data: { agencyId: newAgency.id },
     });
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     // 3. Duplique HouseGuide (si existe)
     if (source.houseGuide) {
       const g = source.houseGuide;
-      await prisma.houseGuide.create({
+      await db.houseGuide.create({
         data: {
           agencyId: newAgency.id,
           wifiNetwork: g.wifiNetwork,
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Duplique Teams
     for (const team of source.teams) {
-      await prisma.team.create({
+      await db.team.create({
         data: {
           agencyId: newAgency.id,
           category: team.category,
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
 
     // 5. Duplique HotelServices (avec modeleId, photoCustom, etapes, etc.)
     for (const s of source.hotelServices) {
-      await prisma.hotelService.create({
+      await db.hotelService.create({
         data: {
           agencyId: newAgency.id,
           name: s.name,
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
 
     // 6. Duplique ServiceTemplates personnalisés (pas les globaux)
     for (const t of source.serviceTemplates) {
-      await prisma.serviceTemplate.create({
+      await db.serviceTemplate.create({
         data: {
           agencyId: newAgency.id,
           name: t.name, nameEn: t.nameEn, nameEs: t.nameEs,
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
 
     // 7. Duplique HotelPartners
     for (const p of source.hotelPartners) {
-      await prisma.hotelPartner.create({
+      await db.hotelPartner.create({
         data: {
           agencyId: newAgency.id,
           name: p.name, category: p.category,

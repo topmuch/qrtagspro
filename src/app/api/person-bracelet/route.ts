@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 // Helper — récupère l'agencyId depuis la session
 async function getAgencyIdOrNull(): Promise<string | null> {
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   if (agencyView === '1') {
     const agencyId = await getAgencyIdOrNull();
     if (!agencyId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const personnes = await prisma.personBracelet.findMany({
+    const personnes = await db.personBracelet.findMany({
       where: { agencyId },
       include: { baggage: true },
       orderBy: { createdAt: 'desc' },
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
   // Public: by reference
   if (!reference) return NextResponse.json({ error: 'Missing reference' }, { status: 400 });
-  const baggage = await prisma.baggage.findUnique({
+  const baggage = await db.baggage.findUnique({
     where: { reference },
     include: { personBracelet: true },
   });
@@ -56,10 +56,10 @@ export async function POST(req: NextRequest) {
 
   // Check if baggage already linked to a person
   if (baggageId) {
-    const existing = await prisma.personBracelet.findUnique({ where: { baggageId } });
+    const existing = await db.personBracelet.findUnique({ where: { baggageId } });
     if (existing) {
       // Update instead of create
-      const updated = await prisma.personBracelet.update({
+      const updated = await db.personBracelet.update({
         where: { id: existing.id },
         data: {
           personName, personType, birthDate: birthDate ? new Date(birthDate) : null,
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const person = await prisma.personBracelet.create({
+  const person = await db.personBracelet.create({
     data: {
       agencyId,
       baggageId: baggageId || null,
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
 
   // Mark baggage as PERSON context
   if (baggageId) {
-    await prisma.baggage.update({ where: { id: baggageId }, data: { context: 'PERSON' } });
+    await db.baggage.update({ where: { id: baggageId }, data: { context: 'PERSON' } });
   }
 
   return NextResponse.json({ success: true, person });
@@ -102,7 +102,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   const { id, status, lastSeenLocation } = body;
 
-  const updated = await prisma.personBracelet.update({
+  const updated = await db.personBracelet.update({
     where: { id },
     data: {
       ...(status && { status }),

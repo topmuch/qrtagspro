@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 import { sendEmail } from '@/lib/email';
 
 // POST /api/person-bracelet/alert — partage position + email alerte
@@ -11,14 +11,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing params' }, { status: 400 });
   }
 
-  const person = await prisma.personBracelet.findUnique({
+  const person = await db.personBracelet.findUnique({
     where: { id: personBraceletId },
     include: { baggage: true },
   });
   if (!person) return NextResponse.json({ error: 'Person not found' }, { status: 404 });
 
   // Save position alert
-  const alert = await prisma.positionAlert.create({
+  const alert = await db.positionAlert.create({
     data: {
       personBraceletId,
       latitude, longitude,
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   });
 
   // Update person status
-  await prisma.personBracelet.update({
+  await db.personBracelet.update({
     where: { id: personBraceletId },
     data: {
       status: 'found',
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  await prisma.positionAlert.update({
+  await db.positionAlert.update({
     where: { id: alert.id },
     data: { emailSent: true, emailRecipients },
   });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 async function getAgencyId(): Promise<string | null> {
   try {
@@ -15,7 +15,7 @@ export async function GET() {
   const agencyId = await getAgencyId();
   if (!agencyId) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const agency = await prisma.agency.findUnique({
+  const agency = await db.agency.findUnique({
     where: { id: agencyId },
     select: {
       name: true, address: true,
@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   const { address, latitude, longitude, phone, contactPhone } = body;
 
-  const updated = await prisma.agency.update({
+  const updated = await db.agency.update({
     where: { id: agencyId },
     data: {
       ...(address !== undefined && { address }),
