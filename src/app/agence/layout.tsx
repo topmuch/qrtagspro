@@ -25,6 +25,7 @@ import {
   BookOpen,
   LayoutGrid,
   Inbox,
+  Shield,
 } from "lucide-react";
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -120,6 +121,7 @@ function Sidebar({
     { label: "Check-in Bracelet", icon: <Watch className="w-5 h-5" />,          href: "/agence/check-in-bracelet" },
     { label: "Partenaires POI", icon: <MapPin className="w-5 h-5" />,         href: "/agence/partenaires" },
     { label: "Objets trouvés",  icon: <AlertTriangle className="w-5 h-5" />,  href: "/agence/objets-trouves" },
+    { label: "Bracelets Personnes", icon: <Shield className="w-5 h-5" />,   href: "/agence/personnes" },
     { label: "Trouvailles",     icon: <CheckCircle className="w-5 h-5" />,    href: "/agence/trouvailles" },
     { label: "Assistance",      icon: <MessageCircle className="w-5 h-5" />,  href: "/agence/assistance", badge: unreadMessages },
     { label: "Intégration PMS", icon: <Settings className="w-5 h-5" />,       href: "/agence/pms" },
@@ -129,6 +131,8 @@ function Sidebar({
   const airbnbMenuItems: MenuItem[] = [
     { label: "Tableau de bord", icon: <Home className="w-5 h-5" />,          href: "/agence/tableau-de-bord" },
     { label: "Guide Maison",   icon: <BookOpen className="w-5 h-5" />,        href: "/agence/host" },
+    { label: "Services",        icon: <LayoutGrid className="w-5 h-5" />,     href: "/agence/services" },
+    { label: "Bracelets Personnes", icon: <Shield className="w-5 h-5" />,   href: "/agence/personnes" },
     { label: "Partenaires POI", icon: <MapPin className="w-5 h-5" />,         href: "/agence/partenaires" },
     { label: "Assistance",      icon: <MessageCircle className="w-5 h-5" />,  href: "/agence/assistance", badge: unreadMessages },
     { label: "Profil",          icon: <User className="w-5 h-5" />,           href: "/agence/profil" },

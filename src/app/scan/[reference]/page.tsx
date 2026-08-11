@@ -115,6 +115,13 @@ export default function FinderPage() {
           return; // Ne pas setData, on redirige
         }
 
+        // ─── Si c'est un bracelet PERSONNE (context=PERSON), rediriger vers la page "personne trouvée" ───
+        if (json.status === 'active' && json.context === 'PERSON') {
+          const lang = navigator.language.startsWith('fr') ? 'fr' : navigator.language.startsWith('es') ? 'es' : 'en';
+          router.replace(`/personne-trouvee/${reference}?lang=${lang}`);
+          return;
+        }
+
         setData(json);
       } catch (err) {
         console.error('[finder] fetch error:', err);

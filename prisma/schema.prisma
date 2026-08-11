@@ -137,6 +137,7 @@ model Agency {
   teams              Team[]
   stays              Stay[]
   lostItems          LostItem[]
+  personBracelets    PersonBracelet[]
 }
 
 // Baggage model (QRTags "Tag")
@@ -189,6 +190,7 @@ model Baggage {
   damageReports     DamageReport[]
   serviceRequests   ServiceRequest[]
   stays             Stay[]
+  personBracelet    PersonBracelet?
 }
 
 // ScanLog model - tracks all scans for audit
@@ -842,6 +844,14 @@ model HotelService {
   // "hotel" (Mon Hôtel) | "tourism" (Autour de moi) | "help" (Aide)
   displayTab      String   @default("hotel")
 
+  // ─── Module v2 : Mode d'emploi appareil ───
+  // Si type = "info" et category = "guide", peut être lié à un ModèleAppareil
+  modeleId         String?  // référence vers ModeleAppareil (autocomplétion)
+  photoCustom      String?  // photo personnalisée (remplace photo du modèle)
+  videoUrl         String?  // URL vidéo YouTube (surcharge du modèle)
+  etapes           String?  // JSON i18n: étapes d'utilisation (surcharge)
+  depannage        String?  // JSON i18n: dépannage (surcharge)
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -851,6 +861,7 @@ model HotelService {
   @@index([category])
   @@index([isActive])
   @@index([displayTab])
+  @@index([modeleId])
 }
 
 model ServiceRequest {
@@ -990,4 +1001,92 @@ model LostItem {
   @@index([agencyId])
   @@index([status])
   @@index([category])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE v2 — RÉFÉRENTIEL APPAREILS (mode d'emploi pré-rempli)
+// ════════════════════════════════════════════════════════════════
+// Catalogue global de modèles d'appareils (Nespresso, Bosch, Samsung TV, etc.)
+// utilisés par les services type "mode d'emploi" pour pré-remplir
+// photo + vidéo YouTube + notice étapes + dépannage
+model ModeleAppareil {
+  id              String   @id @default(cuid())
+  // Identité
+  category        String   // "coffee" | "washing" | "tv" | "climate" | "jacuzzi" | "bbq" | "heating"
+  brand           String   // ex: "Nespresso"
+  model           String   // ex: "Essenza Mini"
+  // Médias
+  photoUrl        String?  // photo officielle (URL externe)
+  videoUrl        String?  // URL YouTube (mode d'emploi)
+  // Notices i18n (JSON: { fr: [...], en: [...], es: [...] })
+  // etapes: [{ title, description }, ...] — étapes d'utilisation
+  etapes          String?  // JSON i18n
+  // depannage: [{ problem, solution }, ...] — problèmes courants + solutions
+  depannage       String?  // JSON i18n
+  // Recherche
+  searchKey       String?  // "nespresso essenza mini" (lowercase, pour autocomplétion)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([category])
+  @@index([brand])
+  @@index([searchKey])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE v2 — BRACELET PERSONNE (sécurité enfant/senior)
+// ════════════════════════════════════════════════════════════════
+// Bracelet QR porté par une personne (enfant, senior, personne vulnérable)
+// Scan → page "Personne trouvée" → bouton appeler contact + partager position
+model PersonBracelet {
+  id              String   @id @default(cuid())
+  agencyId        String?  // agence propriétaire (null si particulier)
+  agency          Agency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  // Liaison au QR baggage
+  baggageId       String?  @unique
+  baggage         Baggage? @relation(fields: [baggageId], references: [id], onDelete: Cascade)
+  // Profil de la personne
+  personName      String   // ex: "Lucas Dupont"
+  personType      String   @default("child") // "child" | "senior" | "medical" | "other"
+  birthDate       DateTime?
+  language        String   @default("fr") // langue préférée de la personne
+  // Description physique (pour identification)
+  description     String?  // ex: "Garçon, 6 ans, cheveux bruns, lunettes"
+  photoUrl        String?  // photo de la personne
+  // Infos médicales (optionnel)
+  medicalInfo     String?  // ex: "Asthmatique - ventoline dans sac à dos"
+  allergies       String?  // ex: "Arachide, pénicilline"
+  bloodType       String?  // ex: "A+"
+  // Contacts d'urgence (JSON: [{ name, phone, relation }])
+  emergencyContacts String? // JSON
+  // Statut
+  status          String   @default("active") // "active" | "lost" | "found" | "returned"
+  lastSeenAt      DateTime? // dernière fois vu
+  lastSeenLocation String? // dernière position connue
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([agencyId])
+  @@index([status])
+  @@index([personType])
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE v2 — ALERTES POSITION (partage GPS personne trouvée)
+// ════════════════════════════════════════════════════════════════
+model PositionAlert {
+  id              String   @id @default(cuid())
+  personBraceletId String
+  personBracelet  PersonBracelet @relation(fields: [personBraceletId], references: [id], onDelete: Cascade)
+  // Position partagée
+  latitude        Float
+  longitude       Float
+  // Infos du trouveur
+  finderName      String?  // nom optionnel
+  finderPhone     String?  // téléphone optionnel
+  finderMessage   String?  // message optionnel
+  // Email envoyé aux contacts
+  emailSent       Boolean  @default(false)
+  emailRecipients String?  // liste des emails notifiés
+  createdAt       DateTime @default(now())
+  @@index([personBraceletId])
+  @@index([createdAt])
 }

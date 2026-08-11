@@ -39,6 +39,15 @@ sqlite3 "$DB_FILE" "UPDATE User SET password='$ADMIN_HASH', role='superadmin' WH
 COUNT=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM User WHERE email='admin@qrtags.com' AND role='superadmin';" 2>/dev/null)
 echo "✅ Superadmin en DB: $COUNT"
 
-# 4. Démarrer le serveur
+# 4. Seeds catalogue (idempotents)
+echo "🌱 Seed catalogue services hôtel..."
+node scripts/seed-services.cjs 2>&1 || true
+echo "🌱 Seed catalogue services Airbnb..."
+node scripts/seed-airbnb-services.cjs 2>&1 || true
+echo "🌱 Seed référentiel modèles appareils..."
+node scripts/seed-modeles-appareils.cjs 2>&1 || true
+echo "✅ Seeds terminés"
+
+# 5. Démarrer le serveur
 echo "🚀 Démarrage Next.js..."
 exec node server.js
