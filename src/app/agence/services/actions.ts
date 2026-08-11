@@ -93,6 +93,11 @@ interface ServiceInput {
   menu?: string;
   assignedTeam: string;
   displayTab: string;
+  modeleId?: string | null;
+  photoCustom?: string | null;
+  videoUrl?: string | null;
+  etapes?: string | null;
+  depannage?: string | null;
 }
 
 export async function createOrUpdateService(
@@ -105,7 +110,7 @@ export async function createOrUpdateService(
 
     if (!input.name?.trim()) return { success: false, error: 'Le nom est obligatoire.' };
 
-    const validCategories = ['housekeeping', 'maintenance', 'food', 'spa', 'reception', 'transport', 'other'];
+    const validCategories = ['housekeeping', 'maintenance', 'food', 'spa', 'reception', 'transport', 'guide', 'other'];
     if (!validCategories.includes(input.category)) {
       return { success: false, error: 'Catégorie invalide: ' + input.category };
     }
@@ -123,6 +128,11 @@ export async function createOrUpdateService(
       menu: input.menu || null,
       assignedTeam: input.assignedTeam || 'reception',
       displayTab: input.displayTab || 'hotel',
+      modeleId: input.modeleId || null,
+      photoCustom: input.photoCustom || null,
+      videoUrl: input.videoUrl || null,
+      etapes: input.etapes || null,
+      depannage: input.depannage || null,
     };
 
     if (serviceId) {

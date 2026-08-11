@@ -7,6 +7,7 @@ export const SERVICE_CATEGORIES = [
   { value: 'spa', label: 'Spa & Bien-être', icon: '💆' },
   { value: 'reception', label: 'Réception', icon: '🛎️' },
   { value: 'transport', label: 'Transport', icon: '🚖' },
+  { value: 'guide', label: 'Mode d’emploi appareil', icon: '📖' },
   { value: 'other', label: 'Autre', icon: '📋' },
 ];
 
@@ -46,6 +47,11 @@ export interface HotelServiceSummary {
   menu: string | null;
   assignedTeam: string;
   displayTab: string;
+  modeleId: string | null;
+  photoCustom: string | null;
+  videoUrl: string | null;
+  etapes: string | null;
+  depannage: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
