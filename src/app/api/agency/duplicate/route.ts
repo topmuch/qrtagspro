@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Lie l'utilisateur courant au nouveau logement (peut switcher entre les deux)
     await db.user.update({
-      where: { id: user.userId },
+      where: { id: user.id },
       data: { agencyId: newAgency.id },
     });
 
@@ -81,9 +81,15 @@ export async function POST(req: NextRequest) {
           houseRules: g.houseRules,
           checkInTime: g.checkInTime,
           checkOutTime: g.checkOutTime,
-          parkingInfo: g.parkingInfo,
-          emergencyContacts: g.emergencyContacts,
-          localTips: g.localTips,
+          checkInInstructions: g.checkInInstructions,
+          checkOutInstructions: g.checkOutInstructions,
+          homeTutorials: g.homeTutorials,
+          hostRecommendations: g.hostRecommendations,
+          hostName: g.hostName,
+          hostPhone: g.hostPhone,
+          hostWelcomeMessage: g.hostWelcomeMessage,
+          photos: g.photos,
+          isActive: g.isActive,
         },
       });
     }
@@ -149,11 +155,12 @@ export async function POST(req: NextRequest) {
           agencyId: newAgency.id,
           name: p.name, category: p.category,
           description: p.description,
-          address: p.address, latitude: p.latitude, longitude: p.longitude,
-          phone: p.phone, email: p.email, website: p.website,
-          imageUrl: p.imageUrl, rating: p.rating,
-          isActive: p.isActive, isFavorite: p.isFavorite,
-          clickCount: 0, // reset
+          latitude: p.latitude, longitude: p.longitude,
+          rating: p.rating,
+          promoCode: p.promoCode,
+          commission: p.commission,
+          isVerified: p.isVerified,
+          isActive: p.isActive,
         },
       });
     }

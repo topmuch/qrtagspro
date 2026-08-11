@@ -65,7 +65,7 @@ export async function PATCH(req: NextRequest) {
   if (!agencyId) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   const body = await req.json();
-  const { teams } = body as Array<{ category: string; email: string; label?: string }>;
+  const teams = body.teams as Array<{ category: string; email: string; label?: string }>;
 
   if (!Array.isArray(teams)) return NextResponse.json({ error: 'Format invalide' }, { status: 400 });
 

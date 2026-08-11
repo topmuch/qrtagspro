@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
           ? `Un usuario ha encontrado a ${person.personName}.\n\nUbicación: ${mapsLink}\nUsuario: ${finderName || 'Anónimo'} (${finderPhone || 'sin teléfono'})\nMensaje: ${finderMessage || '—'}\n\nPor favor contáctelo lo antes posible.`
           : `Une personne a retrouvé ${person.personName}.\n\nPosition : ${mapsLink}\nTrouveur : ${finderName || 'Anonyme'} (${finderPhone || 'pas de téléphone'})\nMessage : ${finderMessage || '—'}\n\nMerci de le contacter dans les plus brefs délais.`;
 
-        await sendEmail({ to: emails, subject, text });
+        await sendEmail({ to: emails, subject, text, html: `<p>${text.replace(/\n/g, '<br>')}</p>` });
       }
     } catch (e) {
       console.error('Email alert error:', e);
